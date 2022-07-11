@@ -85,7 +85,7 @@ mod tests
 	};
 	use clinvoice_finance::Money;
 	use clinvoice_match::MatchJob;
-	use clinvoice_schema::{chrono::Utc, Invoice, InvoiceDate};
+	use clinvoice_schema::{chrono, Invoice, InvoiceDate};
 	use futures::TryFutureExt;
 	use pretty_assertions::assert_eq;
 
@@ -111,7 +111,7 @@ mod tests
 					&connection,
 					organization,
 					None,
-					Utc::now(),
+					chrono::Utc::now(),
 					Duration::from_secs(900),
 					Default::default(),
 					Default::default(),
@@ -123,12 +123,12 @@ mod tests
 
 		job.client.location = mars;
 		job.client.name = format!("Not {}", job.client.name);
-		job.date_close = Some(Utc::now());
+		job.date_close = Some(chrono::Utc::now());
 		job.increment = Duration::from_secs(300);
 		job.invoice = Invoice {
 			date: Some(InvoiceDate {
-				issued: Utc::now(),
-				paid: Some(Utc::now()),
+				issued: chrono::Utc::now(),
+				paid: Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
 			}),
 			hourly_rate: Money::new(200_00, 2, Default::default()),
 		};

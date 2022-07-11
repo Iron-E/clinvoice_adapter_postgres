@@ -278,7 +278,7 @@ mod tests
 				&connection,
 				organization.clone(),
 				Some(Utc.ymd(2011, 03, 17).and_hms(13, 07, 07)),
-				Utc.ymd(2011, 03, 17).and_hms(13, 07, 07),
+				Utc.ymd(2011, 03, 17).and_hms(12, 07, 07),
 				Duration::from_secs(900),
 				Invoice {
 					date: Some(InvoiceDate {
