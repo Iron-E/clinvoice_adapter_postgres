@@ -131,7 +131,13 @@ async fn init_jobs(connection: impl Executor<'_, Database = Postgres>) -> Result
 			notes text NOT NULL,
 			objectives text NOT NULL,
 
-			CONSTRAINT jobs__invoice_date CHECK (invoice_date_paid IS null OR invoice_date_issued IS NOT null)
+			CONSTRAINT jobs__date_integrity CHECK (date_open < date_close),
+			CONSTRAINT jobs__invoice_date_integrity CHECK
+			(
+				(invoice_date_issued IS null AND invoice_date_paid IS null) OR
+				(invoice_date_paid IS null OR
+					(invoice_date_issued IS NOT null AND invoice_date_issued < invoice_date_paid))
+			)
 		);"
 	)
 	.execute(connection)
@@ -152,6 +158,7 @@ async fn init_timesheets(connection: impl Executor<'_, Database = Postgres>) -> 
 			time_end timestamptz,
 			work_notes text NOT NULL,
 
+			CONSTRAINT timesheets__date_integrity CHECK (time_begin < time_end),
 			CONSTRAINT timesheets__employee_job_time_uq UNIQUE (employee_id, job_id, time_begin)
 		);"
 	)
