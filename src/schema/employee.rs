@@ -7,7 +7,7 @@ mod employee_adapter;
 mod updatable;
 
 /// Implementor of the [`EmployeeAdapter`](clinvoice_adapter::schema::EmployeeAdapter) for the
-/// Postgres database.
+/// [`Postgres`](sqlx::Postgres) database.
 pub struct PgEmployee;
 
 impl PgEmployee

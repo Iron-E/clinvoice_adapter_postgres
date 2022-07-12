@@ -18,6 +18,8 @@ mod updatable;
 
 const COLUMNS: LocationColumns<&str> = LocationColumns::default();
 
+/// Implementor of the [`LocationAdapter`](clinvoice_adapter::schema::LocationAdapter) for the
+/// [`Postgres`](sqlx::Postgres) database.
 pub struct PgLocation;
 
 impl PgLocation

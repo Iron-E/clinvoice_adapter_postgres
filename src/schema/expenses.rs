@@ -9,6 +9,8 @@ mod deletable;
 mod expenses_adapter;
 mod updatable;
 
+/// Implementor of the [`ExpensesAdapter`](clinvoice_adapter::schema::ExpensesAdapter) for the
+/// [`Postgres`](sqlx::Postgres) database.
 pub struct PgExpenses;
 
 impl PgExpenses

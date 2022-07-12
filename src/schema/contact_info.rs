@@ -9,6 +9,8 @@ mod contact_info_adapter;
 mod deletable;
 mod updatable;
 
+/// Implementor of the [`ContactInfoAdapter`](clinvoice_adapter::schema::ContactInfoAdapter) for the
+/// [`Postgres`](sqlx::Postgres) database.
 pub struct PgContactInfo;
 
 impl PgContactInfo

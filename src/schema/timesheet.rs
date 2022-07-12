@@ -14,6 +14,8 @@ mod deletable;
 mod timesheet_adapter;
 mod updatable;
 
+/// Implementor of the [`TimesheetAdapter`](clinvoice_adapter::schema::TimesheetAdapter) for the
+/// [`Postgres`](sqlx::Postgres) database.
 pub struct PgTimesheet;
 
 impl PgTimesheet

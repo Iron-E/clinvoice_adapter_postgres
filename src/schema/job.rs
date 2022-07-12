@@ -9,6 +9,8 @@ mod deletable;
 mod job_adapter;
 mod updatable;
 
+/// Implementor of the [`JobAdapter`](clinvoice_adapter::schema::JobAdapter) for the
+/// [`Postgres`](sqlx::Postgres) database.
 pub struct PgJob;
 
 impl PgJob

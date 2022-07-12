@@ -8,6 +8,8 @@ mod deletable;
 mod organization_adapter;
 mod updatable;
 
+/// Implementor of the [`OrganizationAdapter`](clinvoice_adapter::schema::OrganizationAdapter) for the
+/// [`Postgres`](sqlx::Postgres) database.
 pub struct PgOrganization;
 
 impl PgOrganization
