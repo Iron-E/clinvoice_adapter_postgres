@@ -5,15 +5,15 @@ use sqlx::{postgres::PgRow, Error, PgPool, Result, Row};
 
 use super::PgLocation;
 
-mod contact_info_adapter;
+mod contact_adapter;
 mod deletable;
 mod updatable;
 
-/// Implementor of the [`ContactInfoAdapter`](clinvoice_adapter::schema::ContactInfoAdapter) for the
+/// Implementor of the [`ContactAdapter`](clinvoice_adapter::schema::ContactAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.
-pub struct PgContactInfo;
+pub struct PgContact;
 
-impl PgContactInfo
+impl PgContact
 {
 	pub(super) async fn row_to_view(
 		connection: &PgPool,

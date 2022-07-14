@@ -3,7 +3,7 @@
 //! This module implements adapters (and associated adapter types such as
 //! [`Deletable`](clinvoice_adapter::Deletable)) for a Postgres filesystem.
 
-mod contact_info;
+mod contact;
 mod employee;
 mod expenses;
 mod initializable;
@@ -20,7 +20,7 @@ use clinvoice_adapter::{
 };
 use clinvoice_match::Match;
 use clinvoice_schema::Id;
-pub use contact_info::PgContactInfo;
+pub use contact::PgContact;
 pub use employee::PgEmployee;
 pub use expenses::PgExpenses;
 pub use job::PgJob;

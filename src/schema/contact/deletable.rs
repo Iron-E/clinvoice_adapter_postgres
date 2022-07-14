@@ -8,10 +8,10 @@ use clinvoice_adapter::{
 use clinvoice_schema::Contact;
 use sqlx::{query_builder::Separated, Executor, Postgres, QueryBuilder, Result};
 
-use super::PgContactInfo;
+use super::PgContact;
 
 #[async_trait::async_trait]
-impl Deletable for PgContactInfo
+impl Deletable for PgContact
 {
 	type Db = Postgres;
 	type Entity = Contact;
@@ -73,14 +73,14 @@ impl Deletable for PgContactInfo
 mod tests
 {
 	use clinvoice_adapter::{
-		schema::{ContactInfoAdapter, LocationAdapter},
+		schema::{ContactAdapter, LocationAdapter},
 		Deletable,
 	};
 	use clinvoice_match::{MatchContact, MatchStr};
-	use clinvoice_schema::{Contact, ContactKind};
+	use clinvoice_schema::ContactKind;
 	use pretty_assertions::assert_eq;
 
-	use crate::schema::{util, PgContactInfo, PgLocation};
+	use crate::schema::{util, PgContact, PgLocation};
 
 	#[tokio::test]
 	async fn delete()
@@ -91,49 +91,46 @@ mod tests
 			.await
 			.unwrap();
 
-		let contact_info = [
-			Contact {
-				label: "Office Number".into(),
-				kind: ContactKind::Phone("555-555-5555".into()),
-			},
-			Contact {
-				label: "Primary Email".into(),
-				kind: ContactKind::Email("somethingsomething@invalid.com".into()),
-			},
-			Contact {
-				label: "Mailing Address".into(),
-				kind: ContactKind::Address(earth),
-			},
-		];
-
-		PgContactInfo::create(&connection, contact_info.iter())
-			.await
-			.unwrap();
-		PgContactInfo::delete(
-			&connection,
-			[&contact_info[0], &contact_info[1]].into_iter(),
+		let (office_number, primary_email, mailing_address) = futures::try_join!(
+			PgContact::create(
+				&connection,
+				ContactKind::Phone("555-555-5555".into()),
+				"Office Number".into()
+			),
+			PgContact::create(
+				&connection,
+				ContactKind::Email("somethingsomething@invalid.com".into()),
+				"Primary Email".into()
+			),
+			PgContact::create(
+				&connection,
+				ContactKind::Address(earth),
+				"Mailing Address".into()
+			),
 		)
-		.await
 		.unwrap();
 
+		PgContact::delete(&connection, [&office_number, &primary_email].into_iter())
+			.await
+			.unwrap();
+
 		assert_eq!(
-			PgContactInfo::retrieve(&connection, &MatchContact {
-				label: MatchStr::Or(
-					contact_info
-						.iter()
-						.map(|c| c.label.clone().into())
-						.collect()
-				),
+			PgContact::retrieve(&connection, &MatchContact {
+				label: MatchStr::Or(vec![
+					office_number.label.clone().into(),
+					primary_email.label.clone().into(),
+					mailing_address.label.clone().into(),
+				]),
 				..Default::default()
 			})
 			.await
 			.unwrap()
 			.as_slice(),
-			&[contact_info[2].clone()],
+			&[mailing_address.clone()],
 		);
 
 		// cleanup for the test; since labels are the primary key
-		PgContactInfo::delete(&connection, [&contact_info[2]].into_iter())
+		PgContact::delete(&connection, [mailing_address].iter())
 			.await
 			.unwrap();
 	}

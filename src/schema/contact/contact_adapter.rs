@@ -1,43 +1,37 @@
 use clinvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
-	schema::{columns::ContactColumns, ContactInfoAdapter},
+	schema::{columns::ContactColumns, ContactAdapter},
 };
 use clinvoice_match::MatchContact;
-use clinvoice_schema::Contact;
+use clinvoice_schema::{Contact, ContactKind};
 use futures::TryStreamExt;
 use sqlx::{Executor, PgPool, Postgres, QueryBuilder, Result};
 
-use super::PgContactInfo;
+use super::PgContact;
 use crate::schema::write_where_clause;
 
 #[async_trait::async_trait]
-impl ContactInfoAdapter for PgContactInfo
+impl ContactAdapter for PgContact
 {
 	async fn create(
 		connection: impl 'async_trait + Executor<'_, Database = Postgres> + Send,
-		contact_info: impl 'async_trait + Iterator<Item = &Contact> + Send,
-	) -> Result<()>
+		kind: ContactKind,
+		label: String,
+	) -> Result<Contact>
 	{
-		let mut peekable = contact_info.peekable();
-		if peekable.peek().is_some()
-		{
-			QueryBuilder::new(
-				"INSERT INTO contact_information
-					(address_id, email, label, other, phone) ",
-			)
-			.push_values(peekable, |mut q, contact| {
-				q.push_bind(contact.kind.address().map(|a| a.id))
-					.push_bind(contact.kind.email())
-					.push_bind(&contact.label)
-					.push_bind(contact.kind.other())
-					.push_bind(contact.kind.phone());
-			})
-			.prepare()
-			.execute(connection)
-			.await?;
-		}
+		sqlx::query!(
+			"INSERT INTO contact_information (address_id, email, label, other, phone)
+			VALUES ($1, $2, $3, $4, $5);",
+			kind.address().map(|a| a.id),
+			kind.email(),
+			&label,
+			kind.other(),
+			kind.phone(),
+		)
+		.execute(connection)
+		.await?;
 
-		Ok(())
+		Ok(Contact { kind, label })
 	}
 
 	async fn retrieve(connection: &PgPool, match_condition: &MatchContact) -> Result<Vec<Contact>>
@@ -62,7 +56,7 @@ impl ContactInfoAdapter for PgContactInfo
 		query
 			.prepare()
 			.fetch(connection)
-			.and_then(|row| async move { PgContactInfo::row_to_view(connection, COLUMNS, &row).await })
+			.and_then(|row| async move { PgContact::row_to_view(connection, COLUMNS, &row).await })
 			.try_collect()
 			.await
 	}
