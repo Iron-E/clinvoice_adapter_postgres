@@ -47,15 +47,13 @@ impl Updatable for PgJob
 					.push_bind(e.id)
 					.push_bind(e.increment);
 
-				if let Some(ref date) = e.invoice.date.pg_sanitize()
+				match e.invoice.date.pg_sanitize()
 				{
-					q.push_bind(date.issued).push_bind(date.paid);
-				}
-				else
-				{
-					q.push_bind(None::<DateTime<Utc>>)
-						.push_bind(None::<DateTime<Utc>>);
-				}
+					Some(ref date) => q.push_bind(date.issued).push_bind(date.paid),
+					_ => q
+						.push_bind(None::<DateTime<Utc>>)
+						.push_bind(None::<DateTime<Utc>>),
+				};
 
 				q.push_bind(
 					e.invoice

@@ -67,18 +67,15 @@ impl PgLocation
 
 			PgSchema::write_where_clause(
 				PgSchema::write_where_clause(
-					if match_condition.outer == MatchOuterLocation::None
+					match match_condition.outer
 					{
-						PgSchema::write_where_clause(
+						MatchOuterLocation::None => PgSchema::write_where_clause(
 							Default::default(),
 							outer_columns.outer_id,
 							&MatchOption::<Id>::None,
 							query,
-						)
-					}
-					else
-					{
-						Default::default()
+						),
+						_ => Default::default(),
 					},
 					outer_columns.id,
 					&match_condition.id,
