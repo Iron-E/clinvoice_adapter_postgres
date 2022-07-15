@@ -34,9 +34,9 @@ use crate::fmt::{PgInterval, PgTimestampTz};
 
 /// Write [`Match::Any`], [`MatchStr::Any`], [`MatchOption::Any`], or [`MatchSet::Any`] in a way
 /// that will produce valid syntax.
-fn write_any<Db>(query: &mut QueryBuilder<Db>, context: WriteContext)
+fn write_any<TDb>(query: &mut QueryBuilder<TDb>, context: WriteContext)
 where
-	Db: Database,
+	TDb: Database,
 {
 	query.push(context).push(sql::TRUE);
 }
@@ -65,9 +65,9 @@ fn write_context_scope_start<TDb, const NEGATE: bool>(
 /// # See also
 ///
 /// * [`write_context_scope_start`]
-fn write_context_scope_end<Db>(query: &mut QueryBuilder<Db>)
+fn write_context_scope_end<TDb>(query: &mut QueryBuilder<TDb>)
 where
-	Db: Database,
+	TDb: Database,
 {
 	query.push(')');
 }
@@ -86,16 +86,16 @@ where
 /// If any the following:
 ///
 /// * `ident` is empty.
-fn write_boolean_group<D, Db, I, M, const UNION: bool>(
-	query: &mut QueryBuilder<Db>,
+fn write_boolean_group<TDb, TIdent, TIter, TMatch, const UNION: bool>(
+	query: &mut QueryBuilder<TDb>,
 	context: WriteContext,
-	ident: D,
-	conditions: &mut I,
+	ident: TIdent,
+	conditions: &mut TIter,
 ) where
-	D: Copy + Display,
-	Db: Database,
-	I: Iterator<Item = M>,
-	PgSchema: WriteWhereClause<Db, M>,
+	TIdent: Copy + Display,
+	TDb: Database,
+	TIter: Iterator<Item = TMatch>,
+	PgSchema: WriteWhereClause<TDb, TMatch>,
 {
 	write_context_scope_start::<_, false>(query, context);
 
