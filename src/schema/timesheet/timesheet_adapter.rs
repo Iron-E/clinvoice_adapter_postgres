@@ -23,7 +23,7 @@ use clinvoice_schema::{
 	Timesheet,
 };
 use futures::{TryFutureExt, TryStreamExt};
-use sqlx::{PgPool, Result};
+use sqlx::{Acquire, PgPool, Postgres, Result};
 
 use super::PgTimesheet;
 use crate::{
@@ -35,14 +35,16 @@ use crate::{
 #[async_trait::async_trait]
 impl TimesheetAdapter for PgTimesheet
 {
-	async fn create(
-		connection: &PgPool,
+	async fn create<'c, TConn>(
+		connection: TConn,
 		employee: Employee,
 		expenses: Vec<(String, Money, String)>,
 		job: Job,
 		time_begin: DateTime<Utc>,
 		time_end: Option<DateTime<Utc>>,
 	) -> Result<Timesheet>
+	where
+		TConn: Acquire<'c, Database = Postgres> + Send,
 	{
 		connection
 			.begin()

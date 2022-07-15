@@ -15,13 +15,14 @@ pub struct PgJob;
 
 impl PgJob
 {
-	pub(super) async fn row_to_view<TJobColumns, TOrgColumns>(
-		connection: impl Executor<'_, Database = Postgres>,
+	pub(super) async fn row_to_view<'c, TConn, TJobColumns, TOrgColumns>(
+		connection: TConn,
 		columns: JobColumns<TJobColumns>,
 		organization_columns: OrganizationColumns<TOrgColumns>,
 		row: &PgRow,
 	) -> Result<Job>
 	where
+		TConn: Executor<'c, Database = Postgres>,
 		TJobColumns: AsRef<str>,
 		TOrgColumns: AsRef<str>,
 	{

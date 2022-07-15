@@ -5,7 +5,7 @@ use clinvoice_adapter::{
 use clinvoice_match::MatchLocation;
 use clinvoice_schema::Location;
 use futures::TryStreamExt;
-use sqlx::{PgPool, Result, Row};
+use sqlx::{Executor, PgPool, Postgres, Result, Row};
 
 use super::PgLocation;
 use crate::fmt::PgLocationRecursiveCte;
@@ -13,7 +13,13 @@ use crate::fmt::PgLocationRecursiveCte;
 #[async_trait::async_trait]
 impl LocationAdapter for PgLocation
 {
-	async fn create(connection: &PgPool, name: String, outer: Option<Location>) -> Result<Location>
+	async fn create<'c, TConn>(
+		connection: TConn,
+		name: String,
+		outer: Option<Location>,
+	) -> Result<Location>
+	where
+		TConn: Executor<'c, Database = Postgres>,
 	{
 		let row = sqlx::query!(
 			"INSERT INTO locations (name, outer_id) VALUES ($1, $2) RETURNING id;",

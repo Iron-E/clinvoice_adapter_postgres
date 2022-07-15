@@ -6,7 +6,7 @@ use clinvoice_adapter::{
 use clinvoice_match::MatchEmployee;
 use clinvoice_schema::Employee;
 use futures::TryStreamExt;
-use sqlx::{PgPool, QueryBuilder, Result};
+use sqlx::{Executor, Pool, Postgres, QueryBuilder, Result};
 
 use super::PgEmployee;
 use crate::PgSchema;
@@ -14,12 +14,14 @@ use crate::PgSchema;
 #[async_trait::async_trait]
 impl EmployeeAdapter for PgEmployee
 {
-	async fn create(
-		connection: &PgPool,
+	async fn create<'c, TConn>(
+		connection: TConn,
 		name: String,
 		status: String,
 		title: String,
 	) -> Result<Employee>
+	where
+		TConn: Executor<'c, Database = Postgres>,
 	{
 		let row = sqlx::query!(
 			"INSERT INTO employees (name, status, title) VALUES ($1, $2, $3) RETURNING id;",
@@ -38,8 +40,10 @@ impl EmployeeAdapter for PgEmployee
 		})
 	}
 
-	async fn retrieve(connection: &PgPool, match_condition: &MatchEmployee)
-		-> Result<Vec<Employee>>
+	async fn retrieve(
+		connection: &Pool<Postgres>,
+		match_condition: &MatchEmployee,
+	) -> Result<Vec<Employee>>
 	{
 		const COLUMNS: EmployeeColumns<&'static str> = EmployeeColumns::default();
 

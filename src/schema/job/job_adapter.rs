@@ -17,7 +17,7 @@ use clinvoice_schema::{
 	Organization,
 };
 use futures::{TryFutureExt, TryStreamExt};
-use sqlx::{PgPool, Result};
+use sqlx::{Executor, PgPool, Postgres, Result};
 
 use super::PgJob;
 use crate::{
@@ -29,8 +29,8 @@ use crate::{
 #[async_trait::async_trait]
 impl JobAdapter for PgJob
 {
-	async fn create(
-		connection: &PgPool,
+	async fn create<'c, TConn>(
+		connection: TConn,
 		client: Organization,
 		date_close: Option<DateTime<Utc>>,
 		date_open: DateTime<Utc>,
@@ -39,6 +39,8 @@ impl JobAdapter for PgJob
 		notes: String,
 		objectives: String,
 	) -> Result<Job>
+	where
+		TConn: Executor<'c, Database = Postgres>,
 	{
 		let standardized_rate = ExchangeRates::new()
 			.await

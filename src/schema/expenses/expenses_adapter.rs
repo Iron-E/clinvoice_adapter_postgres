@@ -17,11 +17,13 @@ const COLUMNS: ExpenseColumns<&'static str> = ExpenseColumns::default();
 #[async_trait::async_trait]
 impl ExpensesAdapter for PgExpenses
 {
-	async fn create(
-		connection: impl 'async_trait + Executor<'_, Database = Postgres> + Send,
+	async fn create<'c, TConn>(
+		connection: TConn,
 		expenses: Vec<(String, Money, String)>,
 		timesheet_id: Id,
 	) -> Result<Vec<Expense>>
+	where
+		TConn: Executor<'c, Database = Postgres>,
 	{
 		if expenses.is_empty()
 		{

@@ -11,13 +11,12 @@ impl Deletable for PgLocation
 	type Db = Postgres;
 	type Entity = Location;
 
-	async fn delete<'e, 'i>(
-		connection: impl 'async_trait + Executor<'_, Database = Self::Db>,
-		entities: impl 'async_trait + Iterator<Item = &'i Self::Entity> + Send,
-	) -> Result<()>
+	async fn delete<'c, 'e, 'i, TConn, TIter>(connection: TConn, entities: TIter) -> Result<()>
 	where
 		'e: 'i,
 		Self::Entity: 'e,
+		TConn: Executor<'c, Database = Self::Db>,
+		TIter: Iterator<Item = &'i Self::Entity> + Send,
 	{
 		fn mapper(l: &Location) -> Id
 		{

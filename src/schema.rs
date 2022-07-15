@@ -76,21 +76,22 @@ impl PgSchema
 	/// * [`ColumnsToSql::push_set`] for how the `SET` clause is generated.
 	/// * [`ColumnsToSql::push_update_where`] for how the `WHERE` condition is generated.
 	/// * [`QueryBuilder::push_values`] for what function to use for `push_values`.
-	async fn update<'args, C>(
+	async fn update<'args, TColumns, TFn>(
 		connection: &mut Transaction<'_, Postgres>,
-		columns: C,
-		push_values: impl FnOnce(&mut QueryBuilder<'args, Postgres>),
+		columns: TColumns,
+		push_values: TFn,
 	) -> Result<()>
 	where
-		C: ColumnsToSql,
+		TColumns: ColumnsToSql,
+		TFn: FnOnce(&mut QueryBuilder<'args, Postgres>),
 	{
 		let mut query = QueryBuilder::new(sql::UPDATE);
 
 		query
-			.push(As(C::TABLE_NAME, C::DEFAULT_ALIAS))
+			.push(As(TColumns::TABLE_NAME, TColumns::DEFAULT_ALIAS))
 			.push(sql::SET);
 
-		let values_alias = SnakeCase::from((C::DEFAULT_ALIAS, 'V'));
+		let values_alias = SnakeCase::from((TColumns::DEFAULT_ALIAS, 'V'));
 		columns.push_set_to(&mut query, values_alias);
 
 		query.push(sql::FROM).push('(');
@@ -106,7 +107,7 @@ impl PgSchema
 			.push(')')
 			.push(sql::WHERE);
 
-		columns.push_update_where_to(&mut query, C::DEFAULT_ALIAS, values_alias);
+		columns.push_update_where_to(&mut query, TColumns::DEFAULT_ALIAS, values_alias);
 
 		query.prepare().execute(connection).await?;
 

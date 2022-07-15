@@ -13,11 +13,13 @@ use crate::schema::write_where_clause;
 #[async_trait::async_trait]
 impl ContactAdapter for PgContact
 {
-	async fn create(
-		connection: impl 'async_trait + Executor<'_, Database = Postgres> + Send,
+	async fn create<'c, TConn>(
+		connection: TConn,
 		kind: ContactKind,
 		label: String,
 	) -> Result<Contact>
+	where
+		TConn: Executor<'c, Database = Postgres>,
 	{
 		sqlx::query!(
 			"INSERT INTO contact_information (address_id, email, label, other, phone)

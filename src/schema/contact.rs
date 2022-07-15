@@ -1,7 +1,7 @@
 use clinvoice_adapter::schema::columns::ContactColumns;
 use clinvoice_schema::{Contact, ContactKind};
 use futures::TryFutureExt;
-use sqlx::{postgres::PgRow, Error, PgPool, Result, Row};
+use sqlx::{postgres::PgRow, Error, Executor, Postgres, Result, Row};
 
 use super::PgLocation;
 
@@ -15,11 +15,13 @@ pub struct PgContact;
 
 impl PgContact
 {
-	pub(super) async fn row_to_view(
-		connection: &PgPool,
+	pub(super) async fn row_to_view<'c, TConn>(
+		connection: TConn,
 		columns: ContactColumns<&str>,
 		row: &PgRow,
 	) -> Result<Contact>
+	where
+		TConn: Executor<'c, Database = Postgres>,
 	{
 		Ok(Contact {
 			label: row.get(columns.label),

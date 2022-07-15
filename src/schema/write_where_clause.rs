@@ -27,7 +27,7 @@ use clinvoice_match::{
 	MatchStr,
 	MatchTimesheet,
 };
-use sqlx::{Database, PgPool, Postgres, QueryBuilder, Result};
+use sqlx::{Database, Executor, Postgres, QueryBuilder, Result};
 
 use super::{PgLocation, PgSchema};
 use crate::fmt::{PgInterval, PgTimestampTz};
@@ -46,11 +46,11 @@ where
 /// # See also
 ///
 /// * [`write_context_scope_end`]
-fn write_context_scope_start<Db, const NEGATE: bool>(
-	query: &mut QueryBuilder<Db>,
+fn write_context_scope_start<TDb, const NEGATE: bool>(
+	query: &mut QueryBuilder<TDb>,
 	context: WriteContext,
 ) where
-	Db: Database,
+	TDb: Database,
 {
 	query.push(context);
 	if NEGATE
@@ -126,14 +126,16 @@ fn write_boolean_group<D, Db, I, M, const UNION: bool>(
 /// # Warnings
 ///
 /// * Does not guard against SQL injection.
-fn write_comparison<Db>(
-	query: &mut QueryBuilder<Db>,
+fn write_comparison<TDb, TIdent, TComparand>(
+	query: &mut QueryBuilder<TDb>,
 	context: WriteContext,
-	ident: impl Copy + Display,
+	ident: TIdent,
 	comparator: &str,
-	comparand: impl Copy + Display,
+	comparand: TComparand,
 ) where
-	Db: Database,
+	TDb: Database,
+	TIdent: Copy + Display,
+	TComparand: Copy + Display,
 {
 	query
 		.separated(' ')
@@ -156,15 +158,16 @@ fn write_comparison<Db>(
 /// # See also
 ///
 /// * [`WriteWhereClause::write_where_clause`].
-pub(super) async fn write_match_contact<A>(
-	connection: &PgPool,
+pub(super) async fn write_match_contact<'c, TConn, TIdent>(
+	connection: TConn,
 	context: WriteContext,
-	ident: A,
+	ident: TIdent,
 	match_condition: &MatchContact,
 	query: &mut QueryBuilder<'_, Postgres>,
 ) -> Result<WriteContext>
 where
-	A: Copy + Display + Send + Sync,
+	TConn: Executor<'c, Database = Postgres>,
+	TIdent: Copy + Display + Send + Sync,
 {
 	let columns = ContactColumns::default().scope(ident);
 
@@ -201,14 +204,15 @@ where
 /// Append `"{context} NOT ({match_condition})"` to the `query`.
 ///
 /// The args are the same as [`WriteSql::write_where`].
-fn write_negated<Db, M>(
-	query: &mut QueryBuilder<Db>,
+fn write_negated<TDb, TIdent, TMatch>(
+	query: &mut QueryBuilder<TDb>,
 	context: WriteContext,
-	ident: impl Copy + Display,
-	match_condition: M,
+	ident: TIdent,
+	match_condition: TMatch,
 ) where
-	Db: Database,
-	PgSchema: WriteWhereClause<Db, M>,
+	TDb: Database,
+	TIdent: Copy + Display,
+	PgSchema: WriteWhereClause<TDb, TMatch>,
 {
 	write_context_scope_start::<_, true>(query, context);
 
@@ -226,12 +230,14 @@ impl<T> WriteWhereClause<Postgres, &Match<T>> for PgSchema
 where
 	T: Display + PartialEq,
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &Match<T>,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		match match_condition
 		{
@@ -267,12 +273,14 @@ impl<T> WriteWhereClause<Postgres, &MatchOption<T>> for PgSchema
 where
 	T: Display + PartialEq,
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchOption<T>,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		match match_condition
 		{
@@ -320,12 +328,14 @@ where
 
 impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchSet<MatchExpense>,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		match match_condition
 		{
@@ -390,12 +400,14 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchStr<String>,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		// NOTE: we cannot use certain helpers defined above, as some do not
 		// sanitize `match_condition` and are thus susceptible to SQL injection.
@@ -452,12 +464,14 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchEmployee,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		let columns = EmployeeColumns::default().scope(ident);
 
@@ -482,12 +496,14 @@ impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchExpense,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		let columns = ExpenseColumns::default().scope(ident);
 
@@ -518,12 +534,14 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchInvoice> for PgSchema
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchInvoice,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		let columns = JobColumns::default().scope(ident);
 
@@ -549,12 +567,14 @@ impl WriteWhereClause<Postgres, &MatchInvoice> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchJob,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		let columns = JobColumns::default().scope(ident);
 
@@ -601,12 +621,14 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchOrganization,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		let columns = OrganizationColumns::default().scope(ident);
 
@@ -621,12 +643,14 @@ impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 {
-	fn write_where_clause(
+	fn write_where_clause<TIdent>(
 		context: WriteContext,
-		ident: impl Copy + Display,
+		ident: TIdent,
 		match_condition: &MatchTimesheet,
 		query: &mut QueryBuilder<Postgres>,
 	) -> WriteContext
+	where
+		TIdent: Copy + Display,
 	{
 		let columns = TimesheetColumns::default().scope(ident);
 

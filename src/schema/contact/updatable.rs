@@ -11,13 +11,14 @@ impl Updatable for PgContact
 	type Db = Postgres;
 	type Entity = Contact;
 
-	async fn update<'e, 'i>(
+	async fn update<'e, 'i, TIter>(
 		connection: &mut Transaction<Self::Db>,
-		entities: impl 'async_trait + Iterator<Item = &'i Self::Entity> + Send,
+		entities: TIter,
 	) -> Result<()>
 	where
 		'e: 'i,
 		Self::Entity: 'e,
+		TIter: Clone + Iterator<Item = &'i Self::Entity> + Send,
 	{
 		let mut peekable_entities = entities.peekable();
 

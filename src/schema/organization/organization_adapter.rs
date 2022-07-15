@@ -9,7 +9,7 @@ use clinvoice_adapter::{
 use clinvoice_match::MatchOrganization;
 use clinvoice_schema::{Location, Organization};
 use futures::TryStreamExt;
-use sqlx::{PgPool, Result};
+use sqlx::{Executor, PgPool, Postgres, Result};
 
 use super::PgOrganization;
 use crate::{fmt::PgLocationRecursiveCte, schema::PgLocation, PgSchema};
@@ -17,7 +17,13 @@ use crate::{fmt::PgLocationRecursiveCte, schema::PgLocation, PgSchema};
 #[async_trait::async_trait]
 impl OrganizationAdapter for PgOrganization
 {
-	async fn create(connection: &PgPool, location: Location, name: String) -> Result<Organization>
+	async fn create<'c, TConn>(
+		connection: TConn,
+		location: Location,
+		name: String,
+	) -> Result<Organization>
+	where
+		TConn: Executor<'c, Database = Postgres>,
 	{
 		let row = sqlx::query!(
 			"INSERT INTO organizations (location_id, name) VALUES ($1, $2) RETURNING id;",
