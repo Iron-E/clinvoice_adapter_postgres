@@ -72,6 +72,7 @@ mod tests
 			OrganizationAdapter,
 			TimesheetAdapter,
 		},
+		Retrievable,
 		Updatable,
 	};
 	use clinvoice_finance::{Currency, Money};
@@ -128,8 +129,11 @@ mod tests
 		)
 		.unwrap();
 
+		// {{{
+		let mut transaction = connection.begin().await.unwrap();
+
 		let mut timesheet = PgTimesheet::create(
-			&connection,
+			&mut transaction,
 			employee,
 			vec![(
 				"Travel".into(),
@@ -142,6 +146,9 @@ mod tests
 		)
 		.await
 		.unwrap();
+
+		transaction.commit().await.unwrap();
+		// }}}
 
 		let new_expense = PgExpenses::create(
 			&connection,

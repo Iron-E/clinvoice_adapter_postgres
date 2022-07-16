@@ -36,6 +36,7 @@ mod tests
 	use clinvoice_adapter::{
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Deletable,
+		Retrievable,
 	};
 	use clinvoice_finance::{Currency, ExchangeRates, Exchangeable, Money};
 	use clinvoice_match::{Match, MatchJob};

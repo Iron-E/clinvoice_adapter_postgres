@@ -34,6 +34,7 @@ mod tests
 	use clinvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
 		Deletable,
+		Retrievable,
 	};
 	use clinvoice_match::{Match, MatchOrganization};
 	use pretty_assertions::assert_eq;

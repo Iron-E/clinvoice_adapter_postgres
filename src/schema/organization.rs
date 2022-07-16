@@ -1,12 +1,13 @@
+mod deletable;
+mod organization_adapter;
+mod retrievable;
+mod updatable;
+
 use clinvoice_adapter::schema::columns::OrganizationColumns;
 use clinvoice_schema::Organization;
 use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
 
 use super::PgLocation;
-
-mod deletable;
-mod organization_adapter;
-mod updatable;
 
 /// Implementor of the [`OrganizationAdapter`](clinvoice_adapter::schema::OrganizationAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.

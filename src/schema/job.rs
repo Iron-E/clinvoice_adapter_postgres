@@ -1,13 +1,14 @@
+mod deletable;
+mod job_adapter;
+mod retrievable;
+mod updatable;
+
 use clinvoice_adapter::schema::columns::{JobColumns, OrganizationColumns};
 use clinvoice_finance::{Decimal, Money};
 use clinvoice_schema::{Invoice, InvoiceDate, Job};
 use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
 
 use super::{util, PgOrganization};
-
-mod deletable;
-mod job_adapter;
-mod updatable;
 
 /// Implementor of the [`JobAdapter`](clinvoice_adapter::schema::JobAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.

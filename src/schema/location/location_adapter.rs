@@ -1,14 +1,8 @@
-use clinvoice_adapter::{
-	fmt::{sql, QueryBuilderExt, TableToSql},
-	schema::{columns::LocationColumns, LocationAdapter},
-};
-use clinvoice_match::MatchLocation;
+use clinvoice_adapter::schema::LocationAdapter;
 use clinvoice_schema::Location;
-use futures::TryStreamExt;
-use sqlx::{Executor, PgPool, Postgres, Result, Row};
+use sqlx::{Executor, Postgres, Result};
 
 use super::PgLocation;
-use crate::fmt::PgLocationRecursiveCte;
 
 #[async_trait::async_trait]
 impl LocationAdapter for PgLocation
@@ -35,35 +29,11 @@ impl LocationAdapter for PgLocation
 			outer: outer.map(|o| o.into()),
 		})
 	}
-
-	async fn retrieve(connection: &PgPool, match_condition: &MatchLocation)
-		-> Result<Vec<Location>>
-	{
-		const COLUMNS: LocationColumns<&'static str> = LocationColumns::default();
-
-		let mut query = Self::query_with_recursive(match_condition);
-
-		query
-			.push(sql::SELECT)
-			.push(COLUMNS.default_scope().id)
-			.push_from(
-				PgLocationRecursiveCte::from(match_condition),
-				LocationColumns::<char>::DEFAULT_ALIAS,
-			)
-			.prepare()
-			.fetch(connection)
-			.and_then(|row| PgLocation::retrieve_by_id(connection, row.get(COLUMNS.id)))
-			.try_collect()
-			.await
-	}
 }
 
 #[cfg(test)]
 mod tests
 {
-	use std::collections::HashSet;
-
-	use clinvoice_match::{MatchLocation, MatchOuterLocation};
 	use pretty_assertions::assert_eq;
 
 	use super::{LocationAdapter, PgLocation};
@@ -126,53 +96,5 @@ mod tests
 		let utah_outer_id = utah.outer.map(|o| o.id);
 		assert_eq!(utah_outer_id, Some(usa.id));
 		assert_eq!(utah_outer_id, database_utah.outer_id);
-	}
-
-	#[tokio::test]
-	async fn retrieve()
-	{
-		let connection = util::connect().await;
-
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
-
-		let usa = PgLocation::create(&connection, "USA".into(), Some(earth.clone()))
-			.await
-			.unwrap();
-
-		let (arizona, utah) = futures::try_join!(
-			PgLocation::create(&connection, "Arizona".into(), Some(usa.clone())),
-			PgLocation::create(&connection, "Utah".into(), Some(usa.clone())),
-		)
-		.unwrap();
-
-		// Assert ::retrieve retrieves accurately from the DB
-		assert_eq!(
-			PgLocation::retrieve(&connection, &MatchLocation {
-				id: earth.id.into(),
-				outer: MatchOuterLocation::None,
-				..Default::default()
-			})
-			.await
-			.unwrap()
-			.as_slice(),
-			&[earth]
-		);
-
-		assert_eq!(
-			[utah, arizona].into_iter().collect::<HashSet<_>>(),
-			PgLocation::retrieve(&connection, &MatchLocation {
-				outer: MatchOuterLocation::Some(Box::new(MatchLocation {
-					id: usa.id.into(),
-					..Default::default()
-				})),
-				..Default::default()
-			})
-			.await
-			.unwrap()
-			.into_iter()
-			.collect::<HashSet<_>>()
-		);
 	}
 }

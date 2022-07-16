@@ -1,13 +1,14 @@
+mod deletable;
+mod expenses_adapter;
+mod retrievable;
+mod updatable;
+
 use clinvoice_adapter::schema::columns::ExpenseColumns;
 use clinvoice_finance::{Decimal, Money};
 use clinvoice_schema::Expense;
 use sqlx::{postgres::PgRow, Result, Row};
 
 use super::util;
-
-mod deletable;
-mod expenses_adapter;
-mod updatable;
 
 /// Implementor of the [`ExpensesAdapter`](clinvoice_adapter::schema::ExpensesAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.

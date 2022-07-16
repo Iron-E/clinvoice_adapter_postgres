@@ -43,6 +43,7 @@ mod tests
 			TimesheetAdapter,
 		},
 		Deletable,
+		Retrievable,
 	};
 	use clinvoice_finance::{Currency, ExchangeRates, Exchangeable, Money};
 	use clinvoice_match::{Match, MatchExpense, MatchTimesheet};
@@ -100,41 +101,52 @@ mod tests
 		.await
 		.unwrap();
 
-		let (timesheet, timesheet2, timesheet3) = futures::try_join!(
-			PgTimesheet::create(
-				&connection,
-				employee.clone(),
-				Vec::new(),
-				job.clone(),
-				Utc::now(),
-				None
-			),
-			PgTimesheet::create(
-				&connection,
-				employee.clone(),
-				vec![(
-					"Flight".into(),
-					Money::new(300_56, 2, Currency::Usd),
-					"Trip to Hawaii for research".into()
-				)],
-				job.clone(),
-				Utc.ymd(2022, 06, 08).and_hms(15, 27, 00),
-				Some(Utc.ymd(2022, 06, 09).and_hms(07, 00, 00)),
-			),
-			PgTimesheet::create(
-				&connection,
-				employee,
-				vec![(
-					"Food".into(),
-					Money::new(10_17, 2, Currency::Usd),
-					"Takeout".into()
-				)],
-				job.clone(),
-				Utc::now(),
-				None
-			),
+		// {{{
+		let mut transaction = connection.begin().await.unwrap();
+
+		let timesheet = PgTimesheet::create(
+			&mut transaction,
+			employee.clone(),
+			Vec::new(),
+			job.clone(),
+			Utc::now(),
+			None,
 		)
+		.await
 		.unwrap();
+
+		let timesheet2 = PgTimesheet::create(
+			&mut transaction,
+			employee.clone(),
+			vec![(
+				"Flight".into(),
+				Money::new(300_56, 2, Currency::Usd),
+				"Trip to Hawaii for research".into(),
+			)],
+			job.clone(),
+			Utc.ymd(2022, 06, 08).and_hms(15, 27, 00),
+			Some(Utc.ymd(2022, 06, 09).and_hms(07, 00, 00)),
+		)
+		.await
+		.unwrap();
+
+		let timesheet3 = PgTimesheet::create(
+			&mut transaction,
+			employee,
+			vec![(
+				"Food".into(),
+				Money::new(10_17, 2, Currency::Usd),
+				"Takeout".into(),
+			)],
+			job.clone(),
+			Utc::now(),
+			None,
+		)
+		.await
+		.unwrap();
+
+		transaction.commit().await.unwrap();
+		// }}}
 
 		assert!(PgJob::delete(&connection, [job].iter()).await.is_err());
 		PgTimesheet::delete(&connection, [&timesheet, &timesheet2].into_iter())

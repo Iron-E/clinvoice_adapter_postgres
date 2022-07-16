@@ -1,14 +1,8 @@
-use clinvoice_adapter::{
-	fmt::{sql, QueryBuilderExt, TableToSql},
-	schema::{columns::ContactColumns, ContactAdapter},
-};
-use clinvoice_match::MatchContact;
+use clinvoice_adapter::schema::ContactAdapter;
 use clinvoice_schema::{Contact, ContactKind};
-use futures::TryStreamExt;
-use sqlx::{Executor, PgPool, Postgres, QueryBuilder, Result};
+use sqlx::{Executor, Postgres, Result};
 
 use super::PgContact;
-use crate::schema::write_where_clause;
 
 #[async_trait::async_trait]
 impl ContactAdapter for PgContact
@@ -34,32 +28,5 @@ impl ContactAdapter for PgContact
 		.await?;
 
 		Ok(Contact { kind, label })
-	}
-
-	async fn retrieve(connection: &PgPool, match_condition: &MatchContact) -> Result<Vec<Contact>>
-	{
-		const COLUMNS: ContactColumns<&'static str> = ContactColumns::default();
-
-		let mut query = QueryBuilder::new(sql::SELECT);
-
-		query
-			.push_columns(&COLUMNS.default_scope())
-			.push_default_from::<ContactColumns<char>>();
-
-		write_where_clause::write_match_contact(
-			connection,
-			Default::default(),
-			ContactColumns::<char>::DEFAULT_ALIAS,
-			match_condition,
-			&mut query,
-		)
-		.await?;
-
-		query
-			.prepare()
-			.fetch(connection)
-			.and_then(|row| async move { PgContact::row_to_view(connection, COLUMNS, &row).await })
-			.try_collect()
-			.await
 	}
 }

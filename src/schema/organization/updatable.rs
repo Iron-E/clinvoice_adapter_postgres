@@ -46,6 +46,7 @@ mod tests
 {
 	use clinvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
+		Retrievable,
 		Updatable,
 	};
 	use clinvoice_match::MatchOrganization;

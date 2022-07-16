@@ -36,13 +36,13 @@ mod tests
 	use clinvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
-			ExpensesAdapter,
 			JobAdapter,
 			LocationAdapter,
 			OrganizationAdapter,
 			TimesheetAdapter,
 		},
 		Deletable,
+		Retrievable,
 	};
 	use clinvoice_finance::{Currency, ExchangeRates, Exchangeable, Money};
 	use clinvoice_match::MatchExpense;
@@ -100,8 +100,11 @@ mod tests
 		.await
 		.unwrap();
 
+		// {{{
+		let mut transaction = connection.begin().await.unwrap();
+
 		let timesheet = PgTimesheet::create(
-			&connection,
+			&mut transaction,
 			employee.clone(),
 			vec![
 				(
@@ -126,6 +129,9 @@ mod tests
 		)
 		.await
 		.unwrap();
+
+		transaction.commit().await.unwrap();
+		// }}}
 
 		PgExpenses::delete(
 			&connection,

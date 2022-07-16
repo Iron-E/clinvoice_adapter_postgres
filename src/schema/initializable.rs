@@ -1,5 +1,4 @@
 use clinvoice_adapter::Initializable;
-use futures::TryFutureExt;
 use sqlx::{Acquire, Executor, Postgres, Result};
 
 use super::PgSchema;
@@ -210,20 +209,17 @@ impl Initializable for PgSchema
 	where
 		TConn: Acquire<'c, Database = Self::Db> + Send,
 	{
-		connection
-			.begin()
-			.and_then(|mut transaction| async move {
-				init_locations(&mut transaction).await?;
-				init_organizations(&mut transaction).await?;
-				init_contact_info(&mut transaction).await?;
-				init_employees(&mut transaction).await?;
-				init_money(&mut transaction).await?;
-				init_jobs(&mut transaction).await?;
-				init_timesheets(&mut transaction).await?;
-				init_expenses(&mut transaction).await?;
+		let mut transaction = connection.begin().await?;
 
-				transaction.commit().await
-			})
-			.await
+		init_locations(&mut transaction).await?;
+		init_organizations(&mut transaction).await?;
+		init_contact_info(&mut transaction).await?;
+		init_employees(&mut transaction).await?;
+		init_money(&mut transaction).await?;
+		init_jobs(&mut transaction).await?;
+		init_timesheets(&mut transaction).await?;
+		init_expenses(&mut transaction).await?;
+
+		transaction.commit().await
 	}
 }

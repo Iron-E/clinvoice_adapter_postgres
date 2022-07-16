@@ -1,3 +1,8 @@
+mod deletable;
+mod location_adapter;
+mod retrievable;
+mod updatable;
+
 use core::fmt::Display;
 
 use clinvoice_adapter::{
@@ -11,10 +16,6 @@ use futures::{future, TryFutureExt, TryStreamExt};
 use sqlx::{Error, Executor, Postgres, QueryBuilder, Result, Row};
 
 use crate::{fmt::PgLocationRecursiveCte, PgSchema};
-
-mod deletable;
-mod location_adapter;
-mod updatable;
 
 const COLUMNS: LocationColumns<&str> = LocationColumns::default();
 

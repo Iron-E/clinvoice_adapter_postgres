@@ -1,18 +1,14 @@
 use clinvoice_adapter::{
-	fmt::{sql, QueryBuilderExt, TableToSql},
+	fmt::{sql, QueryBuilderExt},
 	schema::{columns::ExpenseColumns, ExpensesAdapter},
-	WriteWhereClause,
 };
 use clinvoice_finance::{ExchangeRates, Exchangeable, Money};
-use clinvoice_match::MatchExpense;
 use clinvoice_schema::{Expense, Id};
-use futures::{future, stream, StreamExt, TryFutureExt, TryStreamExt};
-use sqlx::{Executor, PgPool, Postgres, QueryBuilder, Result, Row};
+use futures::{stream, StreamExt, TryFutureExt, TryStreamExt};
+use sqlx::{Executor, Postgres, QueryBuilder, Result, Row};
 
 use super::PgExpenses;
-use crate::{schema::util, PgSchema};
-
-const COLUMNS: ExpenseColumns<&'static str> = ExpenseColumns::default();
+use crate::schema::util;
 
 #[async_trait::async_trait]
 impl ExpensesAdapter for PgExpenses
@@ -29,6 +25,8 @@ impl ExpensesAdapter for PgExpenses
 		{
 			return Ok(Vec::new());
 		}
+
+		const COLUMNS: ExpenseColumns<&'static str> = ExpenseColumns::default();
 
 		let exchange_rates = ExchangeRates::new()
 			.map_err(util::finance_err_to_sqlx)
@@ -65,33 +63,5 @@ impl ExpensesAdapter for PgExpenses
 		})
 		.try_collect::<Vec<_>>()
 		.await
-	}
-
-	async fn retrieve(connection: &PgPool, match_condition: &MatchExpense) -> Result<Vec<Expense>>
-	{
-		const COLUMNS: ExpenseColumns<&str> = ExpenseColumns::default();
-
-		let columns = COLUMNS.default_scope();
-		let exchange_rates_fut = ExchangeRates::new().map_err(util::finance_err_to_sqlx);
-		let mut query = QueryBuilder::new(sql::SELECT);
-
-		query
-			.push_columns(&columns)
-			.push_default_from::<ExpenseColumns<char>>();
-
-		let exchange_rates = exchange_rates_fut.await?;
-		PgSchema::write_where_clause(
-			Default::default(),
-			ExpenseColumns::<char>::DEFAULT_ALIAS,
-			&match_condition.exchange_ref(Default::default(), &exchange_rates),
-			&mut query,
-		);
-
-		query
-			.prepare()
-			.fetch(connection)
-			.and_then(|row| future::ready(PgExpenses::row_to_view(COLUMNS, &row)))
-			.try_collect()
-			.await
 	}
 }

@@ -31,7 +31,7 @@ impl Deletable for PgEmployee
 #[cfg(test)]
 mod tests
 {
-	use clinvoice_adapter::{schema::EmployeeAdapter, Deletable};
+	use clinvoice_adapter::{schema::EmployeeAdapter, Deletable, Retrievable};
 	use clinvoice_match::{Match, MatchEmployee};
 	use pretty_assertions::assert_eq;
 

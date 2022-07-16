@@ -80,6 +80,7 @@ mod tests
 
 	use clinvoice_adapter::{
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
+		Retrievable,
 		Updatable,
 	};
 	use clinvoice_finance::Money;

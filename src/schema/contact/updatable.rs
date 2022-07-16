@@ -49,6 +49,7 @@ mod tests
 	use clinvoice_adapter::{
 		schema::{ContactAdapter, LocationAdapter},
 		Deletable,
+		Retrievable,
 		Updatable,
 	};
 	use clinvoice_match::{MatchContact, MatchStr};

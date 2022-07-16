@@ -74,6 +74,7 @@ mod tests
 	use clinvoice_adapter::{
 		schema::{ContactAdapter, LocationAdapter},
 		Deletable,
+		Retrievable,
 	};
 	use clinvoice_match::{MatchContact, MatchStr};
 	use clinvoice_schema::ContactKind;

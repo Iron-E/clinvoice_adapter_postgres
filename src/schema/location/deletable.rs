@@ -31,7 +31,7 @@ impl Deletable for PgLocation
 #[cfg(test)]
 mod tests
 {
-	use clinvoice_adapter::{schema::LocationAdapter, Deletable};
+	use clinvoice_adapter::{schema::LocationAdapter, Deletable, Retrievable};
 	use clinvoice_match::{Match, MatchLocation};
 	use pretty_assertions::assert_eq;
 
