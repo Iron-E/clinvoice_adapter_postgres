@@ -105,13 +105,10 @@ mod tests
 
 		// Assert ::retrieve gets the right data from the DB
 		assert_eq!(
-			PgOrganization::retrieve(&connection, &MatchOrganization {
-				id: organization.id.into(),
-				..Default::default()
-			})
-			.await
-			.unwrap()
-			.as_slice(),
+			PgOrganization::retrieve(&connection, &MatchOrganization::id(organization.id.into()))
+				.await
+				.unwrap()
+				.as_slice(),
 			&[organization.clone()],
 		);
 

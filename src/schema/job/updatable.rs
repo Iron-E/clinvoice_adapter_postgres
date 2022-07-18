@@ -143,14 +143,11 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_job = PgJob::retrieve(&connection, &MatchJob {
-			id: job.id.into(),
-			..Default::default()
-		})
-		.await
-		.unwrap()
-		.pop()
-		.unwrap();
+		let db_job = PgJob::retrieve(&connection, &MatchJob::id(job.id.into()))
+			.await
+			.unwrap()
+			.pop()
+			.unwrap();
 
 		assert_eq!(job.client, db_job.client);
 		assert_eq!(job.date_close.pg_sanitize(), db_job.date_close);

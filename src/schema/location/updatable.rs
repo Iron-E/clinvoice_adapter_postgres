@@ -135,23 +135,17 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let chile_db = PgLocation::retrieve(&connection, &MatchLocation {
-			id: chile.id.into(),
-			..Default::default()
-		})
-		.await
-		.unwrap()
-		.pop()
-		.unwrap();
+		let chile_db = PgLocation::retrieve(&connection, &MatchLocation::id(chile.id.into()))
+			.await
+			.unwrap()
+			.pop()
+			.unwrap();
 
-		let usa_db = PgLocation::retrieve(&connection, &MatchLocation {
-			id: usa.id.into(),
-			..Default::default()
-		})
-		.await
-		.unwrap()
-		.pop()
-		.unwrap();
+		let usa_db = PgLocation::retrieve(&connection, &MatchLocation::id(usa.id.into()))
+			.await
+			.unwrap()
+			.pop()
+			.unwrap();
 
 		assert_eq!(chile.id, chile_db.id);
 		assert_eq!(chile.name, chile_db.name);

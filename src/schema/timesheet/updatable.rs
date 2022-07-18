@@ -186,14 +186,12 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_timesheet = PgTimesheet::retrieve(&connection, &MatchTimesheet {
-			id: timesheet.id.into(),
-			..Default::default()
-		})
-		.await
-		.unwrap()
-		.pop()
-		.unwrap();
+		let db_timesheet =
+			PgTimesheet::retrieve(&connection, &MatchTimesheet::id(timesheet.id.into()))
+				.await
+				.unwrap()
+				.pop()
+				.unwrap();
 
 		assert_eq!(timesheet.id, db_timesheet.id);
 		assert_eq!(timesheet.employee, db_timesheet.employee);

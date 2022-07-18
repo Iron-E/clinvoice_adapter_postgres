@@ -290,13 +290,10 @@ mod tests
 		assert_eq!(
 			PgTimesheet::retrieve(&connection, &MatchTimesheet {
 				expenses: MatchSet::Not(MatchSet::Contains(Default::default()).into()),
-				employee: MatchEmployee {
-					id: Match::Or(vec![
-						timesheet.employee.id.into(),
-						timesheet2.employee.id.into(),
-					]),
-					..Default::default()
-				},
+				employee: MatchEmployee::id(Match::Or(vec![
+					timesheet.employee.id.into(),
+					timesheet2.employee.id.into(),
+				])),
 				..Default::default()
 			})
 			.await

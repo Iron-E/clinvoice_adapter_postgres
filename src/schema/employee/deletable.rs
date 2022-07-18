@@ -69,14 +69,14 @@ mod tests
 			.unwrap();
 
 		assert_eq!(
-			PgEmployee::retrieve(&connection, &MatchEmployee {
-				id: Match::Or(vec![
+			PgEmployee::retrieve(
+				&connection,
+				&MatchEmployee::id(Match::Or(vec![
 					employee.id.into(),
 					employee2.id.into(),
 					employee3.id.into()
-				]),
-				..Default::default()
-			})
+				]))
+			)
 			.await
 			.unwrap()
 			.as_slice(),

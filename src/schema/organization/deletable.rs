@@ -70,14 +70,14 @@ mod tests
 			.unwrap();
 
 		assert_eq!(
-			PgOrganization::retrieve(&connection, &MatchOrganization {
-				id: Match::Or(vec![
+			PgOrganization::retrieve(
+				&connection,
+				&MatchOrganization::id(Match::Or(vec![
 					organization.id.into(),
 					organization2.id.into(),
 					organization3.id.into()
-				]),
-				..Default::default()
-			})
+				])),
+			)
 			.await
 			.unwrap()
 			.as_slice(),

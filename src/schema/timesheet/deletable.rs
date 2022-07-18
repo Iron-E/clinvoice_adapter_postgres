@@ -154,14 +154,14 @@ mod tests
 
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 		assert_eq!(
-			PgTimesheet::retrieve(&connection, &MatchTimesheet {
-				id: Match::Or(vec![
+			PgTimesheet::retrieve(
+				&connection,
+				&MatchTimesheet::id(Match::Or(vec![
 					timesheet.id.into(),
 					timesheet2.id.into(),
 					timesheet3.id.into(),
-				]),
-				..Default::default()
-			})
+				]))
+			)
 			.await
 			.unwrap()
 			.into_iter()

@@ -75,14 +75,11 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_employee = PgEmployee::retrieve(&connection, &MatchEmployee {
-			id: employee.id.into(),
-			..Default::default()
-		})
-		.await
-		.unwrap()
-		.pop()
-		.unwrap();
+		let db_employee = PgEmployee::retrieve(&connection, &MatchEmployee::id(employee.id.into()))
+			.await
+			.unwrap()
+			.pop()
+			.unwrap();
 
 		assert_eq!(employee, db_employee);
 	}
