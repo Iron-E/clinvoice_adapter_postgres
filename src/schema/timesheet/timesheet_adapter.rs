@@ -21,11 +21,9 @@ impl TimesheetAdapter for PgTimesheet
 		job: Job,
 		time_begin: DateTime<Utc>,
 		time_end: Option<DateTime<Utc>>,
+		work_notes: String,
 	) -> Result<Timesheet>
 	{
-		let work_notes =
-			"* Work which was done goes here\n* Supports markdown formatting".to_string();
-
 		let row = sqlx::query!(
 			"INSERT INTO timesheets
 				(employee_id, job_id, time_begin, time_end, work_notes)
