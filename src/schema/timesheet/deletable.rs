@@ -36,7 +36,6 @@ mod tests
 	use clinvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
-			ExpensesAdapter,
 			JobAdapter,
 			LocationAdapter,
 			OrganizationAdapter,
