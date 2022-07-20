@@ -76,7 +76,6 @@ mod tests
 		Updatable,
 	};
 	use clinvoice_finance::{Currency, Money};
-	use clinvoice_match::MatchTimesheet;
 	use clinvoice_schema::{chrono, Invoice, InvoiceDate};
 	use futures::TryFutureExt;
 	use pretty_assertions::assert_eq;
@@ -188,7 +187,7 @@ mod tests
 		}
 
 		let db_timesheet =
-			PgTimesheet::retrieve(&connection, &MatchTimesheet::id(timesheet.id.into()))
+			PgTimesheet::retrieve(&connection, &timesheet.id.into())
 				.await
 				.unwrap()
 				.pop()

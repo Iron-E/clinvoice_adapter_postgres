@@ -44,7 +44,6 @@ impl Updatable for PgEmployee
 mod tests
 {
 	use clinvoice_adapter::{schema::EmployeeAdapter, Retrievable, Updatable};
-	use clinvoice_match::MatchEmployee;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgEmployee};
@@ -75,7 +74,7 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_employee = PgEmployee::retrieve(&connection, &MatchEmployee::id(employee.id.into()))
+		let db_employee = PgEmployee::retrieve(&connection, &employee.id.into())
 			.await
 			.unwrap()
 			.pop()

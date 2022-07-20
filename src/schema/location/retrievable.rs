@@ -93,7 +93,7 @@ mod tests
 		assert_eq!(
 			[utah, arizona].into_iter().collect::<HashSet<_>>(),
 			PgLocation::retrieve(&connection, &MatchLocation {
-				outer: MatchOuterLocation::Some(MatchLocation::id(usa.id.into()).into()),
+				outer: MatchOuterLocation::Some(Box::new(usa.id.into())),
 				..Default::default()
 			})
 			.await

@@ -91,7 +91,6 @@ impl Updatable for PgLocation
 mod tests
 {
 	use clinvoice_adapter::{schema::LocationAdapter, Retrievable, Updatable};
-	use clinvoice_match::MatchLocation;
 	use clinvoice_schema::Location;
 	use pretty_assertions::{assert_eq, assert_ne};
 
@@ -135,13 +134,13 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let chile_db = PgLocation::retrieve(&connection, &MatchLocation::id(chile.id.into()))
+		let chile_db = PgLocation::retrieve(&connection, &chile.id.into())
 			.await
 			.unwrap()
 			.pop()
 			.unwrap();
 
-		let usa_db = PgLocation::retrieve(&connection, &MatchLocation::id(usa.id.into()))
+		let usa_db = PgLocation::retrieve(&connection, &usa.id.into())
 			.await
 			.unwrap()
 			.pop()

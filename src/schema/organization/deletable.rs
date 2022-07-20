@@ -36,7 +36,7 @@ mod tests
 		Deletable,
 		Retrievable,
 	};
-	use clinvoice_match::{Match, MatchOrganization};
+	use clinvoice_match::Match;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation, PgOrganization};
@@ -72,11 +72,11 @@ mod tests
 		assert_eq!(
 			PgOrganization::retrieve(
 				&connection,
-				&MatchOrganization::id(Match::Or(vec![
+				&Match::Or(vec![
 					organization.id.into(),
 					organization2.id.into(),
 					organization3.id.into()
-				])),
+				]).into(),
 			)
 			.await
 			.unwrap()

@@ -195,7 +195,7 @@ mod tests
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 
 		assert_eq!(
-			PgJob::retrieve(&connection, &MatchJob::id(job.id.into()))
+			PgJob::retrieve(&connection, &job.id.into())
 				.await
 				.unwrap()
 				.as_slice(),

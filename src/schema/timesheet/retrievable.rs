@@ -167,7 +167,7 @@ mod tests
 		Retrievable,
 	};
 	use clinvoice_finance::{ExchangeRates, Exchangeable};
-	use clinvoice_match::{Match, MatchEmployee, MatchSet, MatchTimesheet};
+	use clinvoice_match::{Match, MatchSet, MatchTimesheet};
 	use clinvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Currency,
@@ -292,10 +292,10 @@ mod tests
 		assert_eq!(
 			PgTimesheet::retrieve(&connection, &MatchTimesheet {
 				expenses: MatchSet::Not(MatchSet::Contains(Default::default()).into()),
-				employee: MatchEmployee::id(Match::Or(vec![
+				employee: Match::Or(vec![
 					timesheet.employee.id.into(),
 					timesheet2.employee.id.into(),
-				])),
+				]).into(),
 				..Default::default()
 			})
 			.await

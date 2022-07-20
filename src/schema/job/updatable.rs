@@ -84,7 +84,6 @@ mod tests
 		Updatable,
 	};
 	use clinvoice_finance::Money;
-	use clinvoice_match::MatchJob;
 	use clinvoice_schema::{chrono, Invoice, InvoiceDate};
 	use futures::TryFutureExt;
 	use pretty_assertions::assert_eq;
@@ -143,7 +142,7 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_job = PgJob::retrieve(&connection, &MatchJob::id(job.id.into()))
+		let db_job = PgJob::retrieve(&connection, &job.id.into())
 			.await
 			.unwrap()
 			.pop()

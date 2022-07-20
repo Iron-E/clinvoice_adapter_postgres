@@ -32,7 +32,7 @@ impl Deletable for PgLocation
 mod tests
 {
 	use clinvoice_adapter::{schema::LocationAdapter, Deletable, Retrievable};
-	use clinvoice_match::{Match, MatchLocation};
+	use clinvoice_match::Match;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation};
@@ -62,11 +62,11 @@ mod tests
 		assert_eq!(
 			PgLocation::retrieve(
 				&connection,
-				&MatchLocation::id(Match::Or(vec![
+				&Match::Or(vec![
 					chile.id.into(),
 					earth.id.into(),
 					usa.id.into(),
-				])),
+				]).into(),
 			)
 			.await
 			.unwrap()

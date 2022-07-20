@@ -39,7 +39,7 @@ mod tests
 		Retrievable,
 	};
 	use clinvoice_finance::{Currency, ExchangeRates, Exchangeable, Money};
-	use clinvoice_match::{Match, MatchJob};
+	use clinvoice_match::Match;
 	use clinvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Invoice,
@@ -125,11 +125,11 @@ mod tests
 		assert_eq!(
 			PgJob::retrieve(
 				&connection,
-				&MatchJob::id(Match::Or(vec![
+				&Match::Or(vec![
 					job.id.into(),
 					job2.id.into(),
 					job3.id.into(),
-				]))
+				]).into(),
 			)
 			.await
 			.unwrap()

@@ -45,7 +45,7 @@ mod tests
 		Retrievable,
 	};
 	use clinvoice_finance::{Currency, ExchangeRates, Exchangeable, Money};
-	use clinvoice_match::{Match, MatchExpense, MatchTimesheet};
+	use clinvoice_match::{Match, MatchExpense};
 	use clinvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Invoice,
@@ -159,11 +159,11 @@ mod tests
 		assert_eq!(
 			PgTimesheet::retrieve(
 				&connection,
-				&MatchTimesheet::id(Match::Or(vec![
+				&Match::Or(vec![
 					timesheet.id.into(),
 					timesheet2.id.into(),
 					timesheet3.id.into(),
-				]))
+				]).into(),
 			)
 			.await
 			.unwrap()

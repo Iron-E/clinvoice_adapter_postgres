@@ -32,7 +32,7 @@ impl Deletable for PgEmployee
 mod tests
 {
 	use clinvoice_adapter::{schema::EmployeeAdapter, Deletable, Retrievable};
-	use clinvoice_match::{Match, MatchEmployee};
+	use clinvoice_match::Match;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgEmployee};
@@ -71,11 +71,11 @@ mod tests
 		assert_eq!(
 			PgEmployee::retrieve(
 				&connection,
-				&MatchEmployee::id(Match::Or(vec![
+				&Match::Or(vec![
 					employee.id.into(),
 					employee2.id.into(),
 					employee3.id.into()
-				]))
+				]).into()
 			)
 			.await
 			.unwrap()
