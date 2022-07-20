@@ -110,6 +110,7 @@ mod tests
 			job.clone(),
 			Utc::now(),
 			None,
+			"These are my work notes".into(),
 		)
 		.await
 		.unwrap();
@@ -125,6 +126,7 @@ mod tests
 			job.clone(),
 			Utc.ymd(2022, 06, 08).and_hms(15, 27, 00),
 			Some(Utc.ymd(2022, 06, 09).and_hms(07, 00, 00)),
+			"These are more work notes".into(),
 		)
 		.await
 		.unwrap();
@@ -140,6 +142,7 @@ mod tests
 			job.clone(),
 			Utc::now(),
 			None,
+			"Even more work notes".into(),
 		)
 		.await
 		.unwrap();

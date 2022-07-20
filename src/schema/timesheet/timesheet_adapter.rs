@@ -59,12 +59,12 @@ mod tests
 {
 	use core::time::Duration;
 
-	use clinvoice_adapter::{
-		schema::{EmployeeAdapter, JobAdapter, LocationAdapter, OrganizationAdapter},
-		Retrievable,
+	use clinvoice_adapter::schema::{
+		EmployeeAdapter,
+		JobAdapter,
+		LocationAdapter,
+		OrganizationAdapter,
 	};
-	use clinvoice_finance::{ExchangeRates, Exchangeable};
-	use clinvoice_match::{Match, MatchEmployee, MatchSet, MatchTimesheet};
 	use clinvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Currency,
@@ -161,6 +161,7 @@ mod tests
 			job,
 			Utc::now(),
 			None,
+			"This is my work notes".into(),
 		)
 		.await
 		.unwrap();
@@ -176,6 +177,7 @@ mod tests
 			job2,
 			Utc.ymd(2022, 06, 08).and_hms(15, 27, 00),
 			Some(Utc.ymd(2022, 06, 09).and_hms(07, 00, 00)),
+			"This is more work notes".into(),
 		)
 		.await
 		.unwrap();
@@ -183,22 +185,29 @@ mod tests
 		transaction.commit().await.unwrap();
 		// }}}
 
-		let exchange_rates = ExchangeRates::new().await.unwrap();
+		macro_rules! select {
+			($id:expr) => {
+				sqlx::query!("SELECT * FROM timesheets WHERE id = $1", $id)
+					.fetch_one(&connection)
+					.await
+					.unwrap()
+			};
+		}
 
-		assert_eq!(
-			PgTimesheet::retrieve(&connection, &MatchTimesheet {
-				expenses: MatchSet::Not(MatchSet::Contains(Default::default()).into()),
-				employee: MatchEmployee::id(Match::Or(vec![
-					timesheet.employee.id.into(),
-					timesheet2.employee.id.into(),
-				])),
-				..Default::default()
-			})
-			.await
-			.unwrap()
-			.into_iter()
-			.as_slice(),
-			&[timesheet.exchange(Default::default(), &exchange_rates)],
-		);
+		let timesheet_db = select!(timesheet.id);
+		assert_eq!(timesheet_db.employee_id, timesheet.employee.id);
+		assert_eq!(timesheet_db.id, timesheet.id);
+		assert_eq!(timesheet_db.job_id, timesheet.job.id);
+		assert_eq!(timesheet_db.time_begin, timesheet.time_begin);
+		assert_eq!(timesheet_db.time_end, timesheet.time_end);
+		assert_eq!(timesheet_db.work_notes, timesheet.work_notes);
+
+		let timesheet2_db = select!(timesheet2.id);
+		assert_eq!(timesheet2_db.employee_id, timesheet2.employee.id);
+		assert_eq!(timesheet2_db.id, timesheet2.id);
+		assert_eq!(timesheet2_db.job_id, timesheet2.job.id);
+		assert_eq!(timesheet2_db.time_begin, timesheet2.time_begin);
+		assert_eq!(timesheet2_db.time_end, timesheet2.time_end);
+		assert_eq!(timesheet2_db.work_notes, timesheet2.work_notes);
 	}
 }

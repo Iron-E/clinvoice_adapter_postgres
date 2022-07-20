@@ -263,6 +263,7 @@ mod tests
 			job,
 			Utc::now(),
 			None,
+			"My work notes".into(),
 		)
 		.await
 		.unwrap();
@@ -278,6 +279,7 @@ mod tests
 			job2,
 			Utc.ymd(2022, 06, 08).and_hms(15, 27, 00),
 			Some(Utc.ymd(2022, 06, 09).and_hms(07, 00, 00)),
+			"More work notes".into(),
 		)
 		.await
 		.unwrap();

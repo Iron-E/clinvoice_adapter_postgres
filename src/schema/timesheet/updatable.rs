@@ -143,6 +143,7 @@ mod tests
 			job,
 			chrono::Utc::now(),
 			None,
+			"My work notes".into(),
 		)
 		.await
 		.unwrap();
@@ -161,6 +162,7 @@ mod tests
 		.unwrap();
 
 		timesheet.employee = employee2;
+		timesheet.expenses.push(new_expense);
 		timesheet.job.client.location = mars;
 		timesheet.job.client.name = format!("Not {}", timesheet.job.client.name);
 		timesheet.job.date_close = Some(chrono::Utc::now());
@@ -175,8 +177,7 @@ mod tests
 		timesheet.job.notes = format!("Finished {}", timesheet.job.notes);
 		timesheet.job.objectives = format!("Test {}", timesheet.job.notes);
 		timesheet.time_end = Some(chrono::Utc::now());
-
-		timesheet.expenses.push(new_expense);
+		timesheet.work_notes = "Updated work notes".into();
 
 		{
 			let mut transaction = connection.begin().await.unwrap();
