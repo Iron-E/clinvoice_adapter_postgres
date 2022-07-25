@@ -206,7 +206,7 @@ mod tests
 			PgJob::retrieve(&connection, &MatchJob {
 				id: Match::Or(vec![job2.id.into(), job3.id.into()]),
 				invoice: MatchInvoice {
-					date_issued: MatchOption::Not(Box::new(None.into())),
+					date_issued: MatchOption::some(),
 					..Default::default()
 				},
 				..Default::default()
