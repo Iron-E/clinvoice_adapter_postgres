@@ -1,6 +1,5 @@
-//! # Summary
-//!
-//! This crate provides an implementation of [`clinvoice_adapter`] for a Postgres filesystem.
+//! This crate provides an implementation of [`clinvoice_adapter`] for the
+//! [Postgres](https://postgresql.org) database.
 
 #![allow(clippy::drop_non_drop)]
 #![forbid(unsafe_code)]
