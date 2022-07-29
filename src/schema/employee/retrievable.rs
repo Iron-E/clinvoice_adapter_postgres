@@ -47,7 +47,7 @@ impl Retrievable for PgEmployee
 		query
 			.prepare()
 			.fetch(connection)
-			.map_ok(|row| PgEmployee::row_to_view(COLUMNS, &row))
+			.map_ok(|row| Self::row_to_view(COLUMNS, &row))
 			.try_collect()
 			.await
 	}

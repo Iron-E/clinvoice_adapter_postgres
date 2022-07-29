@@ -135,7 +135,7 @@ impl Retrievable for PgTimesheet
 			.prepare()
 			.fetch(connection)
 			.and_then(|row| async move {
-				PgTimesheet::row_to_view(
+				Self::row_to_view(
 					connection,
 					COLUMNS,
 					EMPLOYEE_COLUMNS_UNIQUE,
@@ -295,7 +295,8 @@ mod tests
 				employee: Match::Or(vec![
 					timesheet.employee.id.into(),
 					timesheet2.employee.id.into(),
-				]).into(),
+				])
+				.into(),
 				..Default::default()
 			})
 			.await

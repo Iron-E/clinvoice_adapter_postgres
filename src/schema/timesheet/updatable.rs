@@ -14,15 +14,16 @@ impl Updatable for PgTimesheet
 	type Db = Postgres;
 	type Entity = Timesheet;
 
-	async fn update<'e, 'i, TIter>(
+	async fn update<'entity, TIter>(
 		connection: &mut Transaction<Self::Db>,
 		entities: TIter,
 	) -> Result<()>
 	where
-		'e: 'i,
-		Self::Entity: 'e,
-		TIter: Clone + Iterator<Item = &'i Self::Entity> + Send,
+		Self::Entity: 'entity,
+		TIter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
 	{
+		#![allow(clippy::items_after_statements)]
+
 		let mut peekable_entities = entities.clone().peekable();
 
 		// There is nothing to do.
@@ -186,12 +187,11 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_timesheet =
-			PgTimesheet::retrieve(&connection, &timesheet.id.into())
-				.await
-				.unwrap()
-				.pop()
-				.unwrap();
+		let db_timesheet = PgTimesheet::retrieve(&connection, &timesheet.id.into())
+			.await
+			.unwrap()
+			.pop()
+			.unwrap();
 
 		assert_eq!(timesheet.id, db_timesheet.id);
 		assert_eq!(timesheet.employee, db_timesheet.employee);

@@ -16,7 +16,7 @@ use crate::{fmt::DateTimeExt, schema::util};
 #[async_trait::async_trait]
 impl JobAdapter for PgJob
 {
-	async fn create<'c, TConn>(
+	async fn create<'connection, TConn>(
 		connection: TConn,
 		client: Organization,
 		date_close: Option<DateTime<Utc>>,
@@ -27,7 +27,7 @@ impl JobAdapter for PgJob
 		objectives: String,
 	) -> Result<Job>
 	where
-		TConn: Executor<'c, Database = Postgres>,
+		TConn: Executor<'connection, Database = Postgres>,
 	{
 		let standardized_rate = ExchangeRates::new()
 			.await

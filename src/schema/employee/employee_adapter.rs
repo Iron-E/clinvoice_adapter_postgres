@@ -7,14 +7,14 @@ use super::PgEmployee;
 #[async_trait::async_trait]
 impl EmployeeAdapter for PgEmployee
 {
-	async fn create<'c, TConn>(
+	async fn create<'connection, TConn>(
 		connection: TConn,
 		name: String,
 		status: String,
 		title: String,
 	) -> Result<Employee>
 	where
-		TConn: Executor<'c, Database = Postgres>,
+		TConn: Executor<'connection, Database = Postgres>,
 	{
 		let row = sqlx::query!(
 			"INSERT INTO employees (name, status, title) VALUES ($1, $2, $3) RETURNING id;",

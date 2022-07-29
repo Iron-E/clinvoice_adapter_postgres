@@ -22,7 +22,7 @@ pub struct PgTimesheet;
 impl PgTimesheet
 {
 	pub(super) async fn row_to_view<
-		'c,
+		'connection,
 		TConn,
 		TEmpColumns,
 		TJobColumns,
@@ -39,7 +39,7 @@ impl PgTimesheet
 		row: &PgRow,
 	) -> Result<Timesheet>
 	where
-		TConn: Executor<'c, Database = Postgres>,
+		TConn: Executor<'connection, Database = Postgres>,
 		TEmpColumns: AsRef<str>,
 		TJobColumns: AsRef<str>,
 		TOrgColumns: AsRef<str>,

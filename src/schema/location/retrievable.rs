@@ -41,7 +41,7 @@ impl Retrievable for PgLocation
 			)
 			.prepare()
 			.fetch(connection)
-			.and_then(|row| PgLocation::retrieve_by_id(connection, row.get(COLUMNS.id)))
+			.and_then(|row| Self::retrieve_by_id(connection, row.get(COLUMNS.id)))
 			.try_collect()
 			.await
 	}

@@ -18,6 +18,10 @@ pub(super) async fn connect() -> PgPool
 
 pub(super) fn duration_from(interval: PgInterval) -> Result<Duration>
 {
+	const MICROSECONDS_IN_SECOND: u64 = 1000000;
+	const NANOSECONDS_IN_MICROSECOND: u32 = 1000;
+	const SECONDS_IN_DAY: u64 = 86400;
+
 	if interval.months > 0
 	{
 		return Err(Error::Decode(
@@ -26,10 +30,6 @@ pub(super) fn duration_from(interval: PgInterval) -> Result<Duration>
 				.into(),
 		));
 	}
-
-	const MICROSECONDS_IN_SECOND: u64 = 1000000;
-	const NANOSECONDS_IN_MICROSECOND: u32 = 1000;
-	const SECONDS_IN_DAY: u64 = 86400;
 
 	// Ignore negative microseconds
 	let microseconds: u64 = interval.microseconds.try_into().unwrap_or(0);

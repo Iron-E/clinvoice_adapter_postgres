@@ -51,7 +51,7 @@ impl Retrievable for PgExpenses
 		query
 			.prepare()
 			.fetch(connection)
-			.and_then(|row| future::ready(PgExpenses::row_to_view(COLUMNS, &row)))
+			.and_then(|row| future::ready(Self::row_to_view(COLUMNS, &row)))
 			.try_collect()
 			.await
 	}

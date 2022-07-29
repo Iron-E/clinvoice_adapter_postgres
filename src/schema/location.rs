@@ -142,9 +142,12 @@ impl PgLocation
 	}
 
 	/// Construct a [`Location`], also constructing all outer [`Location`]s, and return it.
-	pub(super) async fn retrieve_by_id<'c, TConn>(connection: TConn, id: Id) -> Result<Location>
+	pub(super) async fn retrieve_by_id<'connection, TConn>(
+		connection: TConn,
+		id: Id,
+	) -> Result<Location>
 	where
-		TConn: Executor<'c, Database = Postgres>,
+		TConn: Executor<'connection, Database = Postgres>,
 	{
 		const SOURCE: &str = "this column in `locations` must be non-null";
 		sqlx::query!(
@@ -190,12 +193,12 @@ impl PgLocation
 
 	/// Retrieve a [`Match`] which will match all of the [`Id`]s of the [`Location`]s which match the
 	/// `match_condition`.
-	pub(super) async fn retrieve_matching_ids<'c, TConn>(
+	pub(super) async fn retrieve_matching_ids<'connection, TConn>(
 		connection: TConn,
 		match_condition: &MatchLocation,
 	) -> Result<Match<Id>>
 	where
-		TConn: Executor<'c, Database = Postgres>,
+		TConn: Executor<'connection, Database = Postgres>,
 	{
 		let mut query = Self::query_with_recursive(match_condition);
 

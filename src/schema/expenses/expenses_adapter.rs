@@ -13,20 +13,20 @@ use crate::schema::util;
 #[async_trait::async_trait]
 impl ExpensesAdapter for PgExpenses
 {
-	async fn create<'c, TConn>(
+	async fn create<'connection, TConn>(
 		connection: TConn,
 		expenses: Vec<(String, Money, String)>,
 		timesheet_id: Id,
 	) -> Result<Vec<Expense>>
 	where
-		TConn: Executor<'c, Database = Postgres>,
+		TConn: Executor<'connection, Database = Postgres>,
 	{
+		const COLUMNS: ExpenseColumns<&'static str> = ExpenseColumns::default();
+
 		if expenses.is_empty()
 		{
 			return Ok(Vec::new());
 		}
-
-		const COLUMNS: ExpenseColumns<&'static str> = ExpenseColumns::default();
 
 		let exchange_rates = ExchangeRates::new()
 			.map_err(util::finance_err_to_sqlx)

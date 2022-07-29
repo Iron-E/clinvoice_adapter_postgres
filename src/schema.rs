@@ -54,7 +54,7 @@ impl PgSchema
 		let mut query = QueryBuilder::new(sql::DELETE);
 		query.push(sql::FROM).push(TTable::TABLE_NAME);
 
-		PgSchema::write_where_clause(
+		Self::write_where_clause(
 			Default::default(),
 			"id",
 			&Match::Or(peekable_entities.map(Match::from).collect()),

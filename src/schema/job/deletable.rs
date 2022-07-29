@@ -11,14 +11,16 @@ impl Deletable for PgJob
 	type Db = Postgres;
 	type Entity = Job;
 
-	async fn delete<'c, 'e, 'i, TConn, TIter>(connection: TConn, entities: TIter) -> Result<()>
+	async fn delete<'connection, 'entity, TConn, TIter>(
+		connection: TConn,
+		entities: TIter,
+	) -> Result<()>
 	where
-		'e: 'i,
-		Self::Entity: 'e,
-		TConn: Executor<'c, Database = Self::Db>,
-		TIter: Iterator<Item = &'i Self::Entity> + Send,
+		Self::Entity: 'entity,
+		TConn: Executor<'connection, Database = Self::Db>,
+		TIter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		fn mapper(j: &Job) -> Id
+		const fn mapper(j: &Job) -> Id
 		{
 			j.id
 		}
@@ -125,11 +127,7 @@ mod tests
 		assert_eq!(
 			PgJob::retrieve(
 				&connection,
-				&Match::Or(vec![
-					job.id.into(),
-					job2.id.into(),
-					job3.id.into(),
-				]).into(),
+				&Match::Or(vec![job.id.into(), job2.id.into(), job3.id.into(),]).into(),
 			)
 			.await
 			.unwrap()

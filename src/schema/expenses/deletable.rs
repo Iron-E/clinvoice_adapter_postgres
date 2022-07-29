@@ -11,14 +11,16 @@ impl Deletable for PgExpenses
 	type Db = Postgres;
 	type Entity = Expense;
 
-	async fn delete<'c, 'e, 'i, TConn, TIter>(connection: TConn, entities: TIter) -> Result<()>
+	async fn delete<'connection, 'entity, TConn, TIter>(
+		connection: TConn,
+		entities: TIter,
+	) -> Result<()>
 	where
-		'e: 'i,
-		Self::Entity: 'e,
-		TConn: Executor<'c, Database = Self::Db>,
-		TIter: Iterator<Item = &'i Self::Entity> + Send,
+		Self::Entity: 'entity,
+		TConn: Executor<'connection, Database = Self::Db>,
+		TIter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		fn mapper(x: &Expense) -> Id
+		const fn mapper(x: &Expense) -> Id
 		{
 			x.id
 		}

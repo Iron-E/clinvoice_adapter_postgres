@@ -13,14 +13,13 @@ impl Updatable for PgLocation
 	type Db = Postgres;
 	type Entity = Location;
 
-	async fn update<'e, 'i, TIter>(
+	async fn update<'entity, TIter>(
 		connection: &mut Transaction<Self::Db>,
 		entities: TIter,
 	) -> Result<()>
 	where
-		'e: 'i,
-		Self::Entity: 'e,
-		TIter: Clone + Iterator<Item = &'i Self::Entity> + Send,
+		Self::Entity: 'entity,
+		TIter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
 	{
 		let mut entities_peekable = entities.peekable();
 

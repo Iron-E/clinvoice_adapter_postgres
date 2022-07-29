@@ -11,14 +11,16 @@ impl Deletable for PgLocation
 	type Db = Postgres;
 	type Entity = Location;
 
-	async fn delete<'c, 'e, 'i, TConn, TIter>(connection: TConn, entities: TIter) -> Result<()>
+	async fn delete<'connection, 'entity, TConn, TIter>(
+		connection: TConn,
+		entities: TIter,
+	) -> Result<()>
 	where
-		'e: 'i,
-		Self::Entity: 'e,
-		TConn: Executor<'c, Database = Self::Db>,
-		TIter: Iterator<Item = &'i Self::Entity> + Send,
+		Self::Entity: 'entity,
+		TConn: Executor<'connection, Database = Self::Db>,
+		TIter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		fn mapper(l: &Location) -> Id
+		const fn mapper(l: &Location) -> Id
 		{
 			l.id
 		}
@@ -62,11 +64,7 @@ mod tests
 		assert_eq!(
 			PgLocation::retrieve(
 				&connection,
-				&Match::Or(vec![
-					chile.id.into(),
-					earth.id.into(),
-					usa.id.into(),
-				]).into(),
+				&Match::Or(vec![chile.id.into(), earth.id.into(), usa.id.into(),]).into(),
 			)
 			.await
 			.unwrap()

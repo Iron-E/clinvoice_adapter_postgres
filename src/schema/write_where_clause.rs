@@ -158,7 +158,7 @@ fn write_comparison<TDb, TIdent, TComparand>(
 /// # See also
 ///
 /// * [`WriteWhereClause::write_where_clause`].
-pub(super) async fn write_match_contact<'c, TConn, TIdent>(
+pub(super) async fn write_match_contact<'connection, TConn, TIdent>(
 	connection: TConn,
 	context: WriteContext,
 	ident: TIdent,
@@ -166,7 +166,7 @@ pub(super) async fn write_match_contact<'c, TConn, TIdent>(
 	query: &mut QueryBuilder<'_, Postgres>,
 ) -> Result<WriteContext>
 where
-	TConn: Executor<'c, Database = Postgres>,
+	TConn: Executor<'connection, Database = Postgres>,
 	TIdent: Copy + Display + Send + Sync,
 {
 	let columns = ContactColumns::default().scope(ident);
@@ -294,15 +294,15 @@ where
 			MatchOption::EqualTo(value) => write_comparison(query, context, ident, "=", value),
 			MatchOption::GreaterThan(value) =>
 			{
-				PgSchema::write_where_clause(context, ident, &Match::GreaterThan(value), query);
+				Self::write_where_clause(context, ident, &Match::GreaterThan(value), query);
 			},
 			MatchOption::InRange(low, high) =>
 			{
-				PgSchema::write_where_clause(context, ident, &Match::InRange(low, high), query);
+				Self::write_where_clause(context, ident, &Match::InRange(low, high), query);
 			},
 			MatchOption::LessThan(value) =>
 			{
-				PgSchema::write_where_clause(context, ident, &Match::LessThan(value), query);
+				Self::write_where_clause(context, ident, &Match::LessThan(value), query);
 			},
 			MatchOption::None =>
 			{
@@ -348,7 +348,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 				let iter = &mut conditions.iter().filter(|m| *m != &MatchSet::Any);
 				if let Some(c) = iter.next()
 				{
-					PgSchema::write_where_clause(WriteContext::InWhereCondition, ident, c, query);
+					Self::write_where_clause(WriteContext::InWhereCondition, ident, c, query);
 				}
 
 				let separator = match match_condition
@@ -359,7 +359,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 
 				conditions.iter().for_each(|c| {
 					query.push(separator);
-					PgSchema::write_where_clause(WriteContext::InWhereCondition, ident, c, query);
+					Self::write_where_clause(WriteContext::InWhereCondition, ident, c, query);
 				});
 
 				write_context_scope_end(query);
@@ -382,7 +382,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 						COLUMNS.scope(ident).timesheet_id,
 					);
 
-				PgSchema::write_where_clause(
+				Self::write_where_clause(
 					WriteContext::AcceptingAnotherWhereCondition,
 					subquery_ident,
 					match_expense,
@@ -475,10 +475,10 @@ impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 	{
 		let columns = EmployeeColumns::default().scope(ident);
 
-		PgSchema::write_where_clause(
-			PgSchema::write_where_clause(
-				PgSchema::write_where_clause(
-					PgSchema::write_where_clause(context, columns.id, &match_condition.id, query),
+		Self::write_where_clause(
+			Self::write_where_clause(
+				Self::write_where_clause(
+					Self::write_where_clause(context, columns.id, &match_condition.id, query),
 					columns.name,
 					&match_condition.name,
 					query,
@@ -507,11 +507,11 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 	{
 		let columns = ExpenseColumns::default().scope(ident);
 
-		PgSchema::write_where_clause(
-			PgSchema::write_where_clause(
-				PgSchema::write_where_clause(
-					PgSchema::write_where_clause(
-						PgSchema::write_where_clause(context, columns.id, &match_condition.id, query),
+		Self::write_where_clause(
+			Self::write_where_clause(
+				Self::write_where_clause(
+					Self::write_where_clause(
+						Self::write_where_clause(context, columns.id, &match_condition.id, query),
 						columns.category,
 						&match_condition.category,
 						query,
@@ -545,9 +545,9 @@ impl WriteWhereClause<Postgres, &MatchInvoice> for PgSchema
 	{
 		let columns = JobColumns::default().scope(ident);
 
-		PgSchema::write_where_clause(
-			PgSchema::write_where_clause(
-				PgSchema::write_where_clause(
+		Self::write_where_clause(
+			Self::write_where_clause(
+				Self::write_where_clause(
 					context,
 					columns.invoice_date_issued,
 					&match_condition.date_issued,
@@ -578,13 +578,13 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 	{
 		let columns = JobColumns::default().scope(ident);
 
-		PgSchema::write_where_clause(
-			PgSchema::write_where_clause(
-				PgSchema::write_where_clause(
-					PgSchema::write_where_clause(
-						PgSchema::write_where_clause(
-							PgSchema::write_where_clause(
-								PgSchema::write_where_clause(
+		Self::write_where_clause(
+			Self::write_where_clause(
+				Self::write_where_clause(
+					Self::write_where_clause(
+						Self::write_where_clause(
+							Self::write_where_clause(
+								Self::write_where_clause(
 									context,
 									columns.date_close,
 									&match_condition.date_close.map_ref(|d| PgTimestampTz(*d)),
@@ -632,8 +632,8 @@ impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 	{
 		let columns = OrganizationColumns::default().scope(ident);
 
-		PgSchema::write_where_clause(
-			PgSchema::write_where_clause(context, columns.id, &match_condition.id, query),
+		Self::write_where_clause(
+			Self::write_where_clause(context, columns.id, &match_condition.id, query),
 			columns.name,
 			&match_condition.name,
 			query,
@@ -654,10 +654,10 @@ impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 	{
 		let columns = TimesheetColumns::default().scope(ident);
 
-		PgSchema::write_where_clause(
-			PgSchema::write_where_clause(
-				PgSchema::write_where_clause(
-					PgSchema::write_where_clause(context, columns.id, &match_condition.id, query),
+		Self::write_where_clause(
+			Self::write_where_clause(
+				Self::write_where_clause(
+					Self::write_where_clause(context, columns.id, &match_condition.id, query),
 					columns.time_begin,
 					&match_condition.time_begin.map_ref(|d| PgTimestampTz(*d)),
 					query,
