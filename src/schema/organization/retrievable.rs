@@ -56,9 +56,7 @@ impl Retrievable for PgOrganization
 		query
 			.prepare()
 			.fetch(connection)
-			.and_then(
-				|row| async move { Self::row_to_view(connection, COLUMNS, &row).await },
-			)
+			.and_then(|row| async move { Self::row_to_view(connection, COLUMNS, &row).await })
 			.try_collect()
 			.await
 	}
