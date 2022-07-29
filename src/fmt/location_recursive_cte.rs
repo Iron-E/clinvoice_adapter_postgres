@@ -17,10 +17,10 @@ use clinvoice_match::{MatchLocation, MatchOuterLocation};
 ///
 /// * See [`PgLocation::query_with_recursive`].
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(crate) struct PgLocationRecursiveCte<T, TOuter>(SnakeCase<T, TOuter>)
+pub(crate) struct PgLocationRecursiveCte<T, Outer>(SnakeCase<T, Outer>)
 where
 	T: Display,
-	TOuter: Display;
+	Outer: Display;
 
 impl PgLocationRecursiveCte<&'static str, &'static str>
 {
@@ -60,13 +60,13 @@ where
 	}
 }
 
-impl<T, TOuter> PgLocationRecursiveCte<T, TOuter>
+impl<T, Outer> PgLocationRecursiveCte<T, Outer>
 where
 	T: Display,
-	TOuter: Display,
+	Outer: Display,
 {
 	/// See [`SnakeCase::slice_end`]
-	pub(crate) const fn slice_end(&self) -> Option<(&T, &TOuter)>
+	pub(crate) const fn slice_end(&self) -> Option<(&T, &Outer)>
 	{
 		self.0.slice_end()
 	}

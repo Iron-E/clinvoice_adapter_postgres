@@ -15,14 +15,14 @@ pub struct PgOrganization;
 
 impl PgOrganization
 {
-	pub(super) async fn row_to_view<'connection, TConn, TColumn>(
-		connection: TConn,
-		columns: OrganizationColumns<TColumn>,
+	pub(super) async fn row_to_view<'connection, Conn, Column>(
+		connection: Conn,
+		columns: OrganizationColumns<Column>,
 		row: &PgRow,
 	) -> Result<Organization>
 	where
-		TConn: Executor<'connection, Database = Postgres>,
-		TColumn: AsRef<str>,
+		Conn: Executor<'connection, Database = Postgres>,
+		Column: AsRef<str>,
 	{
 		let location_id = row.try_get(columns.location_id.as_ref())?;
 		Ok(Organization {

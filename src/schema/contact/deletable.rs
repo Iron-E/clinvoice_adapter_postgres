@@ -16,14 +16,11 @@ impl Deletable for PgContact
 	type Db = Postgres;
 	type Entity = Contact;
 
-	async fn delete<'connection, 'entity, TConn, TIter>(
-		connection: TConn,
-		entities: TIter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
-		TConn: Executor<'connection, Database = Self::Db>,
-		TIter: Iterator<Item = &'entity Self::Entity> + Send,
+		Conn: Executor<'connection, Database = Self::Db>,
+		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
 		fn write<'query, 'args, T>(s: &mut Separated<'query, 'args, Postgres, T>, c: &'args Contact)
 		where

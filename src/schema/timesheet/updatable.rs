@@ -14,13 +14,13 @@ impl Updatable for PgTimesheet
 	type Db = Postgres;
 	type Entity = Timesheet;
 
-	async fn update<'entity, TIter>(
+	async fn update<'entity, Iter>(
 		connection: &mut Transaction<Self::Db>,
-		entities: TIter,
+		entities: Iter,
 	) -> Result<()>
 	where
 		Self::Entity: 'entity,
-		TIter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
+		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
 	{
 		#![allow(clippy::items_after_statements)]
 

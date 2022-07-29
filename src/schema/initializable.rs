@@ -4,9 +4,9 @@ use sqlx::{Acquire, Executor, Postgres, Result};
 use super::PgSchema;
 
 /// Initialize the `locations` table.
-async fn init_locations<'connection, TConn>(connection: TConn) -> Result<()>
+async fn init_locations<'connection, Conn>(connection: Conn) -> Result<()>
 where
-	TConn: Executor<'connection, Database = Postgres>,
+	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS locations
@@ -24,9 +24,9 @@ where
 }
 
 /// Initialize `organizations` table.
-async fn init_organizations<'connection, TConn>(connection: TConn) -> Result<()>
+async fn init_organizations<'connection, Conn>(connection: Conn) -> Result<()>
 where
-	TConn: Executor<'connection, Database = Postgres>,
+	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS organizations
@@ -42,9 +42,9 @@ where
 }
 
 /// Initialize the `employees` table.
-async fn init_employees<'connection, TConn>(connection: TConn) -> Result<()>
+async fn init_employees<'connection, Conn>(connection: Conn) -> Result<()>
 where
-	TConn: Executor<'connection, Database = Postgres>,
+	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS employees
@@ -61,9 +61,9 @@ where
 }
 
 /// Initialize the `contact_information` table.
-async fn init_contact_info<'connection, TConn>(connection: TConn) -> Result<()>
+async fn init_contact_info<'connection, Conn>(connection: Conn) -> Result<()>
 where
-	TConn: Executor<'connection, Database = Postgres>,
+	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(
 		r#"CREATE TABLE IF NOT EXISTS contact_information
@@ -113,9 +113,9 @@ where
 }
 
 /// Initialize the `amount_of_currency` type.
-async fn init_money<'connection, TConn>(connection: TConn) -> Result<()>
+async fn init_money<'connection, Conn>(connection: Conn) -> Result<()>
 where
-	TConn: Executor<'connection, Database = Postgres>,
+	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(r#"CREATE DOMAIN amount_of_currency AS text CHECK (VALUE ~ '^\d+(\.\d+)?$');"#)
 		.execute(connection)
@@ -124,9 +124,9 @@ where
 }
 
 /// Initialize the `jobs` table.
-async fn init_jobs<'connection, TConn>(connection: TConn) -> Result<()>
+async fn init_jobs<'connection, Conn>(connection: Conn) -> Result<()>
 where
-	TConn: Executor<'connection, Database = Postgres>,
+	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS jobs
@@ -157,9 +157,9 @@ where
 }
 
 /// Initialize the `timesheets` table.
-async fn init_timesheets<'connection, TConn>(connection: TConn) -> Result<()>
+async fn init_timesheets<'connection, Conn>(connection: Conn) -> Result<()>
 where
-	TConn: Executor<'connection, Database = Postgres>,
+	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS timesheets
@@ -181,9 +181,9 @@ where
 }
 
 /// Initialize the `expenses` table.
-async fn init_expenses<'connection, TConn>(connection: TConn) -> Result<()>
+async fn init_expenses<'connection, Conn>(connection: Conn) -> Result<()>
 where
-	TConn: Executor<'connection, Database = Postgres>,
+	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS expenses
@@ -205,9 +205,9 @@ impl Initializable for PgSchema
 {
 	type Db = Postgres;
 
-	async fn init<'connection, TConn>(connection: TConn) -> Result<()>
+	async fn init<'connection, Conn>(connection: Conn) -> Result<()>
 	where
-		TConn: Acquire<'connection, Database = Self::Db> + Send,
+		Conn: Acquire<'connection, Database = Self::Db> + Send,
 	{
 		let mut transaction = connection.begin().await?;
 

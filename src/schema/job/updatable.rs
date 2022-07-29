@@ -20,13 +20,13 @@ impl Updatable for PgJob
 	type Db = Postgres;
 	type Entity = Job;
 
-	async fn update<'entity, TIter>(
+	async fn update<'entity, Iter>(
 		connection: &mut Transaction<Self::Db>,
-		entities: TIter,
+		entities: Iter,
 	) -> Result<()>
 	where
 		Self::Entity: 'entity,
-		TIter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
+		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
 	{
 		let mut peekable_entities = entities.clone().peekable();
 

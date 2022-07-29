@@ -39,13 +39,13 @@ impl PgLocation
 	pub(super) fn query_with_recursive(match_condition: &MatchLocation) -> QueryBuilder<Postgres>
 	{
 		/// Generate one expression in a recursive CTE.
-		fn generate_expression<T, TOuter>(
+		fn generate_expression<T, Outer>(
 			query: &mut QueryBuilder<Postgres>,
-			ident: PgLocationRecursiveCte<T, TOuter>,
+			ident: PgLocationRecursiveCte<T, Outer>,
 			match_condition: &MatchLocation,
 		) where
 			T: Display,
-			TOuter: Display,
+			Outer: Display,
 		{
 			let alias = LocationColumns::<char>::DEFAULT_ALIAS;
 			let columns = COLUMNS.scope(alias);
@@ -142,12 +142,12 @@ impl PgLocation
 	}
 
 	/// Construct a [`Location`], also constructing all outer [`Location`]s, and return it.
-	pub(super) async fn retrieve_by_id<'connection, TConn>(
-		connection: TConn,
+	pub(super) async fn retrieve_by_id<'connection, Conn>(
+		connection: Conn,
 		id: Id,
 	) -> Result<Location>
 	where
-		TConn: Executor<'connection, Database = Postgres>,
+		Conn: Executor<'connection, Database = Postgres>,
 	{
 		const SOURCE: &str = "this column in `locations` must be non-null";
 		sqlx::query!(
@@ -193,12 +193,12 @@ impl PgLocation
 
 	/// Retrieve a [`Match`] which will match all of the [`Id`]s of the [`Location`]s which match the
 	/// `match_condition`.
-	pub(super) async fn retrieve_matching_ids<'connection, TConn>(
-		connection: TConn,
+	pub(super) async fn retrieve_matching_ids<'connection, Conn>(
+		connection: Conn,
 		match_condition: &MatchLocation,
 	) -> Result<Match<Id>>
 	where
-		TConn: Executor<'connection, Database = Postgres>,
+		Conn: Executor<'connection, Database = Postgres>,
 	{
 		let mut query = Self::query_with_recursive(match_condition);
 

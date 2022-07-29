@@ -23,28 +23,28 @@ impl PgTimesheet
 {
 	pub(super) async fn row_to_view<
 		'connection,
-		TConn,
-		TEmpColumns,
-		TJobColumns,
-		TOrgColumns,
-		TTimeColumns,
-		TXpnIdent,
+		Conn,
+		TimesheetColumnNames,
+		EmployeeColumnNames,
+		ExpenseColumnNames,
+		JobColumnNames,
+		OrganizationColumnNames,
 	>(
-		connection: TConn,
-		columns: TimesheetColumns<TTimeColumns>,
-		employee_columns: EmployeeColumns<TEmpColumns>,
-		expenses_ident: TXpnIdent,
-		job_columns: JobColumns<TJobColumns>,
-		organization_columns: OrganizationColumns<TOrgColumns>,
+		connection: Conn,
+		columns: TimesheetColumns<TimesheetColumnNames>,
+		employee_columns: EmployeeColumns<EmployeeColumnNames>,
+		expenses_ident: ExpenseColumnNames,
+		job_columns: JobColumns<JobColumnNames>,
+		organization_columns: OrganizationColumns<OrganizationColumnNames>,
 		row: &PgRow,
 	) -> Result<Timesheet>
 	where
-		TConn: Executor<'connection, Database = Postgres>,
-		TEmpColumns: AsRef<str>,
-		TJobColumns: AsRef<str>,
-		TOrgColumns: AsRef<str>,
-		TTimeColumns: AsRef<str>,
-		TXpnIdent: AsRef<str>,
+		Conn: Executor<'connection, Database = Postgres>,
+		EmployeeColumnNames: AsRef<str>,
+		JobColumnNames: AsRef<str>,
+		OrganizationColumnNames: AsRef<str>,
+		TimesheetColumnNames: AsRef<str>,
+		ExpenseColumnNames: AsRef<str>,
 	{
 		let job_fut = PgJob::row_to_view(connection, job_columns, organization_columns, row);
 		Ok(Timesheet {

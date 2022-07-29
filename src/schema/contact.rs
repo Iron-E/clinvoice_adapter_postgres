@@ -16,13 +16,13 @@ pub struct PgContact;
 
 impl PgContact
 {
-	pub(super) async fn row_to_view<'connection, TConn>(
-		connection: TConn,
+	pub(super) async fn row_to_view<'connection, Conn>(
+		connection: Conn,
 		columns: ContactColumns<&str>,
 		row: &PgRow,
 	) -> Result<Contact>
 	where
-		TConn: Executor<'connection, Database = Postgres>,
+		Conn: Executor<'connection, Database = Postgres>,
 	{
 		Ok(Contact {
 			label: row.get(columns.label),

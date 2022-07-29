@@ -37,11 +37,11 @@ impl PgSchema
 {
 	/// Via `connection`, execute `DELETE FROM {table} WHERE (id = №) OR … OR (id = №)` for each
 	/// [`Id`] in `ids`.
-	async fn delete<'args, TConn, TIter, TTable>(connection: TConn, ids: TIter) -> Result<()>
+	async fn delete<'args, Conn, Iter, Table>(connection: Conn, ids: Iter) -> Result<()>
 	where
-		TConn: Executor<'args, Database = Postgres>,
-		TIter: Iterator<Item = Id>,
-		TTable: TableToSql,
+		Conn: Executor<'args, Database = Postgres>,
+		Iter: Iterator<Item = Id>,
+		Table: TableToSql,
 	{
 		let mut peekable_entities = ids.peekable();
 
@@ -52,7 +52,7 @@ impl PgSchema
 		}
 
 		let mut query = QueryBuilder::new(sql::DELETE);
-		query.push(sql::FROM).push(TTable::TABLE_NAME);
+		query.push(sql::FROM).push(Table::TABLE_NAME);
 
 		Self::write_where_clause(
 			Default::default(),
@@ -76,22 +76,22 @@ impl PgSchema
 	/// * [`ColumnsToSql::push_set`] for how the `SET` clause is generated.
 	/// * [`ColumnsToSql::push_update_where`] for how the `WHERE` condition is generated.
 	/// * [`QueryBuilder::push_values`] for what function to use for `push_values`.
-	async fn update<'args, TColumns, TFn>(
+	async fn update<'args, Columns, F>(
 		connection: &mut Transaction<'_, Postgres>,
-		columns: TColumns,
-		push_values: TFn,
+		columns: Columns,
+		push_values: F,
 	) -> Result<()>
 	where
-		TColumns: ColumnsToSql,
-		TFn: FnOnce(&mut QueryBuilder<'args, Postgres>),
+		Columns: ColumnsToSql,
+		F: FnOnce(&mut QueryBuilder<'args, Postgres>),
 	{
 		let mut query = QueryBuilder::new(sql::UPDATE);
 
 		query
-			.push(As(TColumns::TABLE_NAME, TColumns::DEFAULT_ALIAS))
+			.push(As(Columns::TABLE_NAME, Columns::DEFAULT_ALIAS))
 			.push(sql::SET);
 
-		let values_alias = SnakeCase::from((TColumns::DEFAULT_ALIAS, 'V'));
+		let values_alias = SnakeCase::from((Columns::DEFAULT_ALIAS, 'V'));
 		columns.push_set_to(&mut query, values_alias);
 
 		query.push(sql::FROM).push('(');
@@ -107,7 +107,7 @@ impl PgSchema
 			.push(')')
 			.push(sql::WHERE);
 
-		columns.push_update_where_to(&mut query, TColumns::DEFAULT_ALIAS, values_alias);
+		columns.push_update_where_to(&mut query, Columns::DEFAULT_ALIAS, values_alias);
 
 		query.prepare().execute(connection).await?;
 

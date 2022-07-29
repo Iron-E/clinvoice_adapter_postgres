@@ -7,13 +7,13 @@ use super::PgLocation;
 #[async_trait::async_trait]
 impl LocationAdapter for PgLocation
 {
-	async fn create<'connection, TConn>(
-		connection: TConn,
+	async fn create<'connection, Conn>(
+		connection: Conn,
 		name: String,
 		outer: Option<Location>,
 	) -> Result<Location>
 	where
-		TConn: Executor<'connection, Database = Postgres>,
+		Conn: Executor<'connection, Database = Postgres>,
 	{
 		let row = sqlx::query!(
 			"INSERT INTO locations (name, outer_id) VALUES ($1, $2) RETURNING id;",

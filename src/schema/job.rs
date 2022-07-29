@@ -16,16 +16,16 @@ pub struct PgJob;
 
 impl PgJob
 {
-	pub(super) async fn row_to_view<'connection, TConn, TJobColumns, TOrgColumns>(
-		connection: TConn,
-		columns: JobColumns<TJobColumns>,
-		organization_columns: OrganizationColumns<TOrgColumns>,
+	pub(super) async fn row_to_view<'connection, Conn, JobColumnName, OrgColumnName>(
+		connection: Conn,
+		columns: JobColumns<JobColumnName>,
+		organization_columns: OrganizationColumns<OrgColumnName>,
 		row: &PgRow,
 	) -> Result<Job>
 	where
-		TConn: Executor<'connection, Database = Postgres>,
-		TJobColumns: AsRef<str>,
-		TOrgColumns: AsRef<str>,
+		Conn: Executor<'connection, Database = Postgres>,
+		JobColumnName: AsRef<str>,
+		OrgColumnName: AsRef<str>,
 	{
 		let client_fut = PgOrganization::row_to_view(connection, organization_columns, row);
 

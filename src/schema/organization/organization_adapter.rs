@@ -7,13 +7,13 @@ use super::PgOrganization;
 #[async_trait::async_trait]
 impl OrganizationAdapter for PgOrganization
 {
-	async fn create<'connection, TConn>(
-		connection: TConn,
+	async fn create<'connection, Conn>(
+		connection: Conn,
 		location: Location,
 		name: String,
 	) -> Result<Organization>
 	where
-		TConn: Executor<'connection, Database = Postgres>,
+		Conn: Executor<'connection, Database = Postgres>,
 	{
 		let row = sqlx::query!(
 			"INSERT INTO organizations (location_id, name) VALUES ($1, $2) RETURNING id;",
