@@ -4,10 +4,10 @@ use clinvoice_adapter::{
 	Retrievable,
 	WriteWhereClause,
 };
-use clinvoice_finance::{ExchangeRates, Exchangeable};
 use clinvoice_match::MatchExpense;
 use clinvoice_schema::Expense;
 use futures::{future, TryFutureExt, TryStreamExt};
+use money2::{ExchangeRates, Exchangeable};
 use sqlx::{Pool, Postgres, QueryBuilder, Result};
 
 use super::PgExpenses;

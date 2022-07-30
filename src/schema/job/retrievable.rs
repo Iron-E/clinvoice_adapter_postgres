@@ -4,10 +4,10 @@ use clinvoice_adapter::{
 	Retrievable,
 	WriteWhereClause,
 };
-use clinvoice_finance::{ExchangeRates, Exchangeable};
 use clinvoice_match::MatchJob;
 use clinvoice_schema::Job;
 use futures::{TryFutureExt, TryStreamExt};
+use money2::{ExchangeRates, Exchangeable};
 use sqlx::{Pool, Postgres, Result};
 
 use super::PgJob;
@@ -92,7 +92,6 @@ mod tests
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Retrievable,
 	};
-	use clinvoice_finance::{ExchangeRates, Exchangeable};
 	use clinvoice_match::{Match, MatchInvoice, MatchJob, MatchOption};
 	use clinvoice_schema::{
 		chrono::{TimeZone, Utc},
@@ -101,6 +100,7 @@ mod tests
 		InvoiceDate,
 		Money,
 	};
+	use money2::{ExchangeRates, Exchangeable};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgJob, PgLocation, PgOrganization};

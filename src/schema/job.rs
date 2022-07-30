@@ -4,8 +4,8 @@ mod retrievable;
 mod updatable;
 
 use clinvoice_adapter::schema::columns::{JobColumns, OrganizationColumns};
-use clinvoice_finance::{Decimal, Money};
 use clinvoice_schema::{Invoice, InvoiceDate, Job};
+use money2::{Decimal, Money};
 use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
 
 use super::{util, PgOrganization};

@@ -1,7 +1,7 @@
 use core::time::Duration;
 use std::io;
 
-use clinvoice_finance::Error as FinanceError;
+use money2::Error as FinanceError;
 use sqlx::{postgres::types::PgInterval, Error, Result};
 #[cfg(test)]
 use {lazy_static::lazy_static, sqlx::PgPool};
@@ -49,7 +49,7 @@ pub(super) fn duration_from(interval: PgInterval) -> Result<Duration>
 	))
 }
 
-/// Map some [error](clinvoice_finance::Error) `e` to an [`Error`].
+/// Map some [error](money2::Error) `e` to an [`Error`].
 pub(super) fn finance_err_to_sqlx(e: FinanceError) -> Error
 {
 	match e

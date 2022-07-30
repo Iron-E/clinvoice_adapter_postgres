@@ -43,12 +43,12 @@ mod tests
 		Deletable,
 		Retrievable,
 	};
-	use clinvoice_finance::{Currency, ExchangeRates, Exchangeable, Money};
 	use clinvoice_match::MatchExpense;
 	use clinvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Invoice,
 	};
+	use money2::{Currency, ExchangeRates, Exchangeable, Money};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{
