@@ -1,10 +1,10 @@
 use clinvoice_adapter::{schema::columns::JobColumns, Updatable};
-use clinvoice_finance::{ExchangeRates, Exchangeable};
 use clinvoice_schema::{
 	chrono::{DateTime, Utc},
 	Job,
 };
 use futures::TryFutureExt;
+use money2::{ExchangeRates, Exchangeable};
 use sqlx::{Postgres, Result, Transaction};
 
 use super::PgJob;
@@ -82,9 +82,9 @@ mod tests
 		Retrievable,
 		Updatable,
 	};
-	use clinvoice_finance::Money;
 	use clinvoice_schema::{chrono, Invoice, InvoiceDate};
 	use futures::TryFutureExt;
+	use money2::Money;
 	use pretty_assertions::assert_eq;
 
 	use crate::{

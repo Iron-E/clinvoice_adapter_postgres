@@ -76,9 +76,9 @@ mod tests
 		Retrievable,
 		Updatable,
 	};
-	use clinvoice_finance::{Currency, Money};
 	use clinvoice_schema::{chrono, Invoice, InvoiceDate};
 	use futures::TryFutureExt;
+	use money2::{Currency, Money};
 	use pretty_assertions::assert_eq;
 
 	use crate::{

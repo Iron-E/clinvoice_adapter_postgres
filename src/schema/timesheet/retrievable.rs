@@ -11,10 +11,10 @@ use clinvoice_adapter::{
 	Retrievable,
 	WriteWhereClause,
 };
-use clinvoice_finance::{ExchangeRates, Exchangeable};
 use clinvoice_match::MatchTimesheet;
 use clinvoice_schema::Timesheet;
 use futures::{TryFutureExt, TryStreamExt};
+use money2::{ExchangeRates, Exchangeable};
 use sqlx::{Pool, Postgres, Result};
 
 use super::PgTimesheet;
@@ -166,7 +166,6 @@ mod tests
 		},
 		Retrievable,
 	};
-	use clinvoice_finance::{ExchangeRates, Exchangeable};
 	use clinvoice_match::{Match, MatchSet, MatchTimesheet};
 	use clinvoice_schema::{
 		chrono::{TimeZone, Utc},
@@ -175,6 +174,7 @@ mod tests
 		InvoiceDate,
 		Money,
 	};
+	use money2::{ExchangeRates, Exchangeable};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgEmployee, PgJob, PgLocation, PgOrganization, PgTimesheet};

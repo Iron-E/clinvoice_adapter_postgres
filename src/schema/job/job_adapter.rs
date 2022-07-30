@@ -1,13 +1,13 @@
 use core::time::Duration;
 
 use clinvoice_adapter::schema::JobAdapter;
-use clinvoice_finance::{ExchangeRates, Exchangeable};
 use clinvoice_schema::{
 	chrono::{DateTime, Utc},
 	Invoice,
 	Job,
 	Organization,
 };
+use money2::{ExchangeRates, Exchangeable};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgJob;
@@ -73,8 +73,8 @@ mod tests
 	use core::time::Duration;
 
 	use clinvoice_adapter::schema::{LocationAdapter, OrganizationAdapter};
-	use clinvoice_finance::{ExchangeRates, Exchangeable};
 	use clinvoice_schema::{chrono::Utc, Currency, Invoice, Money};
+	use money2::{ExchangeRates, Exchangeable};
 	use pretty_assertions::assert_eq;
 
 	use super::{JobAdapter, PgJob};

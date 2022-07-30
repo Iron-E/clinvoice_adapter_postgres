@@ -1,11 +1,11 @@
 use clinvoice_adapter::schema::{ExpensesAdapter, TimesheetAdapter};
-use clinvoice_finance::Money;
 use clinvoice_schema::{
 	chrono::{DateTime, Utc},
 	Employee,
 	Job,
 	Timesheet,
 };
+use money2::Money;
 use sqlx::{Postgres, Result, Transaction};
 
 use super::PgTimesheet;

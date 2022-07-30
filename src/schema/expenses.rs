@@ -4,8 +4,8 @@ mod retrievable;
 mod updatable;
 
 use clinvoice_adapter::schema::columns::ExpenseColumns;
-use clinvoice_finance::{Decimal, Money};
 use clinvoice_schema::Expense;
+use money2::{Decimal, Money};
 use sqlx::{postgres::PgRow, Result, Row};
 
 use super::util;

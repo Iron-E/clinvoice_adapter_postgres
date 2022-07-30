@@ -9,8 +9,8 @@ use clinvoice_adapter::schema::columns::{
 	OrganizationColumns,
 	TimesheetColumns,
 };
-use clinvoice_finance::{Decimal, Money};
 use clinvoice_schema::{Expense, Timesheet};
+use money2::{Decimal, Money};
 use sqlx::{error::UnexpectedNullError, postgres::PgRow, Error, Executor, Postgres, Result, Row};
 
 use super::{util, PgEmployee, PgJob};

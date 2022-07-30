@@ -2,9 +2,9 @@ use clinvoice_adapter::{
 	fmt::{sql, QueryBuilderExt},
 	schema::{columns::ExpenseColumns, ExpensesAdapter},
 };
-use clinvoice_finance::{ExchangeRates, Exchangeable, Money};
 use clinvoice_schema::{Expense, Id};
 use futures::{stream, StreamExt, TryFutureExt, TryStreamExt};
+use money2::{ExchangeRates, Exchangeable, Money};
 use sqlx::{Executor, Postgres, QueryBuilder, Result, Row};
 
 use super::PgExpenses;
