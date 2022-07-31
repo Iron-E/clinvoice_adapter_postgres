@@ -1,7 +1,7 @@
 # See https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
 name = "clinvoice-adapter-postgres"
-version = "0.7.3"
+version = "0.7.4"
 authors = ["Iron-E <code.iron.e@gmail.com>"]
 description = "Postgres filesystem support for `clinvoice-adapter` 0.8"
 
@@ -18,7 +18,7 @@ clinvoice-schema = {branch = "release/0.10", git = "https://github.com/Iron-E/cl
 async-trait = "0.1"
 futures = "0.3"
 humantime = "2"
-money2 = {branch = "release/0.6", git = "https://github.com/Iron-E/money"}
+money2 = "0.6"
 shellexpand = "2"
 sqlx = {features = ["chrono", "decimal", "macros", "postgres", "runtime-tokio-rustls", "tls"], version = "0.5"}
 thiserror = "1"
