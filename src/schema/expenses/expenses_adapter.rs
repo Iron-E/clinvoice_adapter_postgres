@@ -4,7 +4,7 @@ use clinvoice_adapter::{
 };
 use clinvoice_schema::{Expense, Id};
 use futures::{stream, StreamExt, TryFutureExt, TryStreamExt};
-use money2::{ExchangeRates, Exchangeable, Money};
+use money2::{Exchange, ExchangeRates, Money};
 use sqlx::{Executor, Postgres, QueryBuilder, Result, Row};
 
 use super::PgExpenses;

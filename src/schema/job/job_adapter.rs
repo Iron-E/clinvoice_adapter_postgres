@@ -7,7 +7,7 @@ use clinvoice_schema::{
 	Job,
 	Organization,
 };
-use money2::{ExchangeRates, Exchangeable};
+use money2::{Exchange, ExchangeRates};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgJob;
@@ -74,7 +74,7 @@ mod tests
 
 	use clinvoice_adapter::schema::{LocationAdapter, OrganizationAdapter};
 	use clinvoice_schema::{chrono::Utc, Currency, Invoice, Money};
-	use money2::{ExchangeRates, Exchangeable};
+	use money2::{Exchange, ExchangeRates};
 	use pretty_assertions::assert_eq;
 
 	use super::{JobAdapter, PgJob};

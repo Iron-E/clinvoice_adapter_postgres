@@ -12,13 +12,13 @@ repository = "https://www.github.com/Iron-E/clinvoice-adapter-postgres"
 
 [dependencies]
 clinvoice-adapter = {branch="release/0.17", default-features = false, git = "https://github.com/Iron-E/clinvoice-adapter"}
-clinvoice-match = {branch = "release/0.6", git = "https://github.com/Iron-E/clinvoice-match"}
-clinvoice-schema = {branch = "release/0.9", git = "https://github.com/Iron-E/clinvoice-schema"}
+clinvoice-match = {branch = "release/0.7", git = "https://github.com/Iron-E/clinvoice-match"}
+clinvoice-schema = {branch = "release/0.10", git = "https://github.com/Iron-E/clinvoice-schema"}
 
 async-trait = "0.1"
 futures = "0.3"
 humantime = "2"
-money2 = {branch = "release/0.5", git = "https://github.com/Iron-E/money"}
+money2 = {branch = "release/0.6", git = "https://github.com/Iron-E/money"}
 shellexpand = "2"
 sqlx = {features = ["chrono", "decimal", "macros", "postgres", "runtime-tokio-rustls", "tls"], version = "0.5"}
 thiserror = "1"

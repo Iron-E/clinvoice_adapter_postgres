@@ -7,7 +7,7 @@ use clinvoice_adapter::{
 use clinvoice_match::MatchJob;
 use clinvoice_schema::Job;
 use futures::{TryFutureExt, TryStreamExt};
-use money2::{ExchangeRates, Exchangeable};
+use money2::{Exchange, ExchangeRates};
 use sqlx::{Pool, Postgres, Result};
 
 use super::PgJob;
@@ -63,7 +63,7 @@ impl Retrievable for PgJob
 			PgSchema::write_where_clause(
 				Default::default(),
 				JobColumns::<char>::DEFAULT_ALIAS,
-				&match_condition.exchange_ref(Default::default(), &exchange_rates_fut.await?),
+				&match_condition.exchange(Default::default(), &exchange_rates_fut.await?),
 				&mut query,
 			),
 			OrganizationColumns::<char>::DEFAULT_ALIAS,
@@ -100,7 +100,7 @@ mod tests
 		InvoiceDate,
 		Money,
 	};
-	use money2::{ExchangeRates, Exchangeable};
+	use money2::{Exchange, ExchangeRates};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgJob, PgLocation, PgOrganization};
@@ -199,7 +199,7 @@ mod tests
 				.await
 				.unwrap()
 				.as_slice(),
-			&[job.exchange_ref(Default::default(), &exchange_rates)],
+			&[(&job).exchange(Default::default(), &exchange_rates)],
 		);
 
 		assert_eq!(

@@ -48,7 +48,7 @@ mod tests
 		chrono::{TimeZone, Utc},
 		Invoice,
 	};
-	use money2::{Currency, ExchangeRates, Exchangeable, Money};
+	use money2::{Currency, Exchange, ExchangeRates, Money};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{
@@ -153,7 +153,7 @@ mod tests
 			.filter(|x| x.timesheet_id == timesheet.id)
 			.collect::<Vec<_>>()
 			.as_slice(),
-			&[timesheet.expenses[2].exchange_ref(Default::default(), &exchange_rates)],
+			&[(&timesheet.expenses[2]).exchange(Default::default(), &exchange_rates)],
 		);
 	}
 }

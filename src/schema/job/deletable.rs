@@ -43,7 +43,7 @@ mod tests
 		Invoice,
 		InvoiceDate,
 	};
-	use money2::{Currency, ExchangeRates, Exchangeable, Money};
+	use money2::{Currency, Exchange, ExchangeRates, Money};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgJob, PgLocation, PgOrganization};

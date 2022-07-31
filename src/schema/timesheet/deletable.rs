@@ -48,7 +48,7 @@ mod tests
 		chrono::{TimeZone, Utc},
 		Invoice,
 	};
-	use money2::{Currency, ExchangeRates, Exchangeable, Money};
+	use money2::{Currency, Exchange, ExchangeRates, Money};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{
@@ -169,7 +169,7 @@ mod tests
 			.unwrap()
 			.into_iter()
 			.as_slice(),
-			&[timesheet3.exchange_ref(Default::default(), &exchange_rates)],
+			&[(&timesheet3).exchange(Default::default(), &exchange_rates)],
 		);
 
 		assert_eq!(
@@ -185,7 +185,7 @@ mod tests
 			.unwrap(),
 			timesheet3
 				.expenses
-				.exchange_ref(Default::default(), &exchange_rates),
+				.exchange(Default::default(), &exchange_rates),
 		);
 	}
 }

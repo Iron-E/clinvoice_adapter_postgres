@@ -4,7 +4,7 @@ use clinvoice_schema::{
 	Job,
 };
 use futures::TryFutureExt;
-use money2::{ExchangeRates, Exchangeable};
+use money2::{Exchange, ExchangeRates};
 use sqlx::{Postgres, Result, Transaction};
 
 use super::PgJob;

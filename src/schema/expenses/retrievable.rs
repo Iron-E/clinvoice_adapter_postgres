@@ -7,7 +7,7 @@ use clinvoice_adapter::{
 use clinvoice_match::MatchExpense;
 use clinvoice_schema::Expense;
 use futures::{future, TryFutureExt, TryStreamExt};
-use money2::{ExchangeRates, Exchangeable};
+use money2::{Exchange, ExchangeRates};
 use sqlx::{Pool, Postgres, QueryBuilder, Result};
 
 use super::PgExpenses;
@@ -44,7 +44,7 @@ impl Retrievable for PgExpenses
 		PgSchema::write_where_clause(
 			Default::default(),
 			ExpenseColumns::<char>::DEFAULT_ALIAS,
-			&match_condition.exchange_ref(Default::default(), &exchange_rates),
+			&match_condition.exchange(Default::default(), &exchange_rates),
 			&mut query,
 		);
 

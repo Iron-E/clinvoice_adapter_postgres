@@ -14,7 +14,7 @@ use clinvoice_adapter::{
 use clinvoice_match::MatchTimesheet;
 use clinvoice_schema::Timesheet;
 use futures::{TryFutureExt, TryStreamExt};
-use money2::{ExchangeRates, Exchangeable};
+use money2::{Exchange, ExchangeRates};
 use sqlx::{Pool, Postgres, Result};
 
 use super::PgTimesheet;
@@ -107,15 +107,11 @@ impl Retrievable for PgTimesheet
 						&mut query,
 					),
 					ExpenseColumns::<char>::DEFAULT_ALIAS,
-					&match_condition
-						.expenses
-						.exchange_ref(Default::default(), &exchange_rates),
+					&(&match_condition.expenses).exchange(Default::default(), &exchange_rates),
 					&mut query,
 				),
 				JobColumns::<char>::DEFAULT_ALIAS,
-				&match_condition
-					.job
-					.exchange_ref(Default::default(), &exchange_rates),
+				&(&match_condition.job).exchange(Default::default(), &exchange_rates),
 				&mut query,
 			),
 			OrganizationColumns::<char>::DEFAULT_ALIAS,
@@ -174,7 +170,7 @@ mod tests
 		InvoiceDate,
 		Money,
 	};
-	use money2::{ExchangeRates, Exchangeable};
+	use money2::{Exchange, ExchangeRates};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgEmployee, PgJob, PgLocation, PgOrganization, PgTimesheet};
