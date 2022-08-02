@@ -73,7 +73,7 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_employee = PgEmployee::retrieve(&connection, &employee.id.into())
+		let db_employee = PgEmployee::retrieve(&connection, employee.id.into())
 			.await
 			.unwrap()
 			.pop()

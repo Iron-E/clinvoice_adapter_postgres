@@ -27,7 +27,7 @@ impl Retrievable for PgExpenses
 	/// Retrieve all [`Expense`]s (via `connection`) that match the `match_condition`.
 	async fn retrieve(
 		connection: &Pool<Postgres>,
-		match_condition: &Self::Match,
+		match_condition: Self::Match,
 	) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: ExpenseColumns<&str> = ExpenseColumns::default();
@@ -40,11 +40,14 @@ impl Retrievable for PgExpenses
 			.push_columns(&columns)
 			.push_default_from::<ExpenseColumns<char>>();
 
-		let exchange_rates = exchange_rates_fut.await?;
+		let exchanged_condition = exchange_rates_fut
+			.await
+			.map(|rates| match_condition.exchange(Default::default(), &rates))?;
+
 		PgSchema::write_where_clause(
 			Default::default(),
 			ExpenseColumns::<char>::DEFAULT_ALIAS,
-			&match_condition.exchange(Default::default(), &exchange_rates),
+			&exchanged_condition,
 			&mut query,
 		);
 

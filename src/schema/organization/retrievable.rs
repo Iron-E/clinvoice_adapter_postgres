@@ -26,7 +26,7 @@ impl Retrievable for PgOrganization
 	/// Retrieve all [`Organization`]s (via `connection`) that match the `match_condition`.
 	async fn retrieve(
 		connection: &Pool<Postgres>,
-		match_condition: &Self::Match,
+		match_condition: Self::Match,
 	) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: OrganizationColumns<&'static str> = OrganizationColumns::default();
@@ -49,7 +49,7 @@ impl Retrievable for PgOrganization
 		PgSchema::write_where_clause(
 			Default::default(),
 			OrganizationColumns::<char>::DEFAULT_ALIAS,
-			match_condition,
+			&match_condition,
 			&mut query,
 		);
 
@@ -103,7 +103,7 @@ mod tests
 
 		// Assert ::retrieve gets the right data from the DB
 		assert_eq!(
-			PgOrganization::retrieve(&connection, &organization.id.into())
+			PgOrganization::retrieve(&connection, organization.id.into())
 				.await
 				.unwrap()
 				.as_slice(),
@@ -111,7 +111,7 @@ mod tests
 		);
 
 		assert_eq!(
-			PgOrganization::retrieve(&connection, &MatchOrganization {
+			PgOrganization::retrieve(&connection, MatchOrganization {
 				location: MatchLocation {
 					outer: MatchOuterLocation::Some(
 						MatchLocation {

@@ -93,7 +93,7 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_contact_info: HashSet<_> = PgContact::retrieve(&connection, &MatchContact {
+		let db_contact_info: HashSet<_> = PgContact::retrieve(&connection, MatchContact {
 			label: MatchStr::Or(vec![
 				office.label.clone().into(),
 				phone.label.clone().into(),

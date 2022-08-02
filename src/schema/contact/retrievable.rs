@@ -25,7 +25,7 @@ impl Retrievable for PgContact
 	/// Retrieve all [`Contact`]s (via `connection`) that match the `match_condition`.
 	async fn retrieve(
 		connection: &Pool<Postgres>,
-		match_condition: &Self::Match,
+		match_condition: Self::Match,
 	) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: ContactColumns<&'static str> = ContactColumns::default();
@@ -40,7 +40,7 @@ impl Retrievable for PgContact
 			connection,
 			Default::default(),
 			ContactColumns::<char>::DEFAULT_ALIAS,
-			match_condition,
+			&match_condition,
 			&mut query,
 		)
 		.await?;

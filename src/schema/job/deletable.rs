@@ -124,7 +124,7 @@ mod tests
 		assert_eq!(
 			PgJob::retrieve(
 				&connection,
-				&Match::Or(vec![job.id.into(), job2.id.into(), job3.id.into(),]).into(),
+				Match::Or(vec![job.id.into(), job2.id.into(), job3.id.into()]).into(),
 			)
 			.await
 			.unwrap()

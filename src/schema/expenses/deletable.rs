@@ -143,7 +143,7 @@ mod tests
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 
 		assert_eq!(
-			PgExpenses::retrieve(&connection, &MatchExpense {
+			PgExpenses::retrieve(&connection, MatchExpense {
 				timesheet_id: timesheet.id.into(),
 				..Default::default()
 			})
@@ -153,7 +153,9 @@ mod tests
 			.filter(|x| x.timesheet_id == timesheet.id)
 			.collect::<Vec<_>>()
 			.as_slice(),
-			&[(&timesheet.expenses[2]).exchange(Default::default(), &exchange_rates)],
+			&[timesheet.expenses[2]
+				.clone()
+				.exchange(Default::default(), &exchange_rates)],
 		);
 	}
 }

@@ -141,7 +141,7 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_job = PgJob::retrieve(&connection, &job.id.into())
+		let db_job = PgJob::retrieve(&connection, job.id.into())
 			.await
 			.unwrap()
 			.pop()

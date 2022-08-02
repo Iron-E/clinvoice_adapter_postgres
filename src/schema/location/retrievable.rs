@@ -25,18 +25,18 @@ impl Retrievable for PgLocation
 	/// Retrieve all [`Location`]s (via `connection`) that match the `match_condition`.
 	async fn retrieve(
 		connection: &Pool<Postgres>,
-		match_condition: &Self::Match,
+		match_condition: Self::Match,
 	) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: LocationColumns<&'static str> = LocationColumns::default();
 
-		let mut query = Self::query_with_recursive(match_condition);
+		let mut query = Self::query_with_recursive(&match_condition);
 
 		query
 			.push(sql::SELECT)
 			.push(COLUMNS.default_scope().id)
 			.push_from(
-				PgLocationRecursiveCte::from(match_condition),
+				PgLocationRecursiveCte::from(&match_condition),
 				LocationColumns::<char>::DEFAULT_ALIAS,
 			)
 			.prepare()
@@ -79,7 +79,7 @@ mod tests
 
 		// Assert ::retrieve retrieves accurately from the DB
 		assert_eq!(
-			PgLocation::retrieve(&connection, &MatchLocation {
+			PgLocation::retrieve(&connection, MatchLocation {
 				id: earth.id.into(),
 				outer: MatchOuterLocation::None,
 				..Default::default()
@@ -92,7 +92,7 @@ mod tests
 
 		assert_eq!(
 			[utah, arizona].into_iter().collect::<HashSet<_>>(),
-			PgLocation::retrieve(&connection, &MatchLocation {
+			PgLocation::retrieve(&connection, MatchLocation {
 				outer: MatchOuterLocation::Some(Box::new(usa.id.into())),
 				..Default::default()
 			})

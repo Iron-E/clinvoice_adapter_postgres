@@ -31,7 +31,7 @@ impl Retrievable for PgJob
 	/// Retrieve all [`Job`]s (via `connection`) that match the `match_condition`.
 	async fn retrieve(
 		connection: &Pool<Postgres>,
-		match_condition: &Self::Match,
+		match_condition: Self::Match,
 	) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: JobColumns<&str> = JobColumns::default();
@@ -40,7 +40,8 @@ impl Retrievable for PgJob
 
 		let columns = COLUMNS.default_scope();
 		let exchange_rates_fut = ExchangeRates::new().map_err(util::finance_err_to_sqlx);
-		let mut query = PgLocation::query_with_recursive(&match_condition.client.location);
+		let match_location = match_condition.client.location.clone();
+		let mut query = PgLocation::query_with_recursive(&match_location);
 		let organization_columns = OrganizationColumns::default().default_scope();
 
 		query
@@ -53,21 +54,25 @@ impl Retrievable for PgJob
 				columns.client_id,
 			)
 			.push_equijoin(
-				PgLocationRecursiveCte::from(&match_condition.client.location),
+				PgLocationRecursiveCte::from(&match_location),
 				LocationColumns::<char>::DEFAULT_ALIAS,
 				LocationColumns::default().default_scope().id,
 				organization_columns.location_id,
 			);
 
+		let exchanged_condition = exchange_rates_fut
+			.await
+			.map(|rates| match_condition.exchange(Default::default(), &rates))?;
+
 		PgSchema::write_where_clause(
 			PgSchema::write_where_clause(
 				Default::default(),
 				JobColumns::<char>::DEFAULT_ALIAS,
-				&match_condition.exchange(Default::default(), &exchange_rates_fut.await?),
+				&exchanged_condition,
 				&mut query,
 			),
 			OrganizationColumns::<char>::DEFAULT_ALIAS,
-			&match_condition.client,
+			&exchanged_condition.client,
 			&mut query,
 		);
 
@@ -195,15 +200,15 @@ mod tests
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 
 		assert_eq!(
-			PgJob::retrieve(&connection, &job.id.into())
+			PgJob::retrieve(&connection, job.id.into())
 				.await
 				.unwrap()
 				.as_slice(),
-			&[(&job).exchange(Default::default(), &exchange_rates)],
+			&[job.clone().exchange(Default::default(), &exchange_rates)],
 		);
 
 		assert_eq!(
-			PgJob::retrieve(&connection, &MatchJob {
+			PgJob::retrieve(&connection, MatchJob {
 				id: Match::Or(vec![job2.id.into(), job3.id.into()]),
 				invoice: MatchInvoice {
 					date_issued: MatchOption::some(),
@@ -224,7 +229,7 @@ mod tests
 		);
 
 		assert_eq!(
-			PgJob::retrieve(&connection, &MatchJob {
+			PgJob::retrieve(&connection, MatchJob {
 				id: Match::Or(vec![job.id.into(), job4.id.into()]),
 				invoice: MatchInvoice {
 					date_issued: None.into(),

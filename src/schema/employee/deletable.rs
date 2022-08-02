@@ -70,7 +70,7 @@ mod tests
 		assert_eq!(
 			PgEmployee::retrieve(
 				&connection,
-				&Match::Or(vec![
+				Match::Or(vec![
 					employee.id.into(),
 					employee2.id.into(),
 					employee3.id.into()

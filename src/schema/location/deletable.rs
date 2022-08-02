@@ -61,7 +61,7 @@ mod tests
 		assert_eq!(
 			PgLocation::retrieve(
 				&connection,
-				&Match::Or(vec![chile.id.into(), earth.id.into(), usa.id.into(),]).into(),
+				Match::Or(vec![chile.id.into(), earth.id.into(), usa.id.into(),]).into(),
 			)
 			.await
 			.unwrap()

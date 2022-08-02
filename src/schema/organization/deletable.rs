@@ -71,7 +71,7 @@ mod tests
 		assert_eq!(
 			PgOrganization::retrieve(
 				&connection,
-				&Match::Or(vec![
+				Match::Or(vec![
 					organization.id.into(),
 					organization2.id.into(),
 					organization3.id.into()

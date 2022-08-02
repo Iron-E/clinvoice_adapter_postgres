@@ -38,7 +38,7 @@ impl Retrievable for PgTimesheet
 	/// Retrieve all [`Timesheet`]s (via `connection`) that match the `match_condition`.
 	async fn retrieve(
 		connection: &Pool<Postgres>,
-		match_condition: &Self::Match,
+		match_condition: Self::Match,
 	) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: TimesheetColumns<&str> = TimesheetColumns::default();
@@ -55,7 +55,8 @@ impl Retrievable for PgTimesheet
 		let expense_columns = ExpenseColumns::default().default_scope();
 		let job_columns = JobColumns::default().default_scope();
 		let location_columns = LocationColumns::default().default_scope();
-		let mut query = PgLocation::query_with_recursive(&match_condition.job.client.location);
+		let match_location = match_condition.job.client.location.clone();
+		let mut query = PgLocation::query_with_recursive(&match_location);
 		let organization_columns = OrganizationColumns::default().default_scope();
 
 		query
@@ -85,13 +86,16 @@ impl Retrievable for PgTimesheet
 				job_columns.client_id,
 			)
 			.push_equijoin(
-				PgLocationRecursiveCte::from(&match_condition.job.client.location),
+				PgLocationRecursiveCte::from(&match_location),
 				LocationColumns::<char>::DEFAULT_ALIAS,
 				location_columns.id,
 				organization_columns.location_id,
 			);
 
-		let exchange_rates = exchange_rates_fut.await?;
+		let exchanged_condition = exchange_rates_fut
+			.await
+			.map(|rates| match_condition.exchange(Default::default(), &rates))?;
+
 		PgSchema::write_where_clause(
 			PgSchema::write_where_clause(
 				PgSchema::write_where_clause(
@@ -99,23 +103,23 @@ impl Retrievable for PgTimesheet
 						PgSchema::write_where_clause(
 							Default::default(),
 							TimesheetColumns::<char>::DEFAULT_ALIAS,
-							match_condition,
+							&exchanged_condition,
 							&mut query,
 						),
 						EmployeeColumns::<char>::DEFAULT_ALIAS,
-						&match_condition.employee,
+						&exchanged_condition.employee,
 						&mut query,
 					),
 					ExpenseColumns::<char>::DEFAULT_ALIAS,
-					&(&match_condition.expenses).exchange(Default::default(), &exchange_rates),
+					&exchanged_condition.expenses,
 					&mut query,
 				),
 				JobColumns::<char>::DEFAULT_ALIAS,
-				&(&match_condition.job).exchange(Default::default(), &exchange_rates),
+				&exchanged_condition.job,
 				&mut query,
 			),
 			OrganizationColumns::<char>::DEFAULT_ALIAS,
-			&match_condition.job.client,
+			&exchanged_condition.job.client,
 			&mut query,
 		);
 
@@ -286,7 +290,7 @@ mod tests
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 
 		assert_eq!(
-			PgTimesheet::retrieve(&connection, &MatchTimesheet {
+			PgTimesheet::retrieve(&connection, MatchTimesheet {
 				expenses: MatchSet::Not(MatchSet::Contains(Default::default()).into()),
 				employee: Match::Or(vec![
 					timesheet.employee.id.into(),

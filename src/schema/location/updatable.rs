@@ -133,13 +133,13 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let chile_db = PgLocation::retrieve(&connection, &chile.id.into())
+		let chile_db = PgLocation::retrieve(&connection, chile.id.into())
 			.await
 			.unwrap()
 			.pop()
 			.unwrap();
 
-		let usa_db = PgLocation::retrieve(&connection, &usa.id.into())
+		let usa_db = PgLocation::retrieve(&connection, usa.id.into())
 			.await
 			.unwrap()
 			.pop()

@@ -187,7 +187,7 @@ mod tests
 			transaction.commit().await.unwrap();
 		}
 
-		let db_timesheet = PgTimesheet::retrieve(&connection, &timesheet.id.into())
+		let db_timesheet = PgTimesheet::retrieve(&connection, timesheet.id.into())
 			.await
 			.unwrap()
 			.pop()

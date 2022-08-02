@@ -80,7 +80,7 @@ mod tests
 		}
 
 		assert_eq!(
-			PgOrganization::retrieve(&connection, &MatchOrganization {
+			PgOrganization::retrieve(&connection, MatchOrganization {
 				id: organization.id.into(),
 				..Default::default()
 			})

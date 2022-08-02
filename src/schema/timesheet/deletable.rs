@@ -158,7 +158,7 @@ mod tests
 		assert_eq!(
 			PgTimesheet::retrieve(
 				&connection,
-				&Match::Or(vec![
+				Match::Or(vec![
 					timesheet.id.into(),
 					timesheet2.id.into(),
 					timesheet3.id.into(),
@@ -169,11 +169,13 @@ mod tests
 			.unwrap()
 			.into_iter()
 			.as_slice(),
-			&[(&timesheet3).exchange(Default::default(), &exchange_rates)],
+			&[timesheet3
+				.clone()
+				.exchange(Default::default(), &exchange_rates)],
 		);
 
 		assert_eq!(
-			PgExpenses::retrieve(&connection, &MatchExpense {
+			PgExpenses::retrieve(&connection, MatchExpense {
 				timesheet_id: Match::Or(vec![
 					timesheet.id.into(),
 					timesheet2.id.into(),

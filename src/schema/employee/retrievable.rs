@@ -26,7 +26,7 @@ impl Retrievable for PgEmployee
 	/// Retrieve all [`Employee`]s (via `connection`) that match the `match_condition`.
 	async fn retrieve(
 		connection: &Pool<Postgres>,
-		match_condition: &Self::Match,
+		match_condition: Self::Match,
 	) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: EmployeeColumns<&'static str> = EmployeeColumns::default();
@@ -40,7 +40,7 @@ impl Retrievable for PgEmployee
 		PgSchema::write_where_clause(
 			Default::default(),
 			EmployeeColumns::<char>::DEFAULT_ALIAS,
-			match_condition,
+			&match_condition,
 			&mut query,
 		);
 
@@ -85,7 +85,7 @@ mod tests
 		.unwrap();
 
 		assert_eq!(
-			PgEmployee::retrieve(&connection, &MatchEmployee {
+			PgEmployee::retrieve(&connection, MatchEmployee {
 				id: Match::Or(vec![employee.id.into(), employee2.id.into()]),
 				name: employee.name.clone().into(),
 				..Default::default()
@@ -97,7 +97,7 @@ mod tests
 		);
 
 		assert_eq!(
-			PgEmployee::retrieve(&connection, &MatchEmployee {
+			PgEmployee::retrieve(&connection, MatchEmployee {
 				id: Match::Or(vec![employee.id.into(), employee2.id.into()]),
 				name: MatchStr::Not(MatchStr::from("Fired".to_string()).into()),
 				..Default::default()

@@ -114,7 +114,7 @@ mod tests
 			.unwrap();
 
 		assert_eq!(
-			PgContact::retrieve(&connection, &MatchContact {
+			PgContact::retrieve(&connection, MatchContact {
 				label: MatchStr::Or(vec![
 					office_number.label.clone().into(),
 					primary_email.label.clone().into(),
