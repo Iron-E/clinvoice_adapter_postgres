@@ -23,11 +23,7 @@ impl LocationAdapter for PgLocation
 		.fetch_one(connection)
 		.await?;
 
-		Ok(Location {
-			id: row.id,
-			name,
-			outer: outer.map(Into::into),
-		})
+		Ok(Location { id: row.id, name, outer: outer.map(Into::into) })
 	}
 }
 
@@ -44,13 +40,9 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
-		let usa = PgLocation::create(&connection, "USA".into(), Some(earth.clone()))
-			.await
-			.unwrap();
+		let usa = PgLocation::create(&connection, "USA".into(), Some(earth.clone())).await.unwrap();
 
 		let (arizona, utah) = futures::try_join!(
 			PgLocation::create(&connection, "Arizona".into(), Some(usa.clone())),

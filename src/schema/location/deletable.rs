@@ -11,7 +11,10 @@ impl Deletable for PgLocation
 	type Db = Postgres;
 	type Entity = Location;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(
+		connection: Conn,
+		entities: Iter,
+	) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -41,9 +44,7 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
 		let (chile, usa) = futures::try_join!(
 			PgLocation::create(&connection, "Chile".into(), Some(earth.clone())),
@@ -51,12 +52,8 @@ mod tests
 		)
 		.unwrap();
 
-		assert!(PgLocation::delete(&connection, [&earth].into_iter())
-			.await
-			.is_err());
-		PgLocation::delete(&connection, [&chile, &usa].into_iter())
-			.await
-			.unwrap();
+		assert!(PgLocation::delete(&connection, [&earth].into_iter()).await.is_err());
+		PgLocation::delete(&connection, [&chile, &usa].into_iter()).await.unwrap();
 
 		assert_eq!(
 			PgLocation::retrieve(

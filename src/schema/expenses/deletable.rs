@@ -11,7 +11,10 @@ impl Deletable for PgExpenses
 	type Db = Postgres;
 	type Entity = Expense;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(
+		connection: Conn,
+		entities: Iter,
+	) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -66,22 +69,15 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
-		let organization = PgOrganization::create(&connection, earth, "Some Organization".into())
-			.await
-			.unwrap();
+		let organization =
+			PgOrganization::create(&connection, earth, "Some Organization".into()).await.unwrap();
 
-		let employee = PgEmployee::create(
-			&connection,
-			"My Name".into(),
-			"Employed".into(),
-			"Janitor".into(),
-		)
-		.await
-		.unwrap();
+		let employee =
+			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into())
+				.await
+				.unwrap();
 
 		let job = PgJob::create(
 			&connection,
@@ -89,10 +85,7 @@ mod tests
 			None,
 			Utc.ymd(1990, 07, 12).and_hms(14, 10, 00),
 			Duration::from_secs(900),
-			Invoice {
-				date: None,
-				hourly_rate: Money::new(20_00, 2, Currency::Usd),
-			},
+			Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
 			String::new(),
 			"Do something".into(),
 		)
@@ -111,16 +104,8 @@ mod tests
 					Money::new(300_56, 2, Currency::Jpy),
 					"Trip to Hawaii for research".into(),
 				),
-				(
-					"Food".into(),
-					Money::new(10_17, 2, Currency::Usd),
-					"Takeout".into(),
-				),
-				(
-					"Taxi".into(),
-					Money::new(563_30, 2, Currency::Nok),
-					"Took a taxi cab".into(),
-				),
+				("Food".into(), Money::new(10_17, 2, Currency::Usd), "Takeout".into()),
+				("Taxi".into(), Money::new(563_30, 2, Currency::Nok), "Took a taxi cab".into()),
 			],
 			job,
 			Utc.ymd(2022, 06, 08).and_hms(15, 27, 00),
@@ -153,9 +138,7 @@ mod tests
 			.filter(|x| x.timesheet_id == timesheet.id)
 			.collect::<Vec<_>>()
 			.as_slice(),
-			&[timesheet.expenses[2]
-				.clone()
-				.exchange(Default::default(), &exchange_rates)],
+			&[timesheet.expenses[2].clone().exchange(Default::default(), &exchange_rates)],
 		);
 	}
 }

@@ -23,11 +23,7 @@ impl OrganizationAdapter for PgOrganization
 		.fetch_one(connection)
 		.await?;
 
-		Ok(Organization {
-			id: row.id,
-			location,
-			name,
-		})
+		Ok(Organization { id: row.id, location, name })
 	}
 }
 
@@ -45,22 +41,17 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
 		let organization =
 			PgOrganization::create(&connection, earth.clone(), "Some Organization".into())
 				.await
 				.unwrap();
 
-		let row = sqlx::query!(
-			"SELECT * FROM organizations WHERE id = $1;",
-			organization.id
-		)
-		.fetch_one(&connection)
-		.await
-		.unwrap();
+		let row = sqlx::query!("SELECT * FROM organizations WHERE id = $1;", organization.id)
+			.fetch_one(&connection)
+			.await
+			.unwrap();
 
 		// Assert ::create writes accurately to the DB
 		assert_eq!(organization.id, row.id);

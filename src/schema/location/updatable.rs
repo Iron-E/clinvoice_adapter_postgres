@@ -63,10 +63,10 @@ impl Updatable for PgLocation
 			{
 				entities_collected.sort_by(|lhs, rhs| match rhs.id.cmp(&lhs.id)
 				{
-					// NOTE: this allows `dedup_by_key` prune edits to `Location`s which would overwrite
-					//       the `Location`s which were initially passed to the function (e.g. if Earth
-					//       and Sweden are both passed in to this function, Earth will take precedence
-					//       over Sweden's copy of Earth).
+					// NOTE: this allows `dedup_by_key` prune edits to `Location`s which would
+					// overwrite       the `Location`s which were initially passed to the function
+					// (e.g. if Earth       and Sweden are both passed in to this function, Earth
+					// will take precedence       over Sweden's copy of Earth).
 					Ordering::Equal => Ordering::Greater,
 					o => o,
 				});
@@ -77,9 +77,7 @@ impl Updatable for PgLocation
 
 		PgSchema::update(connection, LocationColumns::default(), |query| {
 			query.push_values(entities_collected.iter(), |mut q, e| {
-				q.push_bind(e.id)
-					.push_bind(&e.name)
-					.push_bind(e.outer.as_ref().map(|o| o.id));
+				q.push_bind(e.id).push_bind(&e.name).push_bind(e.outer.as_ref().map(|o| o.id));
 			});
 		})
 		.await
@@ -114,12 +112,7 @@ mod tests
 
 		chile.name = "Chilé".into();
 		chile.outer = Some(
-			Location {
-				id: earth.id,
-				name: format!("Not {}", &earth.name),
-				outer: None,
-			}
-			.into(),
+			Location { id: earth.id, name: format!("Not {}", &earth.name), outer: None }.into(),
 		);
 		earth.name = "Urth".into();
 
@@ -127,23 +120,14 @@ mod tests
 
 		{
 			let mut transaction = connection.begin().await.unwrap();
-			PgLocation::update(&mut transaction, [&chile, &usa, &earth].into_iter())
-				.await
-				.unwrap();
+			PgLocation::update(&mut transaction, [&chile, &usa, &earth].into_iter()).await.unwrap();
 			transaction.commit().await.unwrap();
 		}
 
-		let chile_db = PgLocation::retrieve(&connection, chile.id.into())
-			.await
-			.unwrap()
-			.pop()
-			.unwrap();
+		let chile_db =
+			PgLocation::retrieve(&connection, chile.id.into()).await.unwrap().pop().unwrap();
 
-		let usa_db = PgLocation::retrieve(&connection, usa.id.into())
-			.await
-			.unwrap()
-			.pop()
-			.unwrap();
+		let usa_db = PgLocation::retrieve(&connection, usa.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(chile.id, chile_db.id);
 		assert_eq!(chile.name, chile_db.name);

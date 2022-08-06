@@ -11,7 +11,10 @@ impl Deletable for PgEmployee
 	type Db = Postgres;
 	type Entity = Employee;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(
+		connection: Conn,
+		entities: Iter,
+	) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -42,12 +45,7 @@ mod tests
 		let connection = util::connect().await;
 
 		let (employee, employee2, employee3) = futures::try_join!(
-			PgEmployee::create(
-				&connection,
-				"My Name".into(),
-				"Employed".into(),
-				"Janitor".into(),
-			),
+			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into(),),
 			PgEmployee::create(
 				&connection,
 				"Another Gúy".into(),
@@ -63,19 +61,13 @@ mod tests
 		)
 		.unwrap();
 
-		PgEmployee::delete(&connection, [&employee, &employee2].into_iter())
-			.await
-			.unwrap();
+		PgEmployee::delete(&connection, [&employee, &employee2].into_iter()).await.unwrap();
 
 		assert_eq!(
 			PgEmployee::retrieve(
 				&connection,
-				Match::Or(vec![
-					employee.id.into(),
-					employee2.id.into(),
-					employee3.id.into()
-				])
-				.into()
+				Match::Or(vec![employee.id.into(), employee2.id.into(), employee3.id.into()])
+					.into()
 			)
 			.await
 			.unwrap()

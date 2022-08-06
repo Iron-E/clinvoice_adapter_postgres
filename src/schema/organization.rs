@@ -9,8 +9,8 @@ use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
 
 use super::PgLocation;
 
-/// Implementor of the [`OrganizationAdapter`](clinvoice_adapter::schema::OrganizationAdapter) for the
-/// [`Postgres`](sqlx::Postgres) database.
+/// Implementor of the [`OrganizationAdapter`](clinvoice_adapter::schema::OrganizationAdapter) for
+/// the [`Postgres`](sqlx::Postgres) database.
 pub struct PgOrganization;
 
 impl PgOrganization

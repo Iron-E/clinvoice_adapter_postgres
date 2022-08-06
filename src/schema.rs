@@ -87,9 +87,7 @@ impl PgSchema
 	{
 		let mut query = QueryBuilder::new(sql::UPDATE);
 
-		query
-			.push(As(Columns::TABLE_NAME, Columns::DEFAULT_ALIAS))
-			.push(sql::SET);
+		query.push(As(Columns::TABLE_NAME, Columns::DEFAULT_ALIAS)).push(sql::SET);
 
 		let values_alias = SnakeCase::from((Columns::DEFAULT_ALIAS, 'V'));
 		columns.push_set_to(&mut query, values_alias);

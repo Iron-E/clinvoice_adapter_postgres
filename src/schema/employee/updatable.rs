@@ -29,10 +29,7 @@ impl Updatable for PgEmployee
 
 		PgSchema::update(connection, EmployeeColumns::default(), |query| {
 			query.push_values(peekable_entities, |mut q, e| {
-				q.push_bind(e.id)
-					.push_bind(&e.name)
-					.push_bind(&e.status)
-					.push_bind(&e.title);
+				q.push_bind(e.id).push_bind(&e.name).push_bind(&e.status).push_bind(&e.title);
 			});
 		})
 		.await
@@ -52,14 +49,10 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let mut employee = PgEmployee::create(
-			&connection,
-			"My Name".into(),
-			"Employed".into(),
-			"Janitor".into(),
-		)
-		.await
-		.unwrap();
+		let mut employee =
+			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into())
+				.await
+				.unwrap();
 
 		employee.name = format!("Not {}", employee.name);
 		employee.status = format!("Not {}", employee.status);
@@ -67,17 +60,12 @@ mod tests
 
 		{
 			let mut transaction = connection.begin().await.unwrap();
-			PgEmployee::update(&mut transaction, [&employee].into_iter())
-				.await
-				.unwrap();
+			PgEmployee::update(&mut transaction, [&employee].into_iter()).await.unwrap();
 			transaction.commit().await.unwrap();
 		}
 
-		let db_employee = PgEmployee::retrieve(&connection, employee.id.into())
-			.await
-			.unwrap()
-			.pop()
-			.unwrap();
+		let db_employee =
+			PgEmployee::retrieve(&connection, employee.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(employee, db_employee);
 	}

@@ -53,17 +53,8 @@ impl JobAdapter for PgJob
 		.fetch_one(connection)
 		.await?;
 
-		Ok(Job {
-			client,
-			date_close,
-			date_open,
-			id: row.id,
-			increment,
-			invoice,
-			notes,
-			objectives,
-		}
-		.pg_sanitize())
+		Ok(Job { client, date_close, date_open, id: row.id, increment, invoice, notes, objectives }
+			.pg_sanitize())
 	}
 }
 
@@ -85,13 +76,10 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
-		let organization = PgOrganization::create(&connection, earth, "Some Organization".into())
-			.await
-			.unwrap();
+		let organization =
+			PgOrganization::create(&connection, earth, "Some Organization".into()).await.unwrap();
 
 		let job = PgJob::create(
 			&connection,
@@ -99,10 +87,7 @@ mod tests
 			None,
 			Utc::now(),
 			Duration::new(7640, 0),
-			Invoice {
-				date: None,
-				hourly_rate: Money::new(13_27, 2, Currency::Usd),
-			},
+			Invoice { date: None, hourly_rate: Money::new(13_27, 2, Currency::Usd) },
 			String::new(),
 			"Write the test".into(),
 		)
@@ -142,10 +127,7 @@ mod tests
 			job.invoice
 				.hourly_rate
 				.exchange(Default::default(), &ExchangeRates::new().await.unwrap()),
-			Money {
-				amount: row.invoice_hourly_rate.parse().unwrap(),
-				..Default::default()
-			},
+			Money { amount: row.invoice_hourly_rate.parse().unwrap(), ..Default::default() },
 		);
 		assert_eq!(job.notes, row.notes);
 		assert_eq!(job.objectives, row.objectives);

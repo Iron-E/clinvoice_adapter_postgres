@@ -33,9 +33,7 @@ impl Retrievable for PgEmployee
 
 		let mut query = QueryBuilder::new(sql::SELECT);
 
-		query
-			.push_columns(&COLUMNS.default_scope())
-			.push_default_from::<EmployeeColumns<char>>();
+		query.push_columns(&COLUMNS.default_scope()).push_default_from::<EmployeeColumns<char>>();
 
 		PgSchema::write_where_clause(
 			Default::default(),
@@ -69,12 +67,7 @@ mod tests
 		let connection = util::connect().await;
 
 		let (employee, employee2) = futures::try_join!(
-			PgEmployee::create(
-				&connection,
-				"My Name".into(),
-				"Employed".into(),
-				"Janitor".into(),
-			),
+			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into(),),
 			PgEmployee::create(
 				&connection,
 				"Another Gúy".into(),

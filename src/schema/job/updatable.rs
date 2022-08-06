@@ -36,9 +36,7 @@ impl Updatable for PgJob
 			return Ok(());
 		}
 
-		let exchange_rates = ExchangeRates::new()
-			.map_err(util::finance_err_to_sqlx)
-			.await?;
+		let exchange_rates = ExchangeRates::new().map_err(util::finance_err_to_sqlx).await?;
 		PgSchema::update(connection, JobColumns::default(), |query| {
 			query.push_values(peekable_entities, |mut q, e| {
 				q.push_bind(e.client.id)
@@ -50,9 +48,7 @@ impl Updatable for PgJob
 				match e.invoice.date.pg_sanitize()
 				{
 					Some(ref date) => q.push_bind(date.issued).push_bind(date.paid),
-					_ => q
-						.push_bind(None::<DateTime<Utc>>)
-						.push_bind(None::<DateTime<Utc>>),
+					_ => q.push_bind(None::<DateTime<Utc>>).push_bind(None::<DateTime<Utc>>),
 				};
 
 				q.push_bind(
@@ -126,7 +122,7 @@ mod tests
 		job.invoice = Invoice {
 			date: Some(InvoiceDate {
 				issued: chrono::Utc::now(),
-				paid: Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
+				paid:   Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
 			}),
 			hourly_rate: Money::new(200_00, 2, Default::default()),
 		};
@@ -135,17 +131,11 @@ mod tests
 
 		{
 			let mut transaction = connection.begin().await.unwrap();
-			PgJob::update(&mut transaction, [&job].into_iter())
-				.await
-				.unwrap();
+			PgJob::update(&mut transaction, [&job].into_iter()).await.unwrap();
 			transaction.commit().await.unwrap();
 		}
 
-		let db_job = PgJob::retrieve(&connection, job.id.into())
-			.await
-			.unwrap()
-			.pop()
-			.unwrap();
+		let db_job = PgJob::retrieve(&connection, job.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(job.client, db_job.client);
 		assert_eq!(job.date_close.pg_sanitize(), db_job.date_close);

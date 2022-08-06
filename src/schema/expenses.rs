@@ -24,9 +24,7 @@ impl PgExpenses
 			category: row.try_get(columns.category)?,
 			cost: Money {
 				amount: row.try_get::<String, _>(columns.cost).and_then(|cost| {
-					cost
-						.parse::<Decimal>()
-						.map_err(|e| util::finance_err_to_sqlx(e.into()))
+					cost.parse::<Decimal>().map_err(|e| util::finance_err_to_sqlx(e.into()))
 				})?,
 				..Default::default()
 			},

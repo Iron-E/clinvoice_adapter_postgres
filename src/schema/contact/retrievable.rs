@@ -32,9 +32,7 @@ impl Retrievable for PgContact
 
 		let mut query = QueryBuilder::new(sql::SELECT);
 
-		query
-			.push_columns(&COLUMNS.default_scope())
-			.push_default_from::<ContactColumns<char>>();
+		query.push_columns(&COLUMNS.default_scope()).push_default_from::<ContactColumns<char>>();
 
 		write_where_clause::write_match_contact(
 			connection,

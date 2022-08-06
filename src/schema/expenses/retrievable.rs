@@ -36,9 +36,7 @@ impl Retrievable for PgExpenses
 		let exchange_rates_fut = ExchangeRates::new().map_err(util::finance_err_to_sqlx);
 		let mut query = QueryBuilder::new(sql::SELECT);
 
-		query
-			.push_columns(&columns)
-			.push_default_from::<ExpenseColumns<char>>();
+		query.push_columns(&columns).push_default_from::<ExpenseColumns<char>>();
 
 		let exchanged_condition = exchange_rates_fut
 			.await

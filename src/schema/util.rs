@@ -73,24 +73,13 @@ mod tests
 	#[test]
 	fn duration_from_interval()
 	{
-		let test = PgInterval {
-			months: 3,
-			days: 0,
-			microseconds: 0,
-		};
+		let test = PgInterval { months: 3, days: 0, microseconds: 0 };
 
 		// Ensure that irregular "months" interval cannot be decoded
 		assert!(super::duration_from(test).is_err());
 
-		let test = PgInterval {
-			months: 0,
-			days: 17,
-			microseconds: 7076700,
-		};
+		let test = PgInterval { months: 0, days: 17, microseconds: 7076700 };
 
-		assert_eq!(
-			super::duration_from(test).unwrap(),
-			Duration::new(1468807, 76700000)
-		);
+		assert_eq!(super::duration_from(test).unwrap(), Duration::new(1468807, 76700000));
 	}
 }

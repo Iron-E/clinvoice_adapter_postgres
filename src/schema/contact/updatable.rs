@@ -87,17 +87,12 @@ mod tests
 
 		{
 			let mut transaction = connection.begin().await.unwrap();
-			PgContact::update(&mut transaction, [&office, &phone].into_iter())
-				.await
-				.unwrap();
+			PgContact::update(&mut transaction, [&office, &phone].into_iter()).await.unwrap();
 			transaction.commit().await.unwrap();
 		}
 
 		let db_contact_info: HashSet<_> = PgContact::retrieve(&connection, MatchContact {
-			label: MatchStr::Or(vec![
-				office.label.clone().into(),
-				phone.label.clone().into(),
-			]),
+			label: MatchStr::Or(vec![office.label.clone().into(), phone.label.clone().into()]),
 			..Default::default()
 		})
 		.await
@@ -105,17 +100,9 @@ mod tests
 		.into_iter()
 		.collect();
 
-		assert_eq!(
-			[&office, &phone]
-				.into_iter()
-				.cloned()
-				.collect::<HashSet<_>>(),
-			db_contact_info
-		);
+		assert_eq!([&office, &phone].into_iter().cloned().collect::<HashSet<_>>(), db_contact_info);
 
 		// cleanup
-		PgContact::delete(&connection, [&office, &phone].into_iter())
-			.await
-			.unwrap();
+		PgContact::delete(&connection, [&office, &phone].into_iter()).await.unwrap();
 	}
 }

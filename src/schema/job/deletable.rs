@@ -11,7 +11,10 @@ impl Deletable for PgJob
 	type Db = Postgres;
 	type Entity = Job;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(
+		connection: Conn,
+		entities: Iter,
+	) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -53,9 +56,7 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
 		let organization =
 			PgOrganization::create(&connection, earth.clone(), "Some Organization".into())
@@ -69,10 +70,7 @@ mod tests
 				Some(Utc.ymd(1990, 08, 01).and_hms(09, 00, 00)),
 				Utc.ymd(1990, 07, 12).and_hms(14, 10, 00),
 				Duration::from_secs(300),
-				Invoice {
-					date: None,
-					hourly_rate: Money::new(20_00, 2, Currency::Usd),
-				},
+				Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
 				String::new(),
 				"Do something".into()
 			),
@@ -85,7 +83,7 @@ mod tests
 				Invoice {
 					date: Some(InvoiceDate {
 						issued: Utc.ymd(3000, 01, 17).and_hms(12, 30, 00),
-						paid: None,
+						paid:   None,
 					}),
 					hourly_rate: Money::new(299_99, 2, Currency::Jpy),
 				},
@@ -101,7 +99,7 @@ mod tests
 				Invoice {
 					date: Some(InvoiceDate {
 						issued: Utc.ymd(2011, 03, 18).and_hms(08, 00, 00),
-						paid: Some(Utc.ymd(2011, 03, 19).and_hms(17, 00, 00)),
+						paid:   Some(Utc.ymd(2011, 03, 19).and_hms(17, 00, 00)),
 					}),
 					hourly_rate: Money::new(20_00, 2, Currency::Eur),
 				},
@@ -111,14 +109,8 @@ mod tests
 		)
 		.unwrap();
 
-		assert!(
-			PgOrganization::delete(&connection, [&organization].into_iter())
-				.await
-				.is_err()
-		);
-		PgJob::delete(&connection, [&job, &job2].into_iter())
-			.await
-			.unwrap();
+		assert!(PgOrganization::delete(&connection, [&organization].into_iter()).await.is_err());
+		PgJob::delete(&connection, [&job, &job2].into_iter()).await.unwrap();
 
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 		assert_eq!(

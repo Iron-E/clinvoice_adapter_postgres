@@ -36,7 +36,8 @@ impl Retrievable for PgJob
 	{
 		const COLUMNS: JobColumns<&str> = JobColumns::default();
 
-		const ORGANIZATION_COLUMNS_UNIQUE: OrganizationColumns<&str> = OrganizationColumns::unique();
+		const ORGANIZATION_COLUMNS_UNIQUE: OrganizationColumns<&str> =
+			OrganizationColumns::unique();
 
 		let columns = COLUMNS.default_scope();
 		let exchange_rates_fut = ExchangeRates::new().map_err(util::finance_err_to_sqlx);
@@ -115,13 +116,9 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
-		let usa = PgLocation::create(&connection, "USA".into(), Some(earth))
-			.await
-			.unwrap();
+		let usa = PgLocation::create(&connection, "USA".into(), Some(earth)).await.unwrap();
 
 		let (arizona, utah) = futures::try_join!(
 			PgLocation::create(&connection, "Arizona".into(), Some(usa.clone())),
@@ -142,10 +139,7 @@ mod tests
 				Some(Utc.ymd(1990, 08, 01).and_hms(09, 00, 00)),
 				Utc.ymd(1990, 07, 12).and_hms(14, 10, 00),
 				Duration::from_secs(300),
-				Invoice {
-					date: None,
-					hourly_rate: Money::new(20_00, 2, Currency::Usd),
-				},
+				Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
 				String::new(),
 				"Do something".into()
 			),
@@ -158,7 +152,7 @@ mod tests
 				Invoice {
 					date: Some(InvoiceDate {
 						issued: Utc.ymd(3000, 01, 17).and_hms(12, 30, 00),
-						paid: None,
+						paid:   None,
 					}),
 					hourly_rate: Money::new(299_99, 2, Currency::Jpy),
 				},
@@ -174,7 +168,7 @@ mod tests
 				Invoice {
 					date: Some(InvoiceDate {
 						issued: Utc.ymd(2011, 03, 18).and_hms(08, 00, 00),
-						paid: Some(Utc.ymd(2011, 03, 19).and_hms(17, 00, 00)),
+						paid:   Some(Utc.ymd(2011, 03, 19).and_hms(17, 00, 00)),
 					}),
 					hourly_rate: Money::new(20_00, 2, Currency::Eur),
 				},
@@ -187,10 +181,7 @@ mod tests
 				None,
 				Utc.ymd(2022, 01, 02).and_hms(01, 01, 01),
 				Duration::from_secs(900),
-				Invoice {
-					date: None,
-					hourly_rate: Money::new(200_00, 2, Currency::Nok),
-				},
+				Invoice { date: None, hourly_rate: Money::new(200_00, 2, Currency::Nok) },
 				String::new(),
 				"Do something".into()
 			),
@@ -199,21 +190,14 @@ mod tests
 
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 
-		assert_eq!(
-			PgJob::retrieve(&connection, job.id.into())
-				.await
-				.unwrap()
-				.as_slice(),
-			&[job.clone().exchange(Default::default(), &exchange_rates)],
-		);
+		assert_eq!(PgJob::retrieve(&connection, job.id.into()).await.unwrap().as_slice(), &[job
+			.clone()
+			.exchange(Default::default(), &exchange_rates)],);
 
 		assert_eq!(
 			PgJob::retrieve(&connection, MatchJob {
 				id: Match::Or(vec![job2.id.into(), job3.id.into()]),
-				invoice: MatchInvoice {
-					date_issued: MatchOption::some(),
-					..Default::default()
-				},
+				invoice: MatchInvoice { date_issued: MatchOption::some(), ..Default::default() },
 				..Default::default()
 			})
 			.await
@@ -231,10 +215,7 @@ mod tests
 		assert_eq!(
 			PgJob::retrieve(&connection, MatchJob {
 				id: Match::Or(vec![job.id.into(), job4.id.into()]),
-				invoice: MatchInvoice {
-					date_issued: None.into(),
-					..Default::default()
-				},
+				invoice: MatchInvoice { date_issued: None.into(), ..Default::default() },
 				..Default::default()
 			})
 			.await

@@ -114,12 +114,7 @@ mod tests
 			.unwrap();
 
 		let (employee, employee2) = futures::try_join!(
-			PgEmployee::create(
-				&connection,
-				"My Name".into(),
-				"Employed".into(),
-				"Janitor".into(),
-			),
+			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into(),),
 			PgEmployee::create(
 				&connection,
 				"Not My Name".into(),
@@ -135,11 +130,7 @@ mod tests
 		let mut timesheet = PgTimesheet::create(
 			&mut transaction,
 			employee,
-			vec![(
-				"Travel".into(),
-				Money::new(500_00, 2, Currency::default()),
-				"Flight".into(),
-			)],
+			vec![("Travel".into(), Money::new(500_00, 2, Currency::default()), "Flight".into())],
 			job,
 			chrono::Utc::now(),
 			None,
@@ -170,7 +161,7 @@ mod tests
 		timesheet.job.invoice = Invoice {
 			date: Some(InvoiceDate {
 				issued: chrono::Utc::now(),
-				paid: Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
+				paid:   Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
 			}),
 			hourly_rate: Money::new(200_00, 2, Default::default()),
 		};
@@ -181,17 +172,12 @@ mod tests
 
 		{
 			let mut transaction = connection.begin().await.unwrap();
-			PgTimesheet::update(&mut transaction, [&timesheet].into_iter())
-				.await
-				.unwrap();
+			PgTimesheet::update(&mut transaction, [&timesheet].into_iter()).await.unwrap();
 			transaction.commit().await.unwrap();
 		}
 
-		let db_timesheet = PgTimesheet::retrieve(&connection, timesheet.id.into())
-			.await
-			.unwrap()
-			.pop()
-			.unwrap();
+		let db_timesheet =
+			PgTimesheet::retrieve(&connection, timesheet.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(timesheet.id, db_timesheet.id);
 		assert_eq!(timesheet.employee, db_timesheet.employee);

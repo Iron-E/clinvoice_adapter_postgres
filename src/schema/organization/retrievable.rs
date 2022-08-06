@@ -81,13 +81,9 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
-		let usa = PgLocation::create(&connection, "USA".into(), Some(earth))
-			.await
-			.unwrap();
+		let usa = PgLocation::create(&connection, "USA".into(), Some(earth)).await.unwrap();
 
 		let (arizona, utah) = futures::try_join!(
 			PgLocation::create(&connection, "Arizona".into(), Some(usa.clone())),
@@ -103,10 +99,7 @@ mod tests
 
 		// Assert ::retrieve gets the right data from the DB
 		assert_eq!(
-			PgOrganization::retrieve(&connection, organization.id.into())
-				.await
-				.unwrap()
-				.as_slice(),
+			PgOrganization::retrieve(&connection, organization.id.into()).await.unwrap().as_slice(),
 			&[organization.clone()],
 		);
 

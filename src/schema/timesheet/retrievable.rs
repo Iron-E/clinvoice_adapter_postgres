@@ -47,7 +47,8 @@ impl Retrievable for PgTimesheet
 
 		const EMPLOYEE_COLUMNS_UNIQUE: EmployeeColumns<&str> = EmployeeColumns::unique();
 		const JOB_COLUMNS_UNIQUE: JobColumns<&str> = JobColumns::unique();
-		const ORGANIZATION_COLUMNS_UNIQUE: OrganizationColumns<&str> = OrganizationColumns::unique();
+		const ORGANIZATION_COLUMNS_UNIQUE: OrganizationColumns<&str> =
+			OrganizationColumns::unique();
 
 		let columns = COLUMNS.default_scope();
 		let employee_columns = EmployeeColumns::default().default_scope();
@@ -184,13 +185,9 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
-		let usa = PgLocation::create(&connection, "USA".into(), Some(earth))
-			.await
-			.unwrap();
+		let usa = PgLocation::create(&connection, "USA".into(), Some(earth)).await.unwrap();
 
 		let (arizona, utah) = futures::try_join!(
 			PgLocation::create(&connection, "Arizona".into(), Some(usa.clone())),
@@ -205,12 +202,7 @@ mod tests
 		.unwrap();
 
 		let (employee, employee2) = futures::try_join!(
-			PgEmployee::create(
-				&connection,
-				"My Name".into(),
-				"Employed".into(),
-				"Janitor".into()
-			),
+			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into()),
 			PgEmployee::create(
 				&connection,
 				"Another Gúy".into(),
@@ -227,10 +219,7 @@ mod tests
 				None,
 				Utc.ymd(1990, 07, 12).and_hms(14, 10, 00),
 				Duration::from_secs(900),
-				Invoice {
-					date: None,
-					hourly_rate: Money::new(20_00, 2, Currency::Usd),
-				},
+				Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
 				String::new(),
 				"Do something".into()
 			),
@@ -243,7 +232,7 @@ mod tests
 				Invoice {
 					date: Some(InvoiceDate {
 						issued: Utc.ymd(3000, 01, 13).and_hms(11, 45, 00),
-						paid: Some(Utc.ymd(3000, 01, 15).and_hms(14, 27, 00)),
+						paid:   Some(Utc.ymd(3000, 01, 15).and_hms(14, 27, 00)),
 					}),
 					hourly_rate: Money::new(200_00, 2, Currency::Jpy),
 				},

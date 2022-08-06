@@ -28,9 +28,7 @@ impl ExpensesAdapter for PgExpenses
 			return Ok(Vec::new());
 		}
 
-		let exchange_rates = ExchangeRates::new()
-			.map_err(util::finance_err_to_sqlx)
-			.await?;
+		let exchange_rates = ExchangeRates::new().map_err(util::finance_err_to_sqlx).await?;
 
 		QueryBuilder::new(
 			"INSERT INTO expenses
@@ -39,12 +37,7 @@ impl ExpensesAdapter for PgExpenses
 		.push_values(expenses.iter(), |mut q, (category, cost, description)| {
 			q.push_bind(timesheet_id)
 				.push_bind(category)
-				.push_bind(
-					cost
-						.exchange(Default::default(), &exchange_rates)
-						.amount
-						.to_string(),
-				)
+				.push_bind(cost.exchange(Default::default(), &exchange_rates).amount.to_string())
 				.push_bind(description);
 		})
 		.push(sql::RETURNING)

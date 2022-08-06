@@ -29,10 +29,7 @@ impl DateTimeExt for Invoice
 {
 	fn pg_sanitize(self) -> Self
 	{
-		Self {
-			date: self.date.pg_sanitize(),
-			..self
-		}
+		Self { date: self.date.pg_sanitize(), ..self }
 	}
 }
 
@@ -40,10 +37,7 @@ impl DateTimeExt for InvoiceDate
 {
 	fn pg_sanitize(self) -> Self
 	{
-		Self {
-			issued: self.issued.pg_sanitize(),
-			paid: self.paid.pg_sanitize(),
-		}
+		Self { issued: self.issued.pg_sanitize(), paid: self.paid.pg_sanitize() }
 	}
 }
 

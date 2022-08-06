@@ -11,7 +11,10 @@ impl Deletable for PgTimesheet
 	type Db = Postgres;
 	type Entity = Timesheet;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(
+		connection: Conn,
+		entities: Iter,
+	) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -66,22 +69,15 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
-		let organization = PgOrganization::create(&connection, earth, "Some Organization".into())
-			.await
-			.unwrap();
+		let organization =
+			PgOrganization::create(&connection, earth, "Some Organization".into()).await.unwrap();
 
-		let employee = PgEmployee::create(
-			&connection,
-			"My Name".into(),
-			"Employed".into(),
-			"Janitor".into(),
-		)
-		.await
-		.unwrap();
+		let employee =
+			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into())
+				.await
+				.unwrap();
 
 		let job = PgJob::create(
 			&connection,
@@ -89,10 +85,7 @@ mod tests
 			None,
 			Utc.ymd(1990, 07, 12).and_hms(14, 10, 00),
 			Duration::from_secs(900),
-			Invoice {
-				date: None,
-				hourly_rate: Money::new(20_00, 2, Currency::Usd),
-			},
+			Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
 			String::new(),
 			"Do something".into(),
 		)
@@ -133,11 +126,7 @@ mod tests
 		let timesheet3 = PgTimesheet::create(
 			&mut transaction,
 			employee,
-			vec![(
-				"Food".into(),
-				Money::new(10_17, 2, Currency::Usd),
-				"Takeout".into(),
-			)],
+			vec![("Food".into(), Money::new(10_17, 2, Currency::Usd), "Takeout".into())],
 			job.clone(),
 			Utc::now(),
 			None,
@@ -150,28 +139,20 @@ mod tests
 		// }}}
 
 		assert!(PgJob::delete(&connection, [job].iter()).await.is_err());
-		PgTimesheet::delete(&connection, [&timesheet, &timesheet2].into_iter())
-			.await
-			.unwrap();
+		PgTimesheet::delete(&connection, [&timesheet, &timesheet2].into_iter()).await.unwrap();
 
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 		assert_eq!(
 			PgTimesheet::retrieve(
 				&connection,
-				Match::Or(vec![
-					timesheet.id.into(),
-					timesheet2.id.into(),
-					timesheet3.id.into(),
-				])
-				.into(),
+				Match::Or(vec![timesheet.id.into(), timesheet2.id.into(), timesheet3.id.into(),])
+					.into(),
 			)
 			.await
 			.unwrap()
 			.into_iter()
 			.as_slice(),
-			&[timesheet3
-				.clone()
-				.exchange(Default::default(), &exchange_rates)],
+			&[timesheet3.clone().exchange(Default::default(), &exchange_rates)],
 		);
 
 		assert_eq!(
@@ -185,9 +166,7 @@ mod tests
 			})
 			.await
 			.unwrap(),
-			timesheet3
-				.expenses
-				.exchange(Default::default(), &exchange_rates),
+			timesheet3.expenses.exchange(Default::default(), &exchange_rates),
 		);
 	}
 }

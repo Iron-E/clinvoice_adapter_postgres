@@ -16,7 +16,10 @@ impl Deletable for PgContact
 	type Db = Postgres;
 	type Entity = Contact;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(
+		connection: Conn,
+		entities: Iter,
+	) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -42,10 +45,7 @@ impl Deletable for PgContact
 		}
 
 		let mut query = QueryBuilder::new(sql::DELETE);
-		query
-			.push(sql::FROM)
-			.push(ContactColumns::<&str>::TABLE_NAME)
-			.push(sql::WHERE);
+		query.push(sql::FROM).push(ContactColumns::<&str>::TABLE_NAME).push(sql::WHERE);
 
 		{
 			let mut separated = query.separated(' ');
@@ -86,9 +86,7 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
 		let (office_number, primary_email, mailing_address) = futures::try_join!(
 			PgContact::create(
@@ -101,17 +99,11 @@ mod tests
 				ContactKind::Email("somethingsomething@invalid.com".into()),
 				"Primary Email".into()
 			),
-			PgContact::create(
-				&connection,
-				ContactKind::Address(earth),
-				"Mailing Address".into()
-			),
+			PgContact::create(&connection, ContactKind::Address(earth), "Mailing Address".into()),
 		)
 		.unwrap();
 
-		PgContact::delete(&connection, [&office_number, &primary_email].into_iter())
-			.await
-			.unwrap();
+		PgContact::delete(&connection, [&office_number, &primary_email].into_iter()).await.unwrap();
 
 		assert_eq!(
 			PgContact::retrieve(&connection, MatchContact {
@@ -129,8 +121,6 @@ mod tests
 		);
 
 		// cleanup for the test; since labels are the primary key
-		PgContact::delete(&connection, [mailing_address].iter())
-			.await
-			.unwrap();
+		PgContact::delete(&connection, [mailing_address].iter()).await.unwrap();
 	}
 }

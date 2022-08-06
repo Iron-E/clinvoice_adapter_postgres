@@ -25,12 +25,7 @@ impl EmployeeAdapter for PgEmployee
 		.fetch_one(connection)
 		.await?;
 
-		Ok(Employee {
-			id: row.id,
-			name,
-			status,
-			title,
-		})
+		Ok(Employee { id: row.id, name, status, title })
 	}
 }
 
@@ -47,14 +42,10 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let employee = PgEmployee::create(
-			&connection,
-			"My Name".into(),
-			"Employed".into(),
-			"Janitor".into(),
-		)
-		.await
-		.unwrap();
+		let employee =
+			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into())
+				.await
+				.unwrap();
 
 		let row = sqlx::query!("SELECT * FROM employees WHERE id = $1;", employee.id)
 			.fetch_one(&connection)

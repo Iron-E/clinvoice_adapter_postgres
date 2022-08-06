@@ -29,9 +29,7 @@ impl Updatable for PgOrganization
 
 		PgSchema::update(connection, OrganizationColumns::default(), |query| {
 			query.push_values(peekable_entities, |mut q, e| {
-				q.push_bind(e.id)
-					.push_bind(e.location.id)
-					.push_bind(&e.name);
+				q.push_bind(e.id).push_bind(e.location.id).push_bind(&e.name);
 			});
 		})
 		.await?;
@@ -64,18 +62,15 @@ mod tests
 		)
 		.unwrap();
 
-		let mut organization = PgOrganization::create(&connection, earth, "Some Organization".into())
-			.await
-			.unwrap();
+		let mut organization =
+			PgOrganization::create(&connection, earth, "Some Organization".into()).await.unwrap();
 
 		organization.location = mars;
 		organization.name = format!("Not {}", organization.name);
 
 		{
 			let mut transaction = connection.begin().await.unwrap();
-			PgOrganization::update(&mut transaction, [&organization].into_iter())
-				.await
-				.unwrap();
+			PgOrganization::update(&mut transaction, [&organization].into_iter()).await.unwrap();
 			transaction.commit().await.unwrap();
 		}
 

@@ -74,10 +74,10 @@ where
 
 /// Write multiple `AND`/`OR` `conditions`.
 ///
-/// * If `UNION` is `true`, the `conditions` are separated by `AND`:
-///   `[Match::EqualTo(3), Match::LessThan(4)]` is interpreted as `(foo = 3 AND foo < 4)`.
-/// * If `UNION` is `false`, the `conditions` are separated by `OR`:
-///   `[Match::EqualTo(3), Match::LessThan(4)]` is interpreted as `(foo = 3 OR foo < 4)`.
+/// * If `UNION` is `true`, the `conditions` are separated by `AND`: `[Match::EqualTo(3),
+///   Match::LessThan(4)]` is interpreted as `(foo = 3 AND foo < 4)`.
+/// * If `UNION` is `false`, the `conditions` are separated by `OR`: `[Match::EqualTo(3),
+///   Match::LessThan(4)]` is interpreted as `(foo = 3 OR foo < 4)`.
 ///
 /// The rest of the args are the same as [`WriteSql::write_where`].
 ///
@@ -137,12 +137,7 @@ fn write_comparison<Db, Ident, Comparand>(
 	Ident: Copy + Display,
 	Comparand: Copy + Display,
 {
-	query
-		.separated(' ')
-		.push(context)
-		.push(ident)
-		.push(comparator)
-		.push(comparand);
+	query.separated(' ').push(context).push(ident).push(comparator).push(comparand);
 }
 
 /// An implementation of [`WriteWhereClause`] for [`MatchContact`].
@@ -216,12 +211,7 @@ fn write_negated<Db, Ident, Match>(
 {
 	write_context_scope_start::<_, true>(query, context);
 
-	PgSchema::write_where_clause(
-		WriteContext::InWhereCondition,
-		ident,
-		match_condition,
-		query,
-	);
+	PgSchema::write_where_clause(WriteContext::InWhereCondition, ident, match_condition, query);
 
 	write_context_scope_end(query);
 }
@@ -599,9 +589,7 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 							query,
 						),
 						columns.increment,
-						&match_condition
-							.increment
-							.map_ref(|i| PgInterval(i.into_inner())),
+						&match_condition.increment.map_ref(|i| PgInterval(i.into_inner())),
 						query,
 					),
 					ident,

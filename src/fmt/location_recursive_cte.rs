@@ -24,7 +24,8 @@ where
 
 impl PgLocationRecursiveCte<&'static str, &'static str>
 {
-	/// Determine what the final identifier would be in a recursive CTE based on some [`MatchLocation`].
+	/// Determine what the final identifier would be in a recursive CTE based on some
+	/// [`MatchLocation`].
 	pub(crate) const fn from(match_condition: &MatchLocation) -> Self
 	{
 		match match_condition.outer

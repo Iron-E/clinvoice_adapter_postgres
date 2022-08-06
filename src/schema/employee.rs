@@ -18,10 +18,10 @@ impl PgEmployee
 		T: AsRef<str>,
 	{
 		Employee {
-			id: row.get(columns.id.as_ref()),
-			name: row.get(columns.name.as_ref()),
+			id:     row.get(columns.id.as_ref()),
+			name:   row.get(columns.name.as_ref()),
 			status: row.get(columns.status.as_ref()),
-			title: row.get(columns.title.as_ref()),
+			title:  row.get(columns.title.as_ref()),
 		}
 	}
 }

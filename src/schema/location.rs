@@ -162,24 +162,24 @@ impl PgLocation
 		.fetch(connection)
 		.try_fold(None, |previous: Option<Location>, view| {
 			future::ok(Some(Location {
-				id: match view.id
+				id:    match view.id
 				{
 					Some(id) => id,
 					_ =>
 					{
 						return future::err(Error::ColumnDecode {
-							index: "name".into(),
+							index:  "name".into(),
 							source: SOURCE.into(),
 						})
 					},
 				},
-				name: match view.name
+				name:  match view.name
 				{
 					Some(n) => n,
 					_ =>
 					{
 						return future::err(Error::ColumnDecode {
-							index: "name".into(),
+							index:  "name".into(),
 							source: SOURCE.into(),
 						})
 					},
@@ -191,8 +191,8 @@ impl PgLocation
 		.and_then(|v| v.ok_or(Error::RowNotFound))
 	}
 
-	/// Retrieve a [`Match`] which will match all of the [`Id`]s of the [`Location`]s which match the
-	/// `match_condition`.
+	/// Retrieve a [`Match`] which will match all of the [`Id`]s of the [`Location`]s which match
+	/// the `match_condition`.
 	pub(super) async fn retrieve_matching_ids<'connection, Conn>(
 		connection: Conn,
 		match_condition: &MatchLocation,

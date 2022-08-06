@@ -11,7 +11,10 @@ impl Deletable for PgOrganization
 	type Db = Postgres;
 	type Entity = Organization;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(
+		connection: Conn,
+		entities: Iter,
+	) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -45,25 +48,17 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None)
-			.await
-			.unwrap();
+		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
 		let (organization, organization2, organization3) = futures::try_join!(
 			PgOrganization::create(&connection, earth.clone(), "Some Organization".into()),
 			PgOrganization::create(&connection, earth.clone(), "Some Other Organization".into()),
-			PgOrganization::create(
-				&connection,
-				earth.clone(),
-				"Another Other Organization".into(),
-			),
+			PgOrganization::create(&connection, earth.clone(), "Another Other Organization".into(),),
 		)
 		.unwrap();
 
 		// The `organization`s still depend on `earth`
-		assert!(PgLocation::delete(&connection, [&earth].into_iter())
-			.await
-			.is_err());
+		assert!(PgLocation::delete(&connection, [&earth].into_iter()).await.is_err());
 		PgOrganization::delete(&connection, [&organization, &organization2].into_iter())
 			.await
 			.unwrap();
