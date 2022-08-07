@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::LinkedList};
+use std::cmp::Ordering;
 
 use clinvoice_adapter::{schema::columns::LocationColumns, Updatable};
 use clinvoice_schema::Location;
@@ -29,29 +29,27 @@ impl Updatable for PgLocation
 			return Ok(());
 		}
 
-		let mut entities_by_outer = LinkedList::<Vec<_>>::default();
-		entities_by_outer.push_back(entities_peekable.collect());
-
-		loop
+		let mut entities_collected: Vec<_> = entities_peekable.collect();
 		{
-			let mut outers = entities_by_outer
-				.back()
-				.unwrap()
-				.iter()
-				.filter_map(|e| e.outer.as_deref())
-				.peekable();
+			let mut idx = 0;
 
-			// There are no more outer locations, so we can stop looking for them in this loop.
-			if outers.peek().is_none()
+			loop
 			{
-				break;
+				let mut outers =
+					entities_collected[idx..].iter().filter_map(|e| e.outer.as_deref()).peekable();
+
+				// There are no more outer locations, so we can stop looking for them in this loop.
+				if outers.peek().is_none()
+				{
+					break;
+				}
+
+				let outers_collected: Vec<_> = outers.collect();
+
+				entities_collected.extend(outers_collected);
+				idx = entities_collected.len();
 			}
-
-			let outers_collected = outers.collect();
-			entities_by_outer.push_back(outers_collected);
 		}
-
-		let mut entities_collected: Vec<_> = entities_by_outer.into_iter().flatten().collect();
 
 		// NOTE: we don't want to update a given row in the DB more than once.
 		// PERF: we can only get duplicates if there is more than one entitiy to update.
