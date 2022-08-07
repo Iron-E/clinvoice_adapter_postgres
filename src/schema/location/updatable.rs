@@ -96,17 +96,17 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let (mut earth, mars) = futures::try_join!(
-			PgLocation::create(&connection, "Earth".into(), None),
-			PgLocation::create(&connection, "Mars".into(), None),
-		)
-		.unwrap();
+		let mut earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
 
 		let (mut chile, mut usa) = futures::try_join!(
 			PgLocation::create(&connection, "Chile".into(), Some(earth.clone())),
 			PgLocation::create(&connection, "USA".into(), Some(earth.clone())),
 		)
 		.unwrap();
+
+		// NOTE: creating this location last to make sure that new locations can be set outside of
+		//       old locations
+		let mars = PgLocation::create(&connection, "Mars".into(), None).await.unwrap();
 
 		chile.name = "Chilé".into();
 		chile.outer = Some(
