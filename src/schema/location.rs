@@ -151,12 +151,12 @@ impl PgLocation
 	{
 		const SOURCE: &str = "this column in `locations` must be non-null";
 		sqlx::query!(
-			"WITH RECURSIVE location_view AS
+			r#"WITH RECURSIVE location_view AS
 			(
-				SELECT id, name, outer_id FROM locations WHERE id = $1
+				SELECT id, name, outer_id, 0 as "order" FROM locations WHERE id = $1
 				UNION
-				SELECT L.id, L.name, L.outer_id FROM locations L JOIN location_view V ON (L.id = V.outer_id)
-			) SELECT * FROM location_view ORDER BY id;",
+				SELECT L.id, L.name, L.outer_id, V."order" + 1 FROM locations L JOIN location_view V ON (L.id = V.outer_id)
+			) SELECT * FROM location_view ORDER BY "order" DESC;"#,
 			id,
 		)
 		.fetch(connection)
