@@ -142,12 +142,11 @@ where
 			notes text NOT NULL,
 			objectives text NOT NULL,
 
-			CONSTRAINT jobs__date_integrity CHECK (date_open < date_close),
-			CONSTRAINT jobs__invoice_date_integrity CHECK
+			CONSTRAINT jobs__date_integrity CHECK
 			(
-				(invoice_date_issued IS null AND invoice_date_paid IS null) OR
-				(invoice_date_paid IS null OR
-					(invoice_date_issued IS NOT null AND invoice_date_issued < invoice_date_paid))
+				(date_close IS null OR date_close > date_open) AND
+				(invoice_date_issued IS null OR (date_close IS NOT null AND invoice_date_issued > date_close)) AND
+				(invoice_date_paid IS null OR (invoice_date_issued IS NOT null AND invoice_date_paid > invoice_date_issued))
 			)
 		);"
 	)
