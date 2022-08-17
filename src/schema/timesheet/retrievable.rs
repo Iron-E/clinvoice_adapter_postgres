@@ -232,7 +232,7 @@ mod tests
 				Invoice {
 					date: Some(InvoiceDate {
 						issued: Utc.ymd(3000, 01, 13).and_hms(11, 45, 00),
-						paid:   Some(Utc.ymd(3000, 01, 15).and_hms(14, 27, 00)),
+						paid: Some(Utc.ymd(3000, 01, 15).and_hms(14, 27, 00)),
 					}),
 					hourly_rate: Money::new(200_00, 2, Currency::Jpy),
 				},

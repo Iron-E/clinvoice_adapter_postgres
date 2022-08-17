@@ -26,7 +26,7 @@ impl PgContact
 	{
 		Ok(Contact {
 			label: row.get(columns.label),
-			kind:  match row.get::<Option<_>, _>(columns.address_id)
+			kind: match row.get::<Option<_>, _>(columns.address_id)
 			{
 				Some(id) =>
 				{

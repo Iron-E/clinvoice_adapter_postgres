@@ -44,9 +44,9 @@ impl PgJob
 			id: row.try_get(columns.id.as_ref())?,
 			increment,
 			invoice: Invoice {
-				date: row.try_get::<Option<_>, _>(columns.invoice_date_issued.as_ref()).map(
-					|date| date.map(|d| InvoiceDate { issued: d, paid: invoice_date_paid }),
-				)?,
+				date: row
+					.try_get::<Option<_>, _>(columns.invoice_date_issued.as_ref())
+					.map(|date| date.map(|d| InvoiceDate { issued: d, paid: invoice_date_paid }))?,
 				hourly_rate: Money { amount, ..Default::default() },
 			},
 			notes: row.try_get(columns.notes.as_ref())?,

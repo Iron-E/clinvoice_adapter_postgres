@@ -152,7 +152,7 @@ mod tests
 				Invoice {
 					date: Some(InvoiceDate {
 						issued: Utc.ymd(3000, 01, 17).and_hms(12, 30, 00),
-						paid:   None,
+						paid: None,
 					}),
 					hourly_rate: Money::new(299_99, 2, Currency::Jpy),
 				},
@@ -168,7 +168,7 @@ mod tests
 				Invoice {
 					date: Some(InvoiceDate {
 						issued: Utc.ymd(2011, 03, 18).and_hms(08, 00, 00),
-						paid:   Some(Utc.ymd(2011, 03, 19).and_hms(17, 00, 00)),
+						paid: Some(Utc.ymd(2011, 03, 19).and_hms(17, 00, 00)),
 					}),
 					hourly_rate: Money::new(20_00, 2, Currency::Eur),
 				},

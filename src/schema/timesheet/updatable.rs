@@ -161,7 +161,7 @@ mod tests
 		timesheet.job.invoice = Invoice {
 			date: Some(InvoiceDate {
 				issued: chrono::Utc::now(),
-				paid:   Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
+				paid: Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
 			}),
 			hourly_rate: Money::new(200_00, 2, Default::default()),
 		};
