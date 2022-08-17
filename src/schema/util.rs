@@ -10,7 +10,7 @@ use {lazy_static::lazy_static, sqlx::PgPool};
 pub(super) async fn connect() -> PgPool
 {
 	lazy_static! {
-		static ref URL: String = dotenv::var("DATABASE_URL").unwrap();
+		static ref URL: String = dotenvy::var("DATABASE_URL").unwrap();
 	}
 
 	PgPool::connect_lazy(&URL).unwrap()

@@ -24,10 +24,10 @@ sqlx = {features = ["chrono", "decimal", "macros", "postgres", "runtime-tokio-ru
 thiserror = "1"
 
 [dev-dependencies]
-dotenv = "0.15.0"
+dotenvy = "0.15"
 lazy_static = "1"
 pretty_assertions = "1"
-tokio = {features = ["macros", "rt-multi-thread"], version = "1"}
+tokio = {features = ["macros", "rt"], version = "1"}
 
 [features]
 default = []
