@@ -165,10 +165,10 @@ impl PgLocation
 				id:    match view.id
 				{
 					Some(id) => id,
-					_ =>
+					None =>
 					{
 						return future::err(Error::ColumnDecode {
-							index:  "name".into(),
+							index:  "id".into(),
 							source: SOURCE.into(),
 						})
 					},
@@ -176,7 +176,7 @@ impl PgLocation
 				name:  match view.name
 				{
 					Some(n) => n,
-					_ =>
+					None =>
 					{
 						return future::err(Error::ColumnDecode {
 							index:  "name".into(),

@@ -344,7 +344,8 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 				let separator = match match_condition
 				{
 					MatchSet::And(_) => sql::AND,
-					_ => sql::OR,
+					MatchSet::Or(_) => sql::OR,
+					_ => unreachable!(),
 				};
 
 				conditions.iter().for_each(|c| {

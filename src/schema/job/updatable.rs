@@ -48,7 +48,7 @@ impl Updatable for PgJob
 				match e.invoice.date.pg_sanitize()
 				{
 					Some(ref date) => q.push_bind(date.issued).push_bind(date.paid),
-					_ => q.push_bind(None::<DateTime<Utc>>).push_bind(None::<DateTime<Utc>>),
+					None => q.push_bind(None::<DateTime<Utc>>).push_bind(None::<DateTime<Utc>>),
 				};
 
 				q.push_bind(

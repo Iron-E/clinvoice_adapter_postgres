@@ -32,7 +32,7 @@ impl PgContact
 				{
 					PgLocation::retrieve_by_id(connection, id).map_ok(ContactKind::Address).await?
 				},
-				_ => row
+				None => row
 					.get::<Option<_>, _>(columns.email)
 					.map(ContactKind::Email)
 					.or_else(|| row.get::<Option<_>, _>(columns.other).map(ContactKind::Other))
