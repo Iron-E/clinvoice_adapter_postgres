@@ -30,7 +30,7 @@ use clinvoice_match::{
 use sqlx::{Database, Executor, Postgres, QueryBuilder, Result};
 
 use super::{PgLocation, PgSchema};
-use crate::fmt::{PgInterval, PgTimestampTz};
+use crate::fmt::{PgContains, PgInterval, PgTimestampTz};
 
 /// Write [`Match::Any`], [`MatchStr::Any`], [`MatchOption::Any`], or [`MatchSet::Any`] in a way
 /// that will produce valid syntax.
@@ -401,7 +401,7 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 		Ident: Copy + Display,
 	{
 		// NOTE: we cannot use certain helpers defined above, as some do not
-		// sanitize `match_condition` and are thus susceptible to SQL injection.
+		//       sanitize `match_condition` and are thus susceptible to SQL injection.
 		match match_condition
 		{
 			MatchStr::And(conditions) => write_boolean_group::<_, _, _, _, true>(
@@ -418,9 +418,7 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 					.push(context)
 					.push(ident)
 					.push(sql::LIKE)
-					// HACK: this is the only way I could think to surround `string` with the syntax
-					//       needed (e.g. `foo LIKE '%o%'`) and still sanitize it.
-					.push_bind(format!("%{string}%"));
+					.push_bind(PgContains(string).to_string());
 			},
 			MatchStr::EqualTo(string) =>
 			{

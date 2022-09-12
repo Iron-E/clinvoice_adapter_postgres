@@ -64,7 +64,7 @@ impl Retrievable for PgTimesheet
 			.push(sql::SELECT)
 			.push_columns(&columns)
 			.push_more_columns(&employee_columns.r#as(EMPLOYEE_COLUMNS_UNIQUE))
-			.push(",array_agg((") // NOTE: might need `",array_agg( DISTINCT ("`
+			.push(",array_agg((")
 			.push_columns(&expense_columns)
 			.push("))")
 			.push(sql::AS)
