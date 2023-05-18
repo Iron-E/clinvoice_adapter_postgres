@@ -2,8 +2,8 @@ mod display;
 
 use core::fmt::Display;
 
-use clinvoice_adapter::fmt::SnakeCase;
-use clinvoice_match::{MatchLocation, MatchOuterLocation};
+use winvoice_adapter::fmt::SnakeCase;
+use winvoice_match::{MatchLocation, MatchOuterLocation};
 
 /// Able to generate [`Display`] impls which are viable for use within a recursive Common Table
 /// Expression.

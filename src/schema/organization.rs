@@ -3,13 +3,13 @@ mod organization_adapter;
 mod retrievable;
 mod updatable;
 
-use clinvoice_adapter::schema::columns::OrganizationColumns;
-use clinvoice_schema::Organization;
+use winvoice_adapter::schema::columns::OrganizationColumns;
+use winvoice_schema::Organization;
 use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
 
 use super::PgLocation;
 
-/// Implementor of the [`OrganizationAdapter`](clinvoice_adapter::schema::OrganizationAdapter) for
+/// Implementor of the [`OrganizationAdapter`](winvoice_adapter::schema::OrganizationAdapter) for
 /// the [`Postgres`](sqlx::Postgres) database.
 pub struct PgOrganization;
 

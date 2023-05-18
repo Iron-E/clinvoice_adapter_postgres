@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::ExpenseColumns, Deletable};
-use clinvoice_schema::{Expense, Id};
+use winvoice_adapter::{schema::columns::ExpenseColumns, Deletable};
+use winvoice_schema::{Expense, Id};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgExpenses;
@@ -35,7 +35,7 @@ mod tests
 {
 	use core::time::Duration;
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
 			JobAdapter,
@@ -46,8 +46,8 @@ mod tests
 		Deletable,
 		Retrievable,
 	};
-	use clinvoice_match::MatchExpense;
-	use clinvoice_schema::{
+	use winvoice_match::MatchExpense;
+	use winvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Invoice,
 	};

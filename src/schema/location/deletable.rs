@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::LocationColumns, Deletable};
-use clinvoice_schema::{Id, Location};
+use winvoice_adapter::{schema::columns::LocationColumns, Deletable};
+use winvoice_schema::{Id, Location};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgLocation;
@@ -33,8 +33,8 @@ impl Deletable for PgLocation
 #[cfg(test)]
 mod tests
 {
-	use clinvoice_adapter::{schema::LocationAdapter, Deletable, Retrievable};
-	use clinvoice_match::Match;
+	use winvoice_adapter::{schema::LocationAdapter, Deletable, Retrievable};
+	use winvoice_match::Match;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation};

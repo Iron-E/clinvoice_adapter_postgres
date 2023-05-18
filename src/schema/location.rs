@@ -5,13 +5,13 @@ mod updatable;
 
 use core::fmt::Display;
 
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, SnakeCase, TableToSql},
 	schema::columns::LocationColumns,
 	WriteWhereClause,
 };
-use clinvoice_match::{Match, MatchLocation, MatchOption, MatchOuterLocation};
-use clinvoice_schema::{Id, Location};
+use winvoice_match::{Match, MatchLocation, MatchOption, MatchOuterLocation};
+use winvoice_schema::{Id, Location};
 use futures::{future, TryFutureExt, TryStreamExt};
 use sqlx::{Error, Executor, Postgres, QueryBuilder, Result, Row};
 
@@ -19,7 +19,7 @@ use crate::{fmt::PgLocationRecursiveCte, PgSchema};
 
 const COLUMNS: LocationColumns<&str> = LocationColumns::default();
 
-/// Implementor of the [`LocationAdapter`](clinvoice_adapter::schema::LocationAdapter) for the
+/// Implementor of the [`LocationAdapter`](winvoice_adapter::schema::LocationAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.
 pub struct PgLocation;
 

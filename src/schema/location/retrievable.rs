@@ -1,10 +1,10 @@
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::LocationColumns,
 	Retrievable,
 };
-use clinvoice_match::MatchLocation;
-use clinvoice_schema::Location;
+use winvoice_match::MatchLocation;
+use winvoice_schema::Location;
 use futures::TryStreamExt;
 use sqlx::{Pool, Postgres, Result, Row};
 
@@ -19,7 +19,7 @@ impl Retrievable for PgLocation
 	type Db = Postgres;
 	/// The type of data that is to be [`update`](Deletable::update)d.
 	type Entity = Location;
-	/// The type used for [match](clinvoice_match)ing.
+	/// The type used for [match](winvoice_match)ing.
 	type Match = MatchLocation;
 
 	/// Retrieve all [`Location`]s (via `connection`) that match the `match_condition`.
@@ -52,8 +52,8 @@ mod tests
 {
 	use std::collections::HashSet;
 
-	use clinvoice_adapter::{schema::LocationAdapter, Retrievable};
-	use clinvoice_match::{MatchLocation, MatchOuterLocation};
+	use winvoice_adapter::{schema::LocationAdapter, Retrievable};
+	use winvoice_match::{MatchLocation, MatchOuterLocation};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation};

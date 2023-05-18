@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::OrganizationColumns, Deletable};
-use clinvoice_schema::{Id, Organization};
+use winvoice_adapter::{schema::columns::OrganizationColumns, Deletable};
+use winvoice_schema::{Id, Organization};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgOrganization;
@@ -33,12 +33,12 @@ impl Deletable for PgOrganization
 #[cfg(test)]
 mod tests
 {
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
 		Deletable,
 		Retrievable,
 	};
-	use clinvoice_match::Match;
+	use winvoice_match::Match;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation, PgOrganization};

@@ -1,10 +1,10 @@
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::ContactColumns,
 	Retrievable,
 };
-use clinvoice_match::MatchContact;
-use clinvoice_schema::Contact;
+use winvoice_match::MatchContact;
+use winvoice_schema::Contact;
 use futures::TryStreamExt;
 use sqlx::{Pool, Postgres, QueryBuilder, Result};
 
@@ -19,7 +19,7 @@ impl Retrievable for PgContact
 	type Db = Postgres;
 	/// The type of data that is to be [`update`](Deletable::update)d.
 	type Entity = Contact;
-	/// The type used for [match](clinvoice_match)ing.
+	/// The type used for [match](winvoice_match)ing.
 	type Match = MatchContact;
 
 	/// Retrieve all [`Contact`]s (via `connection`) that match the `match_condition`.

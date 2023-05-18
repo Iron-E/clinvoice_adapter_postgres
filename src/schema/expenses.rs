@@ -3,14 +3,14 @@ mod expenses_adapter;
 mod retrievable;
 mod updatable;
 
-use clinvoice_adapter::schema::columns::ExpenseColumns;
-use clinvoice_schema::Expense;
+use winvoice_adapter::schema::columns::ExpenseColumns;
+use winvoice_schema::Expense;
 use money2::{Decimal, Money};
 use sqlx::{postgres::PgRow, Result, Row};
 
 use super::util;
 
-/// Implementor of the [`ExpensesAdapter`](clinvoice_adapter::schema::ExpensesAdapter) for the
+/// Implementor of the [`ExpensesAdapter`](winvoice_adapter::schema::ExpensesAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.
 pub struct PgExpenses;
 

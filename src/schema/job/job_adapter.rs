@@ -1,7 +1,7 @@
 use core::time::Duration;
 
-use clinvoice_adapter::schema::JobAdapter;
-use clinvoice_schema::{
+use winvoice_adapter::schema::JobAdapter;
+use winvoice_schema::{
 	chrono::{DateTime, Utc},
 	Invoice,
 	Job,
@@ -63,8 +63,8 @@ mod tests
 {
 	use core::time::Duration;
 
-	use clinvoice_adapter::schema::{LocationAdapter, OrganizationAdapter};
-	use clinvoice_schema::{chrono::Utc, Currency, Invoice, Money};
+	use winvoice_adapter::schema::{LocationAdapter, OrganizationAdapter};
+	use winvoice_schema::{chrono::Utc, Currency, Invoice, Money};
 	use money2::{Exchange, ExchangeRates};
 	use pretty_assertions::assert_eq;
 

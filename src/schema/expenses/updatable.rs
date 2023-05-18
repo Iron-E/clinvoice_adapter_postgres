@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::ExpenseColumns, Updatable};
-use clinvoice_schema::Expense;
+use winvoice_adapter::{schema::columns::ExpenseColumns, Updatable};
+use winvoice_schema::Expense;
 use sqlx::{Postgres, Result, Transaction};
 
 use super::PgExpenses;

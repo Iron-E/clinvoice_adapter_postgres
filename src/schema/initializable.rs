@@ -1,4 +1,4 @@
-use clinvoice_adapter::Initializable;
+use winvoice_adapter::Initializable;
 use sqlx::{Acquire, Executor, Postgres, Result};
 
 use super::PgSchema;

@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::EmployeeColumns, Deletable};
-use clinvoice_schema::{Employee, Id};
+use winvoice_adapter::{schema::columns::EmployeeColumns, Deletable};
+use winvoice_schema::{Employee, Id};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgEmployee;
@@ -33,8 +33,8 @@ impl Deletable for PgEmployee
 #[cfg(test)]
 mod tests
 {
-	use clinvoice_adapter::{schema::EmployeeAdapter, Deletable, Retrievable};
-	use clinvoice_match::Match;
+	use winvoice_adapter::{schema::EmployeeAdapter, Deletable, Retrievable};
+	use winvoice_match::Match;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgEmployee};

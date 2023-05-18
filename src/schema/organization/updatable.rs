@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::OrganizationColumns, Updatable};
-use clinvoice_schema::Organization;
+use winvoice_adapter::{schema::columns::OrganizationColumns, Updatable};
+use winvoice_schema::Organization;
 use sqlx::{Postgres, Result, Transaction};
 
 use super::PgOrganization;
@@ -41,12 +41,12 @@ impl Updatable for PgOrganization
 #[cfg(test)]
 mod tests
 {
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
 		Retrievable,
 		Updatable,
 	};
-	use clinvoice_match::MatchOrganization;
+	use winvoice_match::MatchOrganization;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation, PgOrganization};

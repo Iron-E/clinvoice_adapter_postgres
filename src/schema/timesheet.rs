@@ -3,19 +3,19 @@ mod retrievable;
 mod timesheet_adapter;
 mod updatable;
 
-use clinvoice_adapter::schema::columns::{
+use winvoice_adapter::schema::columns::{
 	EmployeeColumns,
 	JobColumns,
 	OrganizationColumns,
 	TimesheetColumns,
 };
-use clinvoice_schema::{Expense, Timesheet};
+use winvoice_schema::{Expense, Timesheet};
 use money2::{Decimal, Money};
 use sqlx::{error::UnexpectedNullError, postgres::PgRow, Error, Executor, Postgres, Result, Row};
 
 use super::{util, PgEmployee, PgJob};
 
-/// Implementor of the [`TimesheetAdapter`](clinvoice_adapter::schema::TimesheetAdapter) for the
+/// Implementor of the [`TimesheetAdapter`](winvoice_adapter::schema::TimesheetAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.
 pub struct PgTimesheet;
 

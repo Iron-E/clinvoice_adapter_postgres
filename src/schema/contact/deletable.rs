@@ -1,11 +1,11 @@
 use core::fmt::Display;
 
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::ContactColumns,
 	Deletable,
 };
-use clinvoice_schema::Contact;
+use winvoice_schema::Contact;
 use sqlx::{query_builder::Separated, Executor, Postgres, QueryBuilder, Result};
 
 use super::PgContact;
@@ -70,13 +70,13 @@ impl Deletable for PgContact
 #[cfg(test)]
 mod tests
 {
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{ContactAdapter, LocationAdapter},
 		Deletable,
 		Retrievable,
 	};
-	use clinvoice_match::{MatchContact, MatchStr};
-	use clinvoice_schema::ContactKind;
+	use winvoice_match::{MatchContact, MatchStr};
+	use winvoice_schema::ContactKind;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgContact, PgLocation};

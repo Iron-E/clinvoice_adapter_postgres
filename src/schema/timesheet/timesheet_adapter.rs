@@ -1,5 +1,5 @@
-use clinvoice_adapter::schema::{ExpensesAdapter, TimesheetAdapter};
-use clinvoice_schema::{
+use winvoice_adapter::schema::{ExpensesAdapter, TimesheetAdapter};
+use winvoice_schema::{
 	chrono::{DateTime, Utc},
 	Employee,
 	Job,
@@ -59,13 +59,13 @@ mod tests
 {
 	use core::time::Duration;
 
-	use clinvoice_adapter::schema::{
+	use winvoice_adapter::schema::{
 		EmployeeAdapter,
 		JobAdapter,
 		LocationAdapter,
 		OrganizationAdapter,
 	};
-	use clinvoice_schema::{
+	use winvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Currency,
 		Invoice,

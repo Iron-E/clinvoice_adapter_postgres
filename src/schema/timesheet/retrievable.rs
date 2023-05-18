@@ -1,4 +1,4 @@
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::{
 		EmployeeColumns,
@@ -11,8 +11,8 @@ use clinvoice_adapter::{
 	Retrievable,
 	WriteWhereClause,
 };
-use clinvoice_match::MatchTimesheet;
-use clinvoice_schema::Timesheet;
+use winvoice_match::MatchTimesheet;
+use winvoice_schema::Timesheet;
 use futures::{TryFutureExt, TryStreamExt};
 use money2::{Exchange, ExchangeRates};
 use sqlx::{Pool, Postgres, Result};
@@ -32,7 +32,7 @@ impl Retrievable for PgTimesheet
 	type Db = Postgres;
 	/// The type of data that is to be [`update`](Deletable::update)d.
 	type Entity = Timesheet;
-	/// The type used for [match](clinvoice_match)ing.
+	/// The type used for [match](winvoice_match)ing.
 	type Match = MatchTimesheet;
 
 	/// Retrieve all [`Timesheet`]s (via `connection`) that match the `match_condition`.
@@ -157,7 +157,7 @@ mod tests
 {
 	use core::time::Duration;
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
 			JobAdapter,
@@ -167,8 +167,8 @@ mod tests
 		},
 		Retrievable,
 	};
-	use clinvoice_match::{Match, MatchSet, MatchTimesheet};
-	use clinvoice_schema::{
+	use winvoice_match::{Match, MatchSet, MatchTimesheet};
+	use winvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Currency,
 		Invoice,

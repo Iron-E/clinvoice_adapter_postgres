@@ -1,6 +1,6 @@
 mod display;
 
-use clinvoice_schema::chrono::NaiveDateTime;
+use winvoice_schema::chrono::NaiveDateTime;
 
 /// Has a [`Display`] impl which will generate valid syntax to represent the given
 /// [`NaiveDateTime`].

@@ -1,11 +1,11 @@
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::EmployeeColumns,
 	Retrievable,
 	WriteWhereClause,
 };
-use clinvoice_match::MatchEmployee;
-use clinvoice_schema::Employee;
+use winvoice_match::MatchEmployee;
+use winvoice_schema::Employee;
 use futures::TryStreamExt;
 use sqlx::{Pool, Postgres, QueryBuilder, Result};
 
@@ -20,7 +20,7 @@ impl Retrievable for PgEmployee
 	type Db = Postgres;
 	/// The type of data that is to be [`update`](Deletable::update)d.
 	type Entity = Employee;
-	/// The type used for [match](clinvoice_match)ing.
+	/// The type used for [match](winvoice_match)ing.
 	type Match = MatchEmployee;
 
 	/// Retrieve all [`Employee`]s (via `connection`) that match the `match_condition`.
@@ -56,8 +56,8 @@ mod tests
 {
 	use std::collections::HashSet;
 
-	use clinvoice_adapter::{schema::EmployeeAdapter, Retrievable};
-	use clinvoice_match::{Match, MatchEmployee, MatchStr};
+	use winvoice_adapter::{schema::EmployeeAdapter, Retrievable};
+	use winvoice_match::{Match, MatchEmployee, MatchStr};
 
 	use crate::schema::{util, PgEmployee};
 

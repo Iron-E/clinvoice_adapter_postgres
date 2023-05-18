@@ -3,14 +3,14 @@ mod deletable;
 mod retrievable;
 mod updatable;
 
-use clinvoice_adapter::schema::columns::ContactColumns;
-use clinvoice_schema::{Contact, ContactKind};
+use winvoice_adapter::schema::columns::ContactColumns;
+use winvoice_schema::{Contact, ContactKind};
 use futures::TryFutureExt;
 use sqlx::{postgres::PgRow, Error, Executor, Postgres, Result, Row};
 
 use super::PgLocation;
 
-/// Implementor of the [`ContactAdapter`](clinvoice_adapter::schema::ContactAdapter) for the
+/// Implementor of the [`ContactAdapter`](winvoice_adapter::schema::ContactAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.
 pub struct PgContact;
 

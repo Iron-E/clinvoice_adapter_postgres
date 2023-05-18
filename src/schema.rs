@@ -1,7 +1,7 @@
 //! # Summary
 //!
 //! This module implements adapters (and associated adapter types such as
-//! [`Deletable`](clinvoice_adapter::Deletable)) for a Postgres filesystem.
+//! [`Deletable`](winvoice_adapter::Deletable)) for a Postgres filesystem.
 
 mod contact;
 mod employee;
@@ -14,12 +14,12 @@ mod timesheet;
 mod util;
 mod write_where_clause;
 
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, As, ColumnsToSql, QueryBuilderExt, SnakeCase, TableToSql},
 	WriteWhereClause,
 };
-use clinvoice_match::Match;
-use clinvoice_schema::Id;
+use winvoice_match::Match;
+use winvoice_schema::Id;
 pub use contact::PgContact;
 pub use employee::PgEmployee;
 pub use expenses::PgExpenses;
@@ -29,7 +29,7 @@ pub use organization::PgOrganization;
 use sqlx::{Executor, Postgres, QueryBuilder, Result, Transaction};
 pub use timesheet::PgTimesheet;
 
-/// The struct which implements several [`clinvoice_adapter`] traits to allow CLInvoice to function
+/// The struct which implements several [`winvoice_adapter`] traits to allow Winvoice to function
 /// within a Postgres database environment.
 pub struct PgSchema;
 

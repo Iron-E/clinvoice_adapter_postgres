@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::ContactColumns, Updatable};
-use clinvoice_schema::Contact;
+use winvoice_adapter::{schema::columns::ContactColumns, Updatable};
+use winvoice_schema::Contact;
 use sqlx::{Postgres, Result, Transaction};
 
 use super::PgContact;
@@ -45,14 +45,14 @@ mod tests
 {
 	use std::collections::HashSet;
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{ContactAdapter, LocationAdapter},
 		Deletable,
 		Retrievable,
 		Updatable,
 	};
-	use clinvoice_match::{MatchContact, MatchStr};
-	use clinvoice_schema::ContactKind;
+	use winvoice_match::{MatchContact, MatchStr};
+	use winvoice_schema::ContactKind;
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgContact, PgLocation};

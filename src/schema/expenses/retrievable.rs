@@ -1,11 +1,11 @@
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::ExpenseColumns,
 	Retrievable,
 	WriteWhereClause,
 };
-use clinvoice_match::MatchExpense;
-use clinvoice_schema::Expense;
+use winvoice_match::MatchExpense;
+use winvoice_schema::Expense;
 use futures::{future, TryFutureExt, TryStreamExt};
 use money2::{Exchange, ExchangeRates};
 use sqlx::{Pool, Postgres, QueryBuilder, Result};
@@ -21,7 +21,7 @@ impl Retrievable for PgExpenses
 	type Db = Postgres;
 	/// The type of data that is to be [`update`](Deletable::update)d.
 	type Entity = Expense;
-	/// The type used for [match](clinvoice_match)ing.
+	/// The type used for [match](winvoice_match)ing.
 	type Match = MatchExpense;
 
 	/// Retrieve all [`Expense`]s (via `connection`) that match the `match_condition`.

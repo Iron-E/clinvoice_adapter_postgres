@@ -1,4 +1,4 @@
-use clinvoice_schema::{
+use winvoice_schema::{
 	chrono::{DateTime, SubsecRound, TimeZone},
 	Invoice,
 	InvoiceDate,

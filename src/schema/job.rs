@@ -3,14 +3,14 @@ mod job_adapter;
 mod retrievable;
 mod updatable;
 
-use clinvoice_adapter::schema::columns::{JobColumns, OrganizationColumns};
-use clinvoice_schema::{Invoice, InvoiceDate, Job};
+use winvoice_adapter::schema::columns::{JobColumns, OrganizationColumns};
+use winvoice_schema::{Invoice, InvoiceDate, Job};
 use money2::{Decimal, Money};
 use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
 
 use super::{util, PgOrganization};
 
-/// Implementor of the [`JobAdapter`](clinvoice_adapter::schema::JobAdapter) for the
+/// Implementor of the [`JobAdapter`](winvoice_adapter::schema::JobAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.
 pub struct PgJob;
 

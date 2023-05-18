@@ -1,11 +1,11 @@
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::{LocationColumns, OrganizationColumns},
 	Retrievable,
 	WriteWhereClause,
 };
-use clinvoice_match::MatchOrganization;
-use clinvoice_schema::Organization;
+use winvoice_match::MatchOrganization;
+use winvoice_schema::Organization;
 use futures::TryStreamExt;
 use sqlx::{Pool, Postgres, Result};
 
@@ -20,7 +20,7 @@ impl Retrievable for PgOrganization
 	type Db = Postgres;
 	/// The type of data that is to be [`update`](Deletable::update)d.
 	type Entity = Organization;
-	/// The type used for [match](clinvoice_match)ing.
+	/// The type used for [match](winvoice_match)ing.
 	type Match = MatchOrganization;
 
 	/// Retrieve all [`Organization`]s (via `connection`) that match the `match_condition`.
@@ -67,11 +67,11 @@ mod tests
 {
 	use std::collections::HashSet;
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
 		Retrievable,
 	};
-	use clinvoice_match::{Match, MatchLocation, MatchOrganization, MatchOuterLocation};
+	use winvoice_match::{Match, MatchLocation, MatchOrganization, MatchOuterLocation};
 	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation, PgOrganization};

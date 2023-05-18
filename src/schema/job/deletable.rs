@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::JobColumns, Deletable};
-use clinvoice_schema::{Id, Job};
+use winvoice_adapter::{schema::columns::JobColumns, Deletable};
+use winvoice_schema::{Id, Job};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgJob;
@@ -35,13 +35,13 @@ mod tests
 {
 	use core::time::Duration;
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Deletable,
 		Retrievable,
 	};
-	use clinvoice_match::Match;
-	use clinvoice_schema::{
+	use winvoice_match::Match;
+	use winvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Invoice,
 		InvoiceDate,

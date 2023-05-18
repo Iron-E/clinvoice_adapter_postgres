@@ -1,4 +1,4 @@
-//! This crate provides an implementation of [`clinvoice_adapter`] for the
+//! This crate provides an implementation of [`winvoice_adapter`] for the
 //! [Postgres](https://postgresql.org) database.
 
 #![allow(clippy::drop_non_drop)]

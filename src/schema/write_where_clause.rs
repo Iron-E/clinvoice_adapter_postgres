@@ -1,6 +1,6 @@
 use core::{fmt::Display, ops::Deref};
 
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, SnakeCase, TableToSql},
 	schema::columns::{
 		ContactColumns,
@@ -13,7 +13,7 @@ use clinvoice_adapter::{
 	WriteContext,
 	WriteWhereClause,
 };
-use clinvoice_match::{
+use winvoice_match::{
 	Match,
 	MatchContact,
 	MatchContactKind,

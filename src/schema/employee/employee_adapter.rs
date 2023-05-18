@@ -1,5 +1,5 @@
-use clinvoice_adapter::schema::EmployeeAdapter;
-use clinvoice_schema::Employee;
+use winvoice_adapter::schema::EmployeeAdapter;
+use winvoice_schema::Employee;
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgEmployee;

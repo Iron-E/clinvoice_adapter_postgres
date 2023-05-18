@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::TimesheetColumns, Deletable};
-use clinvoice_schema::{Id, Timesheet};
+use winvoice_adapter::{schema::columns::TimesheetColumns, Deletable};
+use winvoice_schema::{Id, Timesheet};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgTimesheet;
@@ -35,7 +35,7 @@ mod tests
 {
 	use core::time::Duration;
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
 			JobAdapter,
@@ -46,8 +46,8 @@ mod tests
 		Deletable,
 		Retrievable,
 	};
-	use clinvoice_match::{Match, MatchExpense};
-	use clinvoice_schema::{
+	use winvoice_match::{Match, MatchExpense};
+	use winvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Invoice,
 	};

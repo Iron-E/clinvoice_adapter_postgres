@@ -1,11 +1,11 @@
-use clinvoice_adapter::{
+use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::{JobColumns, LocationColumns, OrganizationColumns},
 	Retrievable,
 	WriteWhereClause,
 };
-use clinvoice_match::MatchJob;
-use clinvoice_schema::Job;
+use winvoice_match::MatchJob;
+use winvoice_schema::Job;
 use futures::{TryFutureExt, TryStreamExt};
 use money2::{Exchange, ExchangeRates};
 use sqlx::{Pool, Postgres, Result};
@@ -25,7 +25,7 @@ impl Retrievable for PgJob
 	type Db = Postgres;
 	/// The type of data that is to be [`update`](Deletable::update)d.
 	type Entity = Job;
-	/// The type used for [match](clinvoice_match)ing.
+	/// The type used for [match](winvoice_match)ing.
 	type Match = MatchJob;
 
 	/// Retrieve all [`Job`]s (via `connection`) that match the `match_condition`.
@@ -94,12 +94,12 @@ mod tests
 	use core::time::Duration;
 	use std::collections::HashSet;
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Retrievable,
 	};
-	use clinvoice_match::{Match, MatchInvoice, MatchJob, MatchOption};
-	use clinvoice_schema::{
+	use winvoice_match::{Match, MatchInvoice, MatchJob, MatchOption};
+	use winvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Currency,
 		Invoice,

@@ -1,5 +1,5 @@
-use clinvoice_adapter::schema::OrganizationAdapter;
-use clinvoice_schema::{Location, Organization};
+use winvoice_adapter::schema::OrganizationAdapter;
+use winvoice_schema::{Location, Organization};
 use sqlx::{Executor, Postgres, Result};
 
 use super::PgOrganization;
@@ -30,7 +30,7 @@ impl OrganizationAdapter for PgOrganization
 #[cfg(test)]
 mod tests
 {
-	use clinvoice_adapter::schema::LocationAdapter;
+	use winvoice_adapter::schema::LocationAdapter;
 	use pretty_assertions::assert_eq;
 
 	use super::{OrganizationAdapter, PgOrganization};

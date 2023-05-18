@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::TimesheetColumns, Updatable};
-use clinvoice_schema::{Expense, Timesheet};
+use winvoice_adapter::{schema::columns::TimesheetColumns, Updatable};
+use winvoice_schema::{Expense, Timesheet};
 use sqlx::{Postgres, Result, Transaction};
 
 use super::PgTimesheet;
@@ -64,7 +64,7 @@ mod tests
 {
 	use std::{collections::HashSet, time::Duration};
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
 			ExpensesAdapter,
@@ -76,7 +76,7 @@ mod tests
 		Retrievable,
 		Updatable,
 	};
-	use clinvoice_schema::{chrono, Invoice, InvoiceDate};
+	use winvoice_schema::{chrono, Invoice, InvoiceDate};
 	use futures::TryFutureExt;
 	use money2::{Currency, Money};
 	use pretty_assertions::assert_eq;

@@ -1,5 +1,5 @@
-use clinvoice_adapter::{schema::columns::JobColumns, Updatable};
-use clinvoice_schema::{
+use winvoice_adapter::{schema::columns::JobColumns, Updatable};
+use winvoice_schema::{
 	chrono::{DateTime, Utc},
 	Job,
 };
@@ -73,12 +73,12 @@ mod tests
 {
 	use core::time::Duration;
 
-	use clinvoice_adapter::{
+	use winvoice_adapter::{
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Retrievable,
 		Updatable,
 	};
-	use clinvoice_schema::{chrono, Invoice, InvoiceDate};
+	use winvoice_schema::{chrono, Invoice, InvoiceDate};
 	use futures::TryFutureExt;
 	use money2::Money;
 	use pretty_assertions::assert_eq;
