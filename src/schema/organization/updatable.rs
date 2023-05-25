@@ -1,6 +1,6 @@
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::OrganizationColumns, Updatable};
 use winvoice_schema::Organization;
-use sqlx::{Postgres, Result, Transaction};
 
 use super::PgOrganization;
 use crate::{schema::PgLocation, PgSchema};
@@ -41,13 +41,13 @@ impl Updatable for PgOrganization
 #[cfg(test)]
 mod tests
 {
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
 		Retrievable,
 		Updatable,
 	};
 	use winvoice_match::MatchOrganization;
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation, PgOrganization};
 

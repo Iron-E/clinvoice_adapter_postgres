@@ -3,6 +3,8 @@ mod retrievable;
 mod timesheet_adapter;
 mod updatable;
 
+use money2::{Decimal, Money};
+use sqlx::{error::UnexpectedNullError, postgres::PgRow, Error, Executor, Postgres, Result, Row};
 use winvoice_adapter::schema::columns::{
 	EmployeeColumns,
 	JobColumns,
@@ -10,8 +12,6 @@ use winvoice_adapter::schema::columns::{
 	TimesheetColumns,
 };
 use winvoice_schema::{Expense, Timesheet};
-use money2::{Decimal, Money};
-use sqlx::{error::UnexpectedNullError, postgres::PgRow, Error, Executor, Postgres, Result, Row};
 
 use super::{util, PgEmployee, PgJob};
 

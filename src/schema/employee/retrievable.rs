@@ -1,3 +1,5 @@
+use futures::TryStreamExt;
+use sqlx::{Pool, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::EmployeeColumns,
@@ -6,8 +8,6 @@ use winvoice_adapter::{
 };
 use winvoice_match::MatchEmployee;
 use winvoice_schema::Employee;
-use futures::TryStreamExt;
-use sqlx::{Pool, Postgres, QueryBuilder, Result};
 
 use super::PgEmployee;
 use crate::PgSchema;

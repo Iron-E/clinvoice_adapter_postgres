@@ -1,11 +1,11 @@
+use futures::TryFutureExt;
+use money2::{Exchange, ExchangeRates};
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::JobColumns, Updatable};
 use winvoice_schema::{
 	chrono::{DateTime, Utc},
 	Job,
 };
-use futures::TryFutureExt;
-use money2::{Exchange, ExchangeRates};
-use sqlx::{Postgres, Result, Transaction};
 
 use super::PgJob;
 use crate::{
@@ -73,15 +73,15 @@ mod tests
 {
 	use core::time::Duration;
 
+	use futures::TryFutureExt;
+	use money2::Money;
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Retrievable,
 		Updatable,
 	};
 	use winvoice_schema::{chrono, Invoice, InvoiceDate};
-	use futures::TryFutureExt;
-	use money2::Money;
-	use pretty_assertions::assert_eq;
 
 	use crate::{
 		fmt::DateTimeExt,

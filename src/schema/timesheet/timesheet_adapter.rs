@@ -1,3 +1,5 @@
+use money2::Money;
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::schema::{ExpensesAdapter, TimesheetAdapter};
 use winvoice_schema::{
 	chrono::{DateTime, Utc},
@@ -5,8 +7,6 @@ use winvoice_schema::{
 	Job,
 	Timesheet,
 };
-use money2::Money;
-use sqlx::{Postgres, Result, Transaction};
 
 use super::PgTimesheet;
 use crate::{fmt::DateTimeExt, schema::PgExpenses};
@@ -59,6 +59,7 @@ mod tests
 {
 	use core::time::Duration;
 
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::schema::{
 		EmployeeAdapter,
 		JobAdapter,
@@ -72,7 +73,6 @@ mod tests
 		InvoiceDate,
 		Money,
 	};
-	use pretty_assertions::assert_eq;
 
 	use super::{PgTimesheet, TimesheetAdapter};
 	use crate::schema::{util, PgEmployee, PgJob, PgLocation, PgOrganization};

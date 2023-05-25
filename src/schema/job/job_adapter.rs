@@ -1,5 +1,7 @@
 use core::time::Duration;
 
+use money2::{Exchange, ExchangeRates};
+use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::schema::JobAdapter;
 use winvoice_schema::{
 	chrono::{DateTime, Utc},
@@ -7,8 +9,6 @@ use winvoice_schema::{
 	Job,
 	Organization,
 };
-use money2::{Exchange, ExchangeRates};
-use sqlx::{Executor, Postgres, Result};
 
 use super::PgJob;
 use crate::{fmt::DateTimeExt, schema::util};
@@ -63,10 +63,10 @@ mod tests
 {
 	use core::time::Duration;
 
-	use winvoice_adapter::schema::{LocationAdapter, OrganizationAdapter};
-	use winvoice_schema::{chrono::Utc, Currency, Invoice, Money};
 	use money2::{Exchange, ExchangeRates};
 	use pretty_assertions::assert_eq;
+	use winvoice_adapter::schema::{LocationAdapter, OrganizationAdapter};
+	use winvoice_schema::{chrono::Utc, Currency, Invoice, Money};
 
 	use super::{JobAdapter, PgJob};
 	use crate::schema::{util, PgLocation, PgOrganization};

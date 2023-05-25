@@ -3,10 +3,10 @@ mod expenses_adapter;
 mod retrievable;
 mod updatable;
 
-use winvoice_adapter::schema::columns::ExpenseColumns;
-use winvoice_schema::Expense;
 use money2::{Decimal, Money};
 use sqlx::{postgres::PgRow, Result, Row};
+use winvoice_adapter::schema::columns::ExpenseColumns;
+use winvoice_schema::Expense;
 
 use super::util;
 

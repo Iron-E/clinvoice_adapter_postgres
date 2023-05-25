@@ -1,6 +1,6 @@
+use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::schema::LocationAdapter;
 use winvoice_schema::Location;
-use sqlx::{Executor, Postgres, Result};
 
 use super::PgLocation;
 

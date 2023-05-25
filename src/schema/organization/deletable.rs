@@ -1,6 +1,6 @@
+use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::{schema::columns::OrganizationColumns, Deletable};
 use winvoice_schema::{Id, Organization};
-use sqlx::{Executor, Postgres, Result};
 
 use super::PgOrganization;
 use crate::PgSchema;
@@ -33,13 +33,13 @@ impl Deletable for PgOrganization
 #[cfg(test)]
 mod tests
 {
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
 		Deletable,
 		Retrievable,
 	};
 	use winvoice_match::Match;
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation, PgOrganization};
 

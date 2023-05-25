@@ -1,6 +1,6 @@
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::EmployeeColumns, Updatable};
 use winvoice_schema::Employee;
-use sqlx::{Postgres, Result, Transaction};
 
 use super::PgEmployee;
 use crate::PgSchema;
@@ -39,8 +39,8 @@ impl Updatable for PgEmployee
 #[cfg(test)]
 mod tests
 {
-	use winvoice_adapter::{schema::EmployeeAdapter, Retrievable, Updatable};
 	use pretty_assertions::assert_eq;
+	use winvoice_adapter::{schema::EmployeeAdapter, Retrievable, Updatable};
 
 	use crate::schema::{util, PgEmployee};
 

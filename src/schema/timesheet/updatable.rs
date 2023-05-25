@@ -1,6 +1,6 @@
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::TimesheetColumns, Updatable};
 use winvoice_schema::{Expense, Timesheet};
-use sqlx::{Postgres, Result, Transaction};
 
 use super::PgTimesheet;
 use crate::{
@@ -64,6 +64,9 @@ mod tests
 {
 	use std::{collections::HashSet, time::Duration};
 
+	use futures::TryFutureExt;
+	use money2::{Currency, Money};
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
@@ -77,9 +80,6 @@ mod tests
 		Updatable,
 	};
 	use winvoice_schema::{chrono, Invoice, InvoiceDate};
-	use futures::TryFutureExt;
-	use money2::{Currency, Money};
-	use pretty_assertions::assert_eq;
 
 	use crate::{
 		fmt::DateTimeExt,

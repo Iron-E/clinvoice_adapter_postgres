@@ -3,9 +3,9 @@ mod organization_adapter;
 mod retrievable;
 mod updatable;
 
+use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
 use winvoice_adapter::schema::columns::OrganizationColumns;
 use winvoice_schema::Organization;
-use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
 
 use super::PgLocation;
 

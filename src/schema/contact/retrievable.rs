@@ -1,3 +1,5 @@
+use futures::TryStreamExt;
+use sqlx::{Pool, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::ContactColumns,
@@ -5,8 +7,6 @@ use winvoice_adapter::{
 };
 use winvoice_match::MatchContact;
 use winvoice_schema::Contact;
-use futures::TryStreamExt;
-use sqlx::{Pool, Postgres, QueryBuilder, Result};
 
 use super::PgContact;
 use crate::schema::write_where_clause;

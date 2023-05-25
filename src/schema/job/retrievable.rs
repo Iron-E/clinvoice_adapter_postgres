@@ -1,3 +1,6 @@
+use futures::{TryFutureExt, TryStreamExt};
+use money2::{Exchange, ExchangeRates};
+use sqlx::{Pool, Postgres, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::{JobColumns, LocationColumns, OrganizationColumns},
@@ -6,9 +9,6 @@ use winvoice_adapter::{
 };
 use winvoice_match::MatchJob;
 use winvoice_schema::Job;
-use futures::{TryFutureExt, TryStreamExt};
-use money2::{Exchange, ExchangeRates};
-use sqlx::{Pool, Postgres, Result};
 
 use super::PgJob;
 use crate::{
@@ -94,6 +94,8 @@ mod tests
 	use core::time::Duration;
 	use std::collections::HashSet;
 
+	use money2::{Exchange, ExchangeRates};
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Retrievable,
@@ -106,8 +108,6 @@ mod tests
 		InvoiceDate,
 		Money,
 	};
-	use money2::{Exchange, ExchangeRates};
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgJob, PgLocation, PgOrganization};
 

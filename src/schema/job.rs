@@ -3,10 +3,10 @@ mod job_adapter;
 mod retrievable;
 mod updatable;
 
-use winvoice_adapter::schema::columns::{JobColumns, OrganizationColumns};
-use winvoice_schema::{Invoice, InvoiceDate, Job};
 use money2::{Decimal, Money};
 use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
+use winvoice_adapter::schema::columns::{JobColumns, OrganizationColumns};
+use winvoice_schema::{Invoice, InvoiceDate, Job};
 
 use super::{util, PgOrganization};
 

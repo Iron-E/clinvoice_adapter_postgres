@@ -1,3 +1,6 @@
+use futures::{TryFutureExt, TryStreamExt};
+use money2::{Exchange, ExchangeRates};
+use sqlx::{Pool, Postgres, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::{
@@ -13,9 +16,6 @@ use winvoice_adapter::{
 };
 use winvoice_match::MatchTimesheet;
 use winvoice_schema::Timesheet;
-use futures::{TryFutureExt, TryStreamExt};
-use money2::{Exchange, ExchangeRates};
-use sqlx::{Pool, Postgres, Result};
 
 use super::PgTimesheet;
 use crate::{
@@ -157,6 +157,8 @@ mod tests
 {
 	use core::time::Duration;
 
+	use money2::{Exchange, ExchangeRates};
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
@@ -175,8 +177,6 @@ mod tests
 		InvoiceDate,
 		Money,
 	};
-	use money2::{Exchange, ExchangeRates};
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgEmployee, PgJob, PgLocation, PgOrganization, PgTimesheet};
 

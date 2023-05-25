@@ -1,6 +1,6 @@
+use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::{schema::columns::JobColumns, Deletable};
 use winvoice_schema::{Id, Job};
-use sqlx::{Executor, Postgres, Result};
 
 use super::PgJob;
 use crate::PgSchema;
@@ -35,6 +35,8 @@ mod tests
 {
 	use core::time::Duration;
 
+	use money2::{Currency, Exchange, ExchangeRates, Money};
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Deletable,
@@ -46,8 +48,6 @@ mod tests
 		Invoice,
 		InvoiceDate,
 	};
-	use money2::{Currency, Exchange, ExchangeRates, Money};
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgJob, PgLocation, PgOrganization};
 

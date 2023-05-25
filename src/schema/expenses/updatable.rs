@@ -1,6 +1,6 @@
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::ExpenseColumns, Updatable};
 use winvoice_schema::Expense;
-use sqlx::{Postgres, Result, Transaction};
 
 use super::PgExpenses;
 use crate::PgSchema;

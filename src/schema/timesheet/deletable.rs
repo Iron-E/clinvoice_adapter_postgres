@@ -1,6 +1,6 @@
+use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::{schema::columns::TimesheetColumns, Deletable};
 use winvoice_schema::{Id, Timesheet};
-use sqlx::{Executor, Postgres, Result};
 
 use super::PgTimesheet;
 use crate::PgSchema;
@@ -35,6 +35,8 @@ mod tests
 {
 	use core::time::Duration;
 
+	use money2::{Currency, Exchange, ExchangeRates, Money};
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{
 			EmployeeAdapter,
@@ -51,8 +53,6 @@ mod tests
 		chrono::{TimeZone, Utc},
 		Invoice,
 	};
-	use money2::{Currency, Exchange, ExchangeRates, Money};
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{
 		util,

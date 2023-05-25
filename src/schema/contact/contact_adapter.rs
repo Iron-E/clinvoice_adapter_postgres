@@ -1,6 +1,6 @@
+use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::schema::ContactAdapter;
 use winvoice_schema::{Contact, ContactKind};
-use sqlx::{Executor, Postgres, Result};
 
 use super::PgContact;
 

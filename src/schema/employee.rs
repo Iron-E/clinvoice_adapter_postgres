@@ -3,9 +3,9 @@ mod employee_adapter;
 mod retrievable;
 mod updatable;
 
+use sqlx::{postgres::PgRow, Row};
 use winvoice_adapter::schema::columns::EmployeeColumns;
 use winvoice_schema::Employee;
-use sqlx::{postgres::PgRow, Row};
 
 /// Implementor of the [`EmployeeAdapter`](winvoice_adapter::schema::EmployeeAdapter) for the
 /// [`Postgres`](sqlx::Postgres) database.

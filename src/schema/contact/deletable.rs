@@ -1,12 +1,12 @@
 use core::fmt::Display;
 
+use sqlx::{query_builder::Separated, Executor, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::ContactColumns,
 	Deletable,
 };
 use winvoice_schema::Contact;
-use sqlx::{query_builder::Separated, Executor, Postgres, QueryBuilder, Result};
 
 use super::PgContact;
 
@@ -25,7 +25,7 @@ impl Deletable for PgContact
 		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		fn write<'query, 'args, T>(s: &mut Separated<'query, 'args, Postgres, T>, c: &'args Contact)
+		fn write<'args, T>(s: &mut Separated<'_, 'args, Postgres, T>, c: &'args Contact)
 		where
 			T: Display,
 		{
@@ -70,6 +70,7 @@ impl Deletable for PgContact
 #[cfg(test)]
 mod tests
 {
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{ContactAdapter, LocationAdapter},
 		Deletable,
@@ -77,7 +78,6 @@ mod tests
 	};
 	use winvoice_match::{MatchContact, MatchStr};
 	use winvoice_schema::ContactKind;
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgContact, PgLocation};
 

@@ -66,7 +66,6 @@
 	clippy::wildcard_imports
 )]
 
-mod fmt;
-
+pub mod fmt;
 pub mod schema;
 pub use schema::PgSchema;

@@ -3,10 +3,10 @@ mod deletable;
 mod retrievable;
 mod updatable;
 
-use winvoice_adapter::schema::columns::ContactColumns;
-use winvoice_schema::{Contact, ContactKind};
 use futures::TryFutureExt;
 use sqlx::{postgres::PgRow, Error, Executor, Postgres, Result, Row};
+use winvoice_adapter::schema::columns::ContactColumns;
+use winvoice_schema::{Contact, ContactKind};
 
 use super::PgLocation;
 

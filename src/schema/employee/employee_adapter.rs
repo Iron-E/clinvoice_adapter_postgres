@@ -1,6 +1,6 @@
+use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::schema::EmployeeAdapter;
 use winvoice_schema::Employee;
-use sqlx::{Executor, Postgres, Result};
 
 use super::PgEmployee;
 

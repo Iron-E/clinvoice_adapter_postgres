@@ -1,5 +1,8 @@
+//! This module provides tools to write SQL `where` clauses using [`sqlx`] and [`TableToSql`].
+
 use core::{fmt::Display, ops::Deref};
 
+use sqlx::{Database, Executor, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, SnakeCase, TableToSql},
 	schema::columns::{
@@ -27,7 +30,6 @@ use winvoice_match::{
 	MatchStr,
 	MatchTimesheet,
 };
-use sqlx::{Database, Executor, Postgres, QueryBuilder, Result};
 
 use super::{PgLocation, PgSchema};
 use crate::fmt::{PgContains, PgInterval, PgTimestampTz};

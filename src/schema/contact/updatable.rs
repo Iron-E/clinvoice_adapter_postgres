@@ -1,6 +1,6 @@
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::ContactColumns, Updatable};
 use winvoice_schema::Contact;
-use sqlx::{Postgres, Result, Transaction};
 
 use super::PgContact;
 use crate::PgSchema;
@@ -45,6 +45,7 @@ mod tests
 {
 	use std::collections::HashSet;
 
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{ContactAdapter, LocationAdapter},
 		Deletable,
@@ -53,7 +54,6 @@ mod tests
 	};
 	use winvoice_match::{MatchContact, MatchStr};
 	use winvoice_schema::ContactKind;
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgContact, PgLocation};
 

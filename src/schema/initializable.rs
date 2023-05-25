@@ -1,5 +1,5 @@
-use winvoice_adapter::Initializable;
 use sqlx::{Acquire, Executor, Postgres, Result};
+use winvoice_adapter::Initializable;
 
 use super::PgSchema;
 

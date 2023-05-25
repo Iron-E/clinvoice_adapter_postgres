@@ -1,3 +1,6 @@
+use futures::{future, TryFutureExt, TryStreamExt};
+use money2::{Exchange, ExchangeRates};
+use sqlx::{Pool, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::ExpenseColumns,
@@ -6,9 +9,6 @@ use winvoice_adapter::{
 };
 use winvoice_match::MatchExpense;
 use winvoice_schema::Expense;
-use futures::{future, TryFutureExt, TryStreamExt};
-use money2::{Exchange, ExchangeRates};
-use sqlx::{Pool, Postgres, QueryBuilder, Result};
 
 use super::PgExpenses;
 use crate::{schema::util, PgSchema};

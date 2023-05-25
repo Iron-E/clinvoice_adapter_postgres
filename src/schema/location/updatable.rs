@@ -1,8 +1,8 @@
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::LocationColumns, Updatable};
 use winvoice_schema::Location;
-use sqlx::{Postgres, Result, Transaction};
 
 use super::PgLocation;
 use crate::PgSchema;
@@ -85,9 +85,9 @@ impl Updatable for PgLocation
 #[cfg(test)]
 mod tests
 {
+	use pretty_assertions::{assert_eq, assert_ne};
 	use winvoice_adapter::{schema::LocationAdapter, Retrievable, Updatable};
 	use winvoice_schema::Location;
-	use pretty_assertions::{assert_eq, assert_ne};
 
 	use crate::schema::{util, PgLocation};
 

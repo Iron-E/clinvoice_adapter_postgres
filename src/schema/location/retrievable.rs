@@ -1,3 +1,5 @@
+use futures::TryStreamExt;
+use sqlx::{Pool, Postgres, Result, Row};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::LocationColumns,
@@ -5,8 +7,6 @@ use winvoice_adapter::{
 };
 use winvoice_match::MatchLocation;
 use winvoice_schema::Location;
-use futures::TryStreamExt;
-use sqlx::{Pool, Postgres, Result, Row};
 
 use super::PgLocation;
 use crate::fmt::PgLocationRecursiveCte;
@@ -52,9 +52,9 @@ mod tests
 {
 	use std::collections::HashSet;
 
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{schema::LocationAdapter, Retrievable};
 	use winvoice_match::{MatchLocation, MatchOuterLocation};
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation};
 

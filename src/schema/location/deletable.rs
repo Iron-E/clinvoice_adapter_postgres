@@ -1,6 +1,6 @@
+use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::{schema::columns::LocationColumns, Deletable};
 use winvoice_schema::{Id, Location};
-use sqlx::{Executor, Postgres, Result};
 
 use super::PgLocation;
 use crate::PgSchema;
@@ -33,9 +33,9 @@ impl Deletable for PgLocation
 #[cfg(test)]
 mod tests
 {
+	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{schema::LocationAdapter, Deletable, Retrievable};
 	use winvoice_match::Match;
-	use pretty_assertions::assert_eq;
 
 	use crate::schema::{util, PgLocation};
 

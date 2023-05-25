@@ -14,12 +14,6 @@ mod timesheet;
 mod util;
 mod write_where_clause;
 
-use winvoice_adapter::{
-	fmt::{sql, As, ColumnsToSql, QueryBuilderExt, SnakeCase, TableToSql},
-	WriteWhereClause,
-};
-use winvoice_match::Match;
-use winvoice_schema::Id;
 pub use contact::PgContact;
 pub use employee::PgEmployee;
 pub use expenses::PgExpenses;
@@ -28,6 +22,12 @@ pub use location::PgLocation;
 pub use organization::PgOrganization;
 use sqlx::{Executor, Postgres, QueryBuilder, Result, Transaction};
 pub use timesheet::PgTimesheet;
+use winvoice_adapter::{
+	fmt::{sql, As, ColumnsToSql, QueryBuilderExt, SnakeCase, TableToSql},
+	WriteWhereClause,
+};
+use winvoice_match::Match;
+use winvoice_schema::Id;
 
 /// The struct which implements several [`winvoice_adapter`] traits to allow Winvoice to function
 /// within a Postgres database environment.

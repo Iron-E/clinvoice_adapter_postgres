@@ -5,6 +5,8 @@ mod updatable;
 
 use core::fmt::Display;
 
+use futures::{future, TryFutureExt, TryStreamExt};
+use sqlx::{Error, Executor, Postgres, QueryBuilder, Result, Row};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, SnakeCase, TableToSql},
 	schema::columns::LocationColumns,
@@ -12,8 +14,6 @@ use winvoice_adapter::{
 };
 use winvoice_match::{Match, MatchLocation, MatchOption, MatchOuterLocation};
 use winvoice_schema::{Id, Location};
-use futures::{future, TryFutureExt, TryStreamExt};
-use sqlx::{Error, Executor, Postgres, QueryBuilder, Result, Row};
 
 use crate::{fmt::PgLocationRecursiveCte, PgSchema};
 
@@ -149,6 +149,7 @@ impl PgLocation
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{
+		#![allow(clippy::std_instead_of_core)]
 		const SOURCE: &str = "this column in `locations` must be non-null";
 		sqlx::query!(
 			r#"WITH RECURSIVE location_view AS
