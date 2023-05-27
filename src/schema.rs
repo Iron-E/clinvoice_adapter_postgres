@@ -37,7 +37,7 @@ impl PgSchema
 {
 	/// Via `connection`, execute `DELETE FROM {table} WHERE (id = №) OR … OR (id = №)` for each
 	/// [`Id`] in `ids`.
-	async fn delete<'args, Conn, Iter, Table>(connection: Conn, ids: Iter) -> Result<()>
+	pub async fn delete<'args, Conn, Iter, Table>(connection: Conn, ids: Iter) -> Result<()>
 	where
 		Conn: Executor<'args, Database = Postgres>,
 		Iter: Iterator<Item = Id>,
@@ -76,7 +76,7 @@ impl PgSchema
 	/// * [`ColumnsToSql::push_set`] for how the `SET` clause is generated.
 	/// * [`ColumnsToSql::push_update_where`] for how the `WHERE` condition is generated.
 	/// * [`QueryBuilder::push_values`] for what function to use for `push_values`.
-	async fn update<'args, Columns, F>(
+	pub async fn update<'args, Columns, F>(
 		connection: &mut Transaction<'_, Postgres>,
 		columns: Columns,
 		push_values: F,
