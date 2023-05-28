@@ -72,7 +72,7 @@ mod tests
 		schema::{LocationAdapter, OrganizationAdapter},
 		Retrievable,
 	};
-	use winvoice_match::{Match, MatchLocation, MatchOption, MatchOrganization};
+	use winvoice_match::{Match, MatchLocation, MatchOrganization};
 
 	use crate::schema::{util, PgLocation, PgOrganization};
 
@@ -106,14 +106,15 @@ mod tests
 		assert_eq!(
 			PgOrganization::retrieve(&connection, MatchOrganization {
 				location: MatchLocation {
-					outer: MatchOption::Some(
+					outer: Some(
 						MatchLocation {
 							id: Match::InRange(usa.id - 1, usa.id + 1),
 							name: usa.name.into(),
 							..Default::default()
 						}
 						.into()
-					),
+					)
+					.into(),
 					..Default::default()
 				},
 				..Default::default()

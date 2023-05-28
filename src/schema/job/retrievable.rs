@@ -100,7 +100,7 @@ mod tests
 		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
 		Retrievable,
 	};
-	use winvoice_match::{Match, MatchInvoice, MatchJob, MatchOption};
+	use winvoice_match::{Match, MatchInvoice, MatchJob};
 	use winvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Currency,
@@ -198,7 +198,7 @@ mod tests
 			PgJob::retrieve(&connection, MatchJob {
 				id: Match::Or(vec![job2.id.into(), job3.id.into()]),
 				invoice: MatchInvoice {
-					date_issued: MatchOption::Some(Match::Any),
+					date_issued: Some(Match::Any).into(),
 					..Default::default()
 				},
 				..Default::default()
