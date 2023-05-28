@@ -261,62 +261,90 @@ where
 	}
 }
 
-impl<T> WriteWhereClause<Postgres, &MatchOption<T>> for PgSchema
-where
-	T: Display + PartialEq,
-{
-	fn write_where_clause<Ident>(
-		context: WriteContext,
-		ident: Ident,
-		match_condition: &MatchOption<T>,
-		query: &mut QueryBuilder<Postgres>,
-	) -> WriteContext
-	where
-		Ident: Copy + Display,
-	{
-		match match_condition
+/// Implement [`WriteWhereClause`] for [`MatchOption`]
+macro_rules! impl_write_where_clause_for_match_option {
+	($Match:ty) => {
+		impl WriteWhereClause<Postgres, &MatchOption<$Match>> for PgSchema
 		{
-			MatchOption::And(conditions) => write_boolean_group::<_, _, _, _, true>(
-				query,
-				context,
-				ident,
-				&mut conditions.iter().filter(|m| *m != &MatchOption::Any),
-			),
-			MatchOption::Any => write_any(query, context),
-			MatchOption::EqualTo(value) => write_comparison(query, context, ident, "=", value),
-			MatchOption::GreaterThan(value) =>
+			fn write_where_clause<Ident>(
+				context: WriteContext,
+				ident: Ident,
+				match_condition: &MatchOption<$Match>,
+				query: &mut QueryBuilder<Postgres>,
+			) -> WriteContext
+			where
+				Ident: Copy + Display,
 			{
-				Self::write_where_clause(context, ident, &Match::GreaterThan(value), query);
-			},
-			MatchOption::InRange(low, high) =>
-			{
-				Self::write_where_clause(context, ident, &Match::InRange(low, high), query);
-			},
-			MatchOption::LessThan(value) =>
-			{
-				Self::write_where_clause(context, ident, &Match::LessThan(value), query);
-			},
-			MatchOption::None =>
-			{
-				query
-					.separated(' ')
-					.push(context)
-					.push(ident)
-					.push_unseparated(sql::IS)
-					.push_unseparated(sql::NULL);
-			},
-			MatchOption::Not(condition) => write_negated(query, context, ident, condition.deref()),
-			MatchOption::Or(conditions) => write_boolean_group::<_, _, _, _, false>(
-				query,
-				context,
-				ident,
-				&mut conditions.iter().filter(|m| *m != &MatchOption::Any),
-			),
-		};
+				match match_condition
+				{
+					MatchOption::Any => write_any(query, context),
+					MatchOption::None =>
+					{
+						query
+							.separated(' ')
+							.push(context)
+							.push(ident)
+							.push_unseparated(sql::IS)
+							.push_unseparated(sql::NULL);
+					},
+					MatchOption::Some(condition) =>
+					{
+						PgSchema::write_where_clause(context, ident, condition, query);
+					},
+				};
 
-		WriteContext::AcceptingAnotherWhereCondition
-	}
+				WriteContext::AcceptingAnotherWhereCondition
+			}
+		}
+	};
+
+	($Match:ident[T]) => {
+		impl<T> WriteWhereClause<Postgres, &MatchOption<$Match<T>>> for PgSchema
+		where
+			T: Display + PartialEq,
+		{
+			fn write_where_clause<Ident>(
+				context: WriteContext,
+				ident: Ident,
+				match_condition: &MatchOption<$Match<T>>,
+				query: &mut QueryBuilder<Postgres>,
+			) -> WriteContext
+			where
+				Ident: Copy + Display,
+			{
+				match match_condition
+				{
+					MatchOption::Any => write_any(query, context),
+					MatchOption::None =>
+					{
+						query
+							.separated(' ')
+							.push(context)
+							.push(ident)
+							.push_unseparated(sql::IS)
+							.push_unseparated(sql::NULL);
+					},
+					MatchOption::Some(condition) =>
+					{
+						PgSchema::write_where_clause(context, ident, condition, query);
+					},
+				};
+
+				WriteContext::AcceptingAnotherWhereCondition
+			}
+		}
+	};
 }
+
+impl_write_where_clause_for_match_option!(Match[T]);
+impl_write_where_clause_for_match_option!(MatchEmployee);
+impl_write_where_clause_for_match_option!(MatchExpense);
+impl_write_where_clause_for_match_option!(MatchInvoice);
+impl_write_where_clause_for_match_option!(MatchJob);
+impl_write_where_clause_for_match_option!(MatchOrganization);
+impl_write_where_clause_for_match_option!(MatchSet<MatchExpense>);
+impl_write_where_clause_for_match_option!(MatchStr<String>);
+impl_write_where_clause_for_match_option!(MatchTimesheet);
 
 impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 {
@@ -578,7 +606,9 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 								Self::write_where_clause(
 									context,
 									columns.date_close,
-									&match_condition.date_close.map_ref(|d| PgTimestampTz(*d)),
+									&match_condition
+										.date_close
+										.map_ref(|m| m.map_ref(|d| PgTimestampTz(*d))),
 									query,
 								),
 								columns.date_open,
@@ -652,7 +682,7 @@ impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 					query,
 				),
 				columns.time_end,
-				&match_condition.time_end.map_ref(|d| PgTimestampTz(*d)),
+				&match_condition.time_end.map_ref(|m| m.map_ref(|d| PgTimestampTz(*d))),
 				query,
 			),
 			columns.work_notes,

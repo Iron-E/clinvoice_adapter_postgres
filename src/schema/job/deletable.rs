@@ -67,8 +67,8 @@ mod tests
 			PgJob::create(
 				&connection,
 				organization.clone(),
-				Some(Utc.ymd(1990, 08, 01).and_hms(09, 00, 00)),
-				Utc.ymd(1990, 07, 12).and_hms(14, 10, 00),
+				Utc.with_ymd_and_hms(1990, 08, 01, 09, 00, 00).latest(),
+				Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
 				Duration::from_secs(300),
 				Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
 				String::new(),
@@ -77,12 +77,12 @@ mod tests
 			PgJob::create(
 				&connection,
 				organization.clone(),
-				Some(Utc.ymd(3000, 01, 16).and_hms(10, 00, 00)),
-				Utc.ymd(3000, 01, 12).and_hms(09, 15, 42),
+				Utc.with_ymd_and_hms(3000, 01, 16, 10, 00, 00).latest(),
+				Utc.with_ymd_and_hms(3000, 01, 12, 09, 15, 42).unwrap(),
 				Duration::from_secs(900),
 				Invoice {
 					date: Some(InvoiceDate {
-						issued: Utc.ymd(3000, 01, 17).and_hms(12, 30, 00),
+						issued: Utc.with_ymd_and_hms(3000, 01, 17, 12, 30, 00).unwrap(),
 						paid: None,
 					}),
 					hourly_rate: Money::new(299_99, 2, Currency::Jpy),
@@ -93,13 +93,13 @@ mod tests
 			PgJob::create(
 				&connection,
 				organization.clone(),
-				Some(Utc.ymd(2011, 03, 17).and_hms(13, 07, 07)),
-				Utc.ymd(2011, 03, 17).and_hms(12, 07, 07),
+				Utc.with_ymd_and_hms(2011, 03, 17, 13, 07, 07).latest(),
+				Utc.with_ymd_and_hms(2011, 03, 17, 12, 07, 07).unwrap(),
 				Duration::from_secs(900),
 				Invoice {
 					date: Some(InvoiceDate {
-						issued: Utc.ymd(2011, 03, 18).and_hms(08, 00, 00),
-						paid: Some(Utc.ymd(2011, 03, 19).and_hms(17, 00, 00)),
+						issued: Utc.with_ymd_and_hms(2011, 03, 18, 08, 00, 00).unwrap(),
+						paid: Utc.with_ymd_and_hms(2011, 03, 19, 17, 00, 00).latest(),
 					}),
 					hourly_rate: Money::new(20_00, 2, Currency::Eur),
 				},

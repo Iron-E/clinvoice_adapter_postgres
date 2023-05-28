@@ -83,7 +83,7 @@ mod tests
 			&connection,
 			organization.clone(),
 			None,
-			Utc.ymd(1990, 07, 12).and_hms(14, 10, 00),
+			Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
 			Duration::from_secs(900),
 			Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
 			String::new(),
@@ -108,8 +108,8 @@ mod tests
 				("Taxi".into(), Money::new(563_30, 2, Currency::Nok), "Took a taxi cab".into()),
 			],
 			job,
-			Utc.ymd(2022, 06, 08).and_hms(15, 27, 00),
-			Some(Utc.ymd(2022, 06, 09).and_hms(07, 00, 00)),
+			Utc.with_ymd_and_hms(2022, 06, 08, 15, 27, 00).unwrap(),
+			Utc.with_ymd_and_hms(2022, 06, 09, 07, 00, 00).latest(),
 			"These are my work notes".into(),
 		)
 		.await

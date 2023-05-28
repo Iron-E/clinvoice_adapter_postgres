@@ -114,7 +114,7 @@ mod tests
 				&connection,
 				organization.clone(),
 				None,
-				Utc.ymd(1990, 07, 12).and_hms(14, 10, 00),
+				Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
 				Duration::from_secs(900),
 				Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
 				String::new(),
@@ -123,13 +123,13 @@ mod tests
 			PgJob::create(
 				&connection,
 				organization2.clone(),
-				Some(Utc.ymd(3000, 01, 13).and_hms(11, 30, 00)),
-				Utc.ymd(3000, 01, 12).and_hms(09, 15, 42),
+				Utc.with_ymd_and_hms(3000, 01, 13, 11, 30, 00).latest(),
+				Utc.with_ymd_and_hms(3000, 01, 12, 09, 15, 42).unwrap(),
 				Duration::from_secs(900),
 				Invoice {
 					date: Some(InvoiceDate {
-						issued: Utc.ymd(3000, 01, 13).and_hms(11, 45, 00),
-						paid: Some(Utc.ymd(3000, 01, 15).and_hms(14, 27, 00)),
+						issued: Utc.with_ymd_and_hms(3000, 01, 13, 11, 45, 00).unwrap(),
+						paid: Utc.with_ymd_and_hms(3000, 01, 15, 14, 27, 00).latest(),
 					}),
 					hourly_rate: Money::new(200_00, 2, Currency::Jpy),
 				},
@@ -163,8 +163,8 @@ mod tests
 				"Trip to Hawaii for research".into(),
 			)],
 			job2,
-			Utc.ymd(2022, 06, 08).and_hms(15, 27, 00),
-			Some(Utc.ymd(2022, 06, 09).and_hms(07, 00, 00)),
+			Utc.with_ymd_and_hms(2022, 06, 08, 15, 27, 00).unwrap(),
+			Utc.with_ymd_and_hms(2022, 06, 09, 07, 00, 00).latest(),
 			"This is more work notes".into(),
 		)
 		.await

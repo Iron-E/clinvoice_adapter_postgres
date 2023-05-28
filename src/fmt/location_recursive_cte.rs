@@ -3,7 +3,7 @@ mod display;
 use core::fmt::Display;
 
 use winvoice_adapter::fmt::SnakeCase;
-use winvoice_match::{MatchLocation, MatchOuterLocation};
+use winvoice_match::{MatchLocation, MatchOption};
 
 /// Able to generate [`Display`] impls which are viable for use within a recursive Common Table
 /// Expression.
@@ -30,7 +30,7 @@ impl PgLocationRecursiveCte<&'static str, &'static str>
 	{
 		match match_condition.outer
 		{
-			MatchOuterLocation::Some(_) => Self::report(),
+			MatchOption::Some(_) => Self::report(),
 			_ => Self::new(),
 		}
 	}

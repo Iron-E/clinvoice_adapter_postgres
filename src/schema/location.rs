@@ -12,7 +12,7 @@ use winvoice_adapter::{
 	schema::columns::LocationColumns,
 	WriteWhereClause,
 };
-use winvoice_match::{Match, MatchLocation, MatchOption, MatchOuterLocation};
+use winvoice_match::{Match, MatchLocation, MatchOption};
 use winvoice_schema::{Id, Location};
 
 use crate::{fmt::PgLocationRecursiveCte, PgSchema};
@@ -70,10 +70,10 @@ impl PgLocation
 				PgSchema::write_where_clause(
 					match match_condition.outer
 					{
-						MatchOuterLocation::None => PgSchema::write_where_clause(
+						MatchOption::None => PgSchema::write_where_clause(
 							Default::default(),
 							outer_columns.outer_id,
-							&MatchOption::<Id>::None,
+							&MatchOption::<Match<Id>>::None,
 							query,
 						),
 						_ => Default::default(),
@@ -91,7 +91,7 @@ impl PgLocation
 
 			match match_condition.outer
 			{
-				MatchOuterLocation::Some(ref outer) =>
+				MatchOption::Some(ref outer) =>
 				{
 					query.push(',');
 					generate_expression(

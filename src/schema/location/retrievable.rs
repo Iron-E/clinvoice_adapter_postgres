@@ -54,7 +54,7 @@ mod tests
 
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{schema::LocationAdapter, Retrievable};
-	use winvoice_match::{MatchLocation, MatchOuterLocation};
+	use winvoice_match::{MatchLocation, MatchOption};
 
 	use crate::schema::{util, PgLocation};
 
@@ -77,7 +77,7 @@ mod tests
 		assert_eq!(
 			PgLocation::retrieve(&connection, MatchLocation {
 				id: earth.id.into(),
-				outer: MatchOuterLocation::None,
+				outer: MatchOption::None,
 				..Default::default()
 			})
 			.await
@@ -89,7 +89,7 @@ mod tests
 		assert_eq!(
 			[utah, arizona].into_iter().collect::<HashSet<_>>(),
 			PgLocation::retrieve(&connection, MatchLocation {
-				outer: MatchOuterLocation::Some(Box::new(usa.id.into())),
+				outer: MatchOption::Some(Box::new(usa.id.into())),
 				..Default::default()
 			})
 			.await
