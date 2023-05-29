@@ -3,6 +3,7 @@
 //! This module implements adapters (and associated adapter types such as
 //! [`Deletable`](winvoice_adapter::Deletable)) for a Postgres filesystem.
 
+mod adapter;
 mod contact;
 mod employee;
 mod expenses;
