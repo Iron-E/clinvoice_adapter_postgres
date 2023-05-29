@@ -1,7 +1,7 @@
 # See https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
 name = "winvoice-adapter-postgres"
-version = "0.10.3"
+version = "0.10.4"
 authors = ["Iron-E <code.iron.e@gmail.com>"]
 description = "A Winvoice Adapter for the Postgres database"
 
