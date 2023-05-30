@@ -1,4 +1,3 @@
-use sqlx::Postgres;
 use winvoice_adapter::schema::Adapter;
 
 use super::{

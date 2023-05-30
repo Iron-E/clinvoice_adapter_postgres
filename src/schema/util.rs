@@ -1,3 +1,6 @@
+//! Contains utilities which help with implementing/testing the
+//! [`winvoice_adapter_postgres::schema`].
+
 use core::time::Duration;
 use std::io;
 

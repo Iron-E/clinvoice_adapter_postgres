@@ -83,7 +83,7 @@ impl PgSchema
 		push_values: F,
 	) -> Result<()>
 	where
-		Columns: ColumnsToSql,
+		Columns: ColumnsToSql + TableToSql,
 		F: FnOnce(&mut QueryBuilder<'args, Postgres>),
 	{
 		let mut query = QueryBuilder::new(sql::UPDATE);
