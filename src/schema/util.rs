@@ -16,7 +16,8 @@ pub(super) async fn connect() -> PgPool
 	PgPool::connect_lazy(&URL).unwrap()
 }
 
-pub(super) fn duration_from(interval: PgInterval) -> Result<Duration>
+/// Convert a [`PgInterval`] to a concrete [`Duration`]
+pub fn duration_from(interval: PgInterval) -> Result<Duration>
 {
 	const MICROSECONDS_IN_SECOND: u64 = 1000000;
 	const NANOSECONDS_IN_MICROSECOND: u32 = 1000;
@@ -37,7 +38,7 @@ pub(super) fn duration_from(interval: PgInterval) -> Result<Duration>
 	let seconds = microseconds / MICROSECONDS_IN_SECOND;
 	let nanoseconds = NANOSECONDS_IN_MICROSECOND *
 		u32::try_from(microseconds % MICROSECONDS_IN_SECOND)
-			.expect("`u64 % 1000000` should have fit into `u32`");
+			.expect("`u64::MAX % 1000000` should fit into `u32`");
 
 	Ok(Duration::new(
 		seconds +

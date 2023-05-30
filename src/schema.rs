@@ -12,7 +12,7 @@ mod job;
 mod location;
 mod organization;
 mod timesheet;
-mod util;
+pub mod util;
 mod write_where_clause;
 
 pub use contact::PgContact;
