@@ -26,7 +26,7 @@ impl Deletable for PgEmployee
 		}
 
 		// TODO: use `for<'a> |e: &'a Employee| e.id`
-		PgSchema::delete::<_, _, EmployeeColumns<char>>(connection, entities.map(mapper)).await
+		PgSchema::delete::<_, _, EmployeeColumns>(connection, entities.map(mapper)).await
 	}
 }
 

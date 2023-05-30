@@ -26,7 +26,7 @@ impl Deletable for PgLocation
 		}
 
 		// TODO: use `for<'a> |e: &'a Location| e.id`
-		PgSchema::delete::<_, _, LocationColumns<char>>(connection, entities.map(mapper)).await
+		PgSchema::delete::<_, _, LocationColumns>(connection, entities.map(mapper)).await
 	}
 }
 

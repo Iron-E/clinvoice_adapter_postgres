@@ -47,7 +47,7 @@ impl PgLocation
 			T: Display,
 			Outer: Display,
 		{
-			let alias = LocationColumns::<char>::DEFAULT_ALIAS;
+			let alias = LocationColumns::DEFAULT_ALIAS;
 			let columns = COLUMNS.scope(alias);
 
 			let alias_outer = SnakeCase::from((alias, 'O'));
@@ -115,12 +115,12 @@ impl PgLocation
 							.push('(')
 							.push(sql::SELECT)
 							.push_columns(&columns)
-							.push_default_from::<LocationColumns<char>>()
+							.push_default_from::<LocationColumns>()
 							.push_equijoin(ident, alias_outer, columns.outer_id, outer_columns.id)
 							.push(sql::UNION)
 							.push(sql::SELECT)
 							.push_columns(&columns)
-							.push_default_from::<LocationColumns<char>>()
+							.push_default_from::<LocationColumns>()
 							.push_equijoin(
 								IDENT_REPORT,
 								alias_outer,
@@ -208,7 +208,7 @@ impl PgLocation
 			.push(COLUMNS.default_scope().id)
 			.push_from(
 				PgLocationRecursiveCte::from(match_condition),
-				LocationColumns::<char>::DEFAULT_ALIAS,
+				LocationColumns::DEFAULT_ALIAS,
 			)
 			.prepare()
 			.fetch(connection)

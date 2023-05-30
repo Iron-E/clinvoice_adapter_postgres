@@ -37,7 +37,7 @@ impl Retrievable for PgLocation
 			.push(COLUMNS.default_scope().id)
 			.push_from(
 				PgLocationRecursiveCte::from(&match_condition),
-				LocationColumns::<char>::DEFAULT_ALIAS,
+				LocationColumns::DEFAULT_ALIAS,
 			)
 			.prepare()
 			.fetch(connection)

@@ -49,14 +49,14 @@ impl Retrievable for PgJob
 			.push(sql::SELECT)
 			.push_columns(&columns)
 			.push_more_columns(&organization_columns.r#as(ORGANIZATION_COLUMNS_UNIQUE))
-			.push_default_from::<JobColumns<char>>()
-			.push_default_equijoin::<OrganizationColumns<char>, _, _>(
+			.push_default_from::<JobColumns>()
+			.push_default_equijoin::<OrganizationColumns, _, _>(
 				organization_columns.id,
 				columns.client_id,
 			)
 			.push_equijoin(
 				PgLocationRecursiveCte::from(&match_location),
-				LocationColumns::<char>::DEFAULT_ALIAS,
+				LocationColumns::DEFAULT_ALIAS,
 				LocationColumns::default().default_scope().id,
 				organization_columns.location_id,
 			);
@@ -68,11 +68,11 @@ impl Retrievable for PgJob
 		PgSchema::write_where_clause(
 			PgSchema::write_where_clause(
 				Default::default(),
-				JobColumns::<char>::DEFAULT_ALIAS,
+				JobColumns::DEFAULT_ALIAS,
 				&exchanged_condition,
 				&mut query,
 			),
-			OrganizationColumns::<char>::DEFAULT_ALIAS,
+			OrganizationColumns::DEFAULT_ALIAS,
 			&exchanged_condition.client,
 			&mut query,
 		);

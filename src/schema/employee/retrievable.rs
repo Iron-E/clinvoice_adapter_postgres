@@ -33,11 +33,11 @@ impl Retrievable for PgEmployee
 
 		let mut query = QueryBuilder::new(sql::SELECT);
 
-		query.push_columns(&COLUMNS.default_scope()).push_default_from::<EmployeeColumns<char>>();
+		query.push_columns(&COLUMNS.default_scope()).push_default_from::<EmployeeColumns>();
 
 		PgSchema::write_where_clause(
 			Default::default(),
-			EmployeeColumns::<char>::DEFAULT_ALIAS,
+			EmployeeColumns::DEFAULT_ALIAS,
 			&match_condition,
 			&mut query,
 		);

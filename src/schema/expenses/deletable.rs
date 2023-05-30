@@ -26,7 +26,7 @@ impl Deletable for PgExpenses
 		}
 
 		// TODO: use `for<'a> |e: &'a Expense| e.id`
-		PgSchema::delete::<_, _, ExpenseColumns<char>>(connection, entities.map(mapper)).await
+		PgSchema::delete::<_, _, ExpenseColumns>(connection, entities.map(mapper)).await
 	}
 }
 

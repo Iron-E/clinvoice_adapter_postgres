@@ -71,24 +71,21 @@ impl Retrievable for PgTimesheet
 			.push(EXPENSES_AGGREGATED_IDENT)
 			.push_more_columns(&job_columns.r#as(JOB_COLUMNS_UNIQUE))
 			.push_more_columns(&organization_columns.r#as(ORGANIZATION_COLUMNS_UNIQUE))
-			.push_default_from::<TimesheetColumns<char>>()
-			.push_default_equijoin::<EmployeeColumns<char>, _, _>(
+			.push_default_from::<TimesheetColumns>()
+			.push_default_equijoin::<EmployeeColumns, _, _>(
 				employee_columns.id,
 				columns.employee_id,
 			)
 			.push(sql::LEFT)
-			.push_default_equijoin::<ExpenseColumns<char>, _, _>(
-				expense_columns.timesheet_id,
-				columns.id,
-			)
-			.push_default_equijoin::<JobColumns<char>, _, _>(job_columns.id, columns.job_id)
-			.push_default_equijoin::<OrganizationColumns<char>, _, _>(
+			.push_default_equijoin::<ExpenseColumns, _, _>(expense_columns.timesheet_id, columns.id)
+			.push_default_equijoin::<JobColumns, _, _>(job_columns.id, columns.job_id)
+			.push_default_equijoin::<OrganizationColumns, _, _>(
 				organization_columns.id,
 				job_columns.client_id,
 			)
 			.push_equijoin(
 				PgLocationRecursiveCte::from(&match_location),
-				LocationColumns::<char>::DEFAULT_ALIAS,
+				LocationColumns::DEFAULT_ALIAS,
 				location_columns.id,
 				organization_columns.location_id,
 			);
@@ -103,23 +100,23 @@ impl Retrievable for PgTimesheet
 					PgSchema::write_where_clause(
 						PgSchema::write_where_clause(
 							Default::default(),
-							TimesheetColumns::<char>::DEFAULT_ALIAS,
+							TimesheetColumns::DEFAULT_ALIAS,
 							&exchanged_condition,
 							&mut query,
 						),
-						EmployeeColumns::<char>::DEFAULT_ALIAS,
+						EmployeeColumns::DEFAULT_ALIAS,
 						&exchanged_condition.employee,
 						&mut query,
 					),
-					ExpenseColumns::<char>::DEFAULT_ALIAS,
+					ExpenseColumns::DEFAULT_ALIAS,
 					&exchanged_condition.expenses,
 					&mut query,
 				),
-				JobColumns::<char>::DEFAULT_ALIAS,
+				JobColumns::DEFAULT_ALIAS,
 				&exchanged_condition.job,
 				&mut query,
 			),
-			OrganizationColumns::<char>::DEFAULT_ALIAS,
+			OrganizationColumns::DEFAULT_ALIAS,
 			&exchanged_condition.job.client,
 			&mut query,
 		);

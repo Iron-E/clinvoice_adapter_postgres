@@ -26,7 +26,7 @@ impl Deletable for PgOrganization
 		}
 
 		// TODO: use `for<'a> |e: &'a Organization| e.id`
-		PgSchema::delete::<_, _, OrganizationColumns<char>>(connection, entities.map(mapper)).await
+		PgSchema::delete::<_, _, OrganizationColumns>(connection, entities.map(mapper)).await
 	}
 }
 

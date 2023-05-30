@@ -38,17 +38,17 @@ impl Retrievable for PgOrganization
 		query
 			.push(sql::SELECT)
 			.push_columns(&columns)
-			.push_default_from::<OrganizationColumns<char>>()
+			.push_default_from::<OrganizationColumns>()
 			.push_equijoin(
 				PgLocationRecursiveCte::from(&match_condition.location),
-				LocationColumns::<char>::DEFAULT_ALIAS,
+				LocationColumns::DEFAULT_ALIAS,
 				location_columns.id,
 				columns.location_id,
 			);
 
 		PgSchema::write_where_clause(
 			Default::default(),
-			OrganizationColumns::<char>::DEFAULT_ALIAS,
+			OrganizationColumns::DEFAULT_ALIAS,
 			&match_condition,
 			&mut query,
 		);

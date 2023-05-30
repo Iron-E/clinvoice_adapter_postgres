@@ -26,7 +26,7 @@ impl Deletable for PgTimesheet
 		}
 
 		// TODO: use `for<'a> |e: &'a Timesheet| e.id`
-		PgSchema::delete::<_, _, TimesheetColumns<char>>(connection, entities.map(mapper)).await
+		PgSchema::delete::<_, _, TimesheetColumns>(connection, entities.map(mapper)).await
 	}
 }
 
