@@ -1,7 +1,7 @@
 # See https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
 name = "winvoice-adapter-postgres"
-version = "0.10.6"
+version = "0.11.0"
 authors = ["Iron-E <code.iron.e@gmail.com>"]
 description = "A Winvoice Adapter for the Postgres database"
 
@@ -19,7 +19,7 @@ shellexpand = "2"
 thiserror = "1"
 
 [dependencies.winvoice-adapter]
-branch = "release/0.20"
+branch = "release/0.21"
 default-features = false
 git = "https://github.com/Iron-E/winvoice-adapter"
 
@@ -33,7 +33,7 @@ git = "https://github.com/Iron-E/winvoice-schema"
 
 [dependencies.sqlx]
 features = ["chrono", "decimal", "macros", "postgres", "runtime-tokio-rustls", "tls"]
-version = "0.5"
+version = "0.6"
 
 [dev-dependencies]
 dotenvy = "0.15"
@@ -43,3 +43,7 @@ pretty_assertions = "1"
 [dependencies.tokio]
 features = ["macros", "rt"]
 version = "1"
+
+[patch.crates-io.sqlx]
+git = "https://github.com/Iron-E/sqlx"
+branch = "release/0.6.3-patched"
