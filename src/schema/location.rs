@@ -147,10 +147,7 @@ impl PgLocation
 	}
 
 	/// Construct a [`Location`], also constructing all outer [`Location`]s, and return it.
-	pub async fn retrieve_by_id<'connection, Conn>(
-		connection: Conn,
-		id: Id,
-	) -> Result<Location>
+	pub async fn retrieve_by_id<'connection, Conn>(connection: Conn, id: Id) -> Result<Location>
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{
