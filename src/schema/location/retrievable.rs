@@ -23,6 +23,7 @@ impl Retrievable for PgLocation
 	type Match = MatchLocation;
 
 	/// Retrieve all [`Location`]s (via `connection`) that match the `match_condition`.
+	#[tracing::instrument(level = "trace", skip(connection), err)]
 	async fn retrieve(
 		connection: &Pool<Postgres>,
 		match_condition: Self::Match,
@@ -32,13 +33,13 @@ impl Retrievable for PgLocation
 
 		let mut query = Self::query_with_recursive(&match_condition);
 
+		query.push(sql::SELECT).push(COLUMNS.default_scope().id).push_from(
+			PgLocationRecursiveCte::from(&match_condition),
+			LocationColumns::DEFAULT_ALIAS,
+		);
+
+		tracing::debug!("Generated SQL: {}", query.sql());
 		query
-			.push(sql::SELECT)
-			.push(COLUMNS.default_scope().id)
-			.push_from(
-				PgLocationRecursiveCte::from(&match_condition),
-				LocationColumns::DEFAULT_ALIAS,
-			)
 			.prepare()
 			.fetch(connection)
 			.and_then(|row| Self::retrieve_by_id(connection, row.get(COLUMNS.id)))
@@ -59,6 +60,7 @@ mod tests
 	use crate::schema::{util, PgLocation};
 
 	#[tokio::test]
+	#[tracing_test::traced_test]
 	async fn retrieve()
 	{
 		let connection = util::connect().await;

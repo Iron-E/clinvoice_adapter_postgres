@@ -41,11 +41,11 @@ impl JobAdapter for PgJob
 				($1,        $2,         $3,        $4,        $5,                  $6,                $7,                  $8,    $9)
 			RETURNING id;",
 			client.id,
-			date_close,
-			date_open,
+			date_close.map(|d| d.naive_utc()),
+			date_open.naive_utc(),
 			increment as _,
-			invoice.date.as_ref().map(|d| d.issued),
-			invoice.date.as_ref().and_then(|d| d.paid),
+			invoice.date.as_ref().map(|d| d.issued.naive_utc()),
+			invoice.date.as_ref().and_then(|d| d.paid.map(|p| p.naive_utc())),
 			standardized_rate.amount.to_string() as _,
 			notes,
 			objectives,
@@ -118,8 +118,8 @@ mod tests
 		assert_eq!(job.id, row.id);
 		assert_eq!(job.client.id, row.client_id);
 		assert_eq!(organization.id, row.client_id);
-		assert_eq!(job.date_close, row.date_close);
-		assert_eq!(job.date_open, row.date_open);
+		assert_eq!(job.date_close, row.date_close.map(|d| d.and_utc()));
+		assert_eq!(job.date_open, row.date_open.and_utc());
 		assert_eq!(job.increment, util::duration_from(row.increment).unwrap());
 		assert_eq!(None, row.invoice_date_issued);
 		assert_eq!(None, row.invoice_date_paid);

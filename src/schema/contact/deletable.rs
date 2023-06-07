@@ -16,6 +16,7 @@ impl Deletable for PgContact
 	type Db = Postgres;
 	type Entity = Contact;
 
+	#[tracing::instrument(level = "trace", skip_all, err)]
 	async fn delete<'connection, 'entity, Conn, Iter>(
 		connection: Conn,
 		entities: Iter,
@@ -25,12 +26,15 @@ impl Deletable for PgContact
 		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
+		/// The label [column](ContactColumns).
+		const LABEL: &'static str = ContactColumns::default().label;
+
 		fn write<'args, T>(s: &mut Separated<'_, 'args, Postgres, T>, c: &'args Contact)
 		where
 			T: Display,
 		{
 			s.push('(')
-				.push_unseparated(ContactColumns::default().label)
+				.push_unseparated(LABEL)
 				.push_unseparated('=')
 				.push_bind(&c.label)
 				.push_unseparated(')');
@@ -45,22 +49,20 @@ impl Deletable for PgContact
 		}
 
 		let mut query = QueryBuilder::new(sql::DELETE);
-		query.push(sql::FROM).push(ContactColumns::<&str>::TABLE_NAME).push(sql::WHERE);
+		query.push(sql::FROM).push(ContactColumns::TABLE_NAME).push(sql::WHERE);
 
+		if let Some(e) = peekable_entities.next()
 		{
 			let mut separated = query.separated(' ');
 
-			if let Some(e) = peekable_entities.next()
-			{
-				write(&mut separated, e);
-			}
-
+			write(&mut separated, e);
 			peekable_entities.for_each(|e| {
 				separated.push_unseparated(sql::OR);
 				write(&mut separated, e);
 			});
 		}
 
+		tracing::debug!("Generated SQL: {}", query.sql());
 		query.prepare().execute(connection).await?;
 
 		Ok(())
@@ -82,6 +84,7 @@ mod tests
 	use crate::schema::{util, PgContact, PgLocation};
 
 	#[tokio::test]
+	#[tracing_test::traced_test]
 	async fn delete()
 	{
 		let connection = util::connect().await;

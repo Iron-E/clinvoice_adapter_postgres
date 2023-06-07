@@ -59,7 +59,7 @@ impl PgLocation
 				.push('(')
 				.push(sql::SELECT)
 				.push_columns(&outer_columns)
-				.push_from(LocationColumns::<&str>::TABLE_NAME, alias_outer);
+				.push_from(LocationColumns::TABLE_NAME, alias_outer);
 
 			if let Some((prev, _)) = ident.slice_end()
 			{
@@ -68,22 +68,27 @@ impl PgLocation
 
 			PgSchema::write_where_clause(
 				PgSchema::write_where_clause(
-					match match_condition.outer
-					{
-						MatchOption::None => PgSchema::write_where_clause(
-							Default::default(),
-							outer_columns.outer_id,
-							&MatchOption::<Match<Id>>::None,
-							query,
-						),
-						_ => Default::default(),
-					},
-					outer_columns.id,
-					&match_condition.id,
+					PgSchema::write_where_clause(
+						match match_condition.outer
+						{
+							MatchOption::None => PgSchema::write_where_clause(
+								Default::default(),
+								outer_columns.outer_id,
+								&MatchOption::<Match<Id>>::None,
+								query,
+							),
+							_ => Default::default(),
+						},
+						outer_columns.id,
+						&match_condition.id,
+						query,
+					),
+					outer_columns.name,
+					&match_condition.name,
 					query,
 				),
-				outer_columns.name,
-				&match_condition.name,
+				outer_columns.currency,
+				&match_condition.currency,
 				query,
 			);
 
@@ -189,6 +194,7 @@ impl PgLocation
 
 	/// Retrieve a [`Match`] which will match all of the [`Id`]s of the [`Location`]s which match
 	/// the `match_condition`.
+	#[tracing::instrument(level = "trace", skip(connection), err)]
 	pub(super) async fn retrieve_matching_ids<'connection, Conn>(
 		connection: Conn,
 		match_condition: &MatchLocation,
@@ -198,13 +204,13 @@ impl PgLocation
 	{
 		let mut query = Self::query_with_recursive(match_condition);
 
+		query.push(sql::SELECT).push(COLUMNS.default_scope().id).push_from(
+			PgLocationRecursiveCte::from(match_condition),
+			LocationColumns::DEFAULT_ALIAS,
+		);
+
+		tracing::debug!("Generated SQL {}", query.sql());
 		query
-			.push(sql::SELECT)
-			.push(COLUMNS.default_scope().id)
-			.push_from(
-				PgLocationRecursiveCte::from(match_condition),
-				LocationColumns::DEFAULT_ALIAS,
-			)
 			.prepare()
 			.fetch(connection)
 			.map_ok(|row| row.get::<Id, _>(COLUMNS.id).into())

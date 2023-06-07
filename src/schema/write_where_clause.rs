@@ -155,6 +155,7 @@ fn write_comparison<Db, Ident, Comparand>(
 /// # See also
 ///
 /// * [`WriteWhereClause::write_where_clause`].
+#[tracing::instrument(level = "trace", skip_all)]
 pub(super) async fn write_match_contact<'connection, Conn, Ident>(
 	connection: Conn,
 	context: WriteContext,
@@ -195,6 +196,7 @@ where
 		},
 	};
 
+	tracing::trace!("After: {}", query.sql());
 	Ok(WriteContext::AcceptingAnotherWhereCondition)
 }
 
@@ -222,6 +224,7 @@ impl<T> WriteWhereClause<Postgres, &Match<T>> for PgSchema
 where
 	T: Display + PartialEq,
 {
+	#[tracing::instrument(name = "write Match<T> clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -237,7 +240,7 @@ where
 				query,
 				context,
 				ident,
-				&mut conditions.iter().filter(|m| *m != &Match::Any),
+				&mut conditions.iter().filter(|m| Match::Any.eq(*m)),
 			),
 			Match::Any => write_any(query, context),
 			Match::EqualTo(value) => write_comparison(query, context, ident, "=", value),
@@ -253,10 +256,11 @@ where
 				query,
 				context,
 				ident,
-				&mut conditions.iter().filter(|m| *m != &Match::Any),
+				&mut conditions.iter().filter(|m| Match::Any.eq(*m)),
 			),
 		};
 
+		tracing::trace!("After: {}", query.sql());
 		WriteContext::AcceptingAnotherWhereCondition
 	}
 }
@@ -266,6 +270,11 @@ macro_rules! impl_write_where_clause_for_match_option {
 	($Match:ty) => {
 		impl WriteWhereClause<Postgres, &MatchOption<$Match>> for PgSchema
 		{
+			#[tracing::instrument(
+				name = "Write MatchOption<$Match> clause",
+				level = "trace",
+				skip_all
+			)]
 			fn write_where_clause<Ident>(
 				context: WriteContext,
 				ident: Ident,
@@ -293,6 +302,7 @@ macro_rules! impl_write_where_clause_for_match_option {
 					},
 				};
 
+				tracing::trace!("After: {}", query.sql());
 				WriteContext::AcceptingAnotherWhereCondition
 			}
 		}
@@ -303,6 +313,11 @@ macro_rules! impl_write_where_clause_for_match_option {
 		where
 			T: Display + PartialEq,
 		{
+			#[tracing::instrument(
+				name = "Write MatchOption<$Match> clause",
+				level = "trace",
+				skip_all
+			)]
 			fn write_where_clause<Ident>(
 				context: WriteContext,
 				ident: Ident,
@@ -330,6 +345,7 @@ macro_rules! impl_write_where_clause_for_match_option {
 					},
 				};
 
+				tracing::trace!("After: {}", query.sql());
 				WriteContext::AcceptingAnotherWhereCondition
 			}
 		}
@@ -348,6 +364,7 @@ impl_write_where_clause_for_match_option!(MatchTimesheet);
 
 impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 {
+	#[tracing::instrument(name = "write MatchSet<MatchExpense> clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -396,7 +413,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 					.push(sql::EXISTS)
 					.push('(')
 					.push(sql::SELECT)
-					.push_from(ExpenseColumns::<&str>::TABLE_NAME, subquery_ident)
+					.push_from(ExpenseColumns::TABLE_NAME, subquery_ident)
 					.push(sql::WHERE)
 					.push_equal(
 						COLUMNS.scope(subquery_ident).timesheet_id,
@@ -415,12 +432,14 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 			MatchSet::Not(condition) => write_negated(query, context, ident, condition.deref()),
 		};
 
+		tracing::trace!("After: {}", query.sql());
 		WriteContext::AcceptingAnotherWhereCondition
 	}
 }
 
 impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 {
+	#[tracing::instrument(name = "write MatchStr<String> clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -438,7 +457,7 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 				query,
 				context,
 				ident,
-				&mut conditions.iter().filter(|m| *m != &MatchStr::Any),
+				&mut conditions.iter().filter(|m| MatchStr::Any.eq(*m)),
 			),
 			MatchStr::Any => write_any(query, context),
 			MatchStr::Contains(string) =>
@@ -464,7 +483,7 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 				query,
 				context,
 				ident,
-				&mut conditions.iter().filter(|m| *m != &MatchStr::Any),
+				&mut conditions.iter().filter(|m| MatchStr::Any.eq(*m)),
 			),
 			MatchStr::Regex(regex) =>
 			{
@@ -477,12 +496,14 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 			},
 		};
 
+		tracing::trace!("After: {}", query.sql());
 		WriteContext::AcceptingAnotherWhereCondition
 	}
 }
 
 impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 {
+	#[tracing::instrument(name = "write MatchEmployee clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -494,10 +515,10 @@ impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 	{
 		let columns = EmployeeColumns::default().scope(ident);
 
-		Self::write_where_clause(
-			Self::write_where_clause(
-				Self::write_where_clause(
-					Self::write_where_clause(context, columns.id, &match_condition.id, query),
+		write_non_default_condition(
+			write_non_default_condition(
+				write_non_default_condition(
+					write_non_default_condition(context, columns.id, &match_condition.id, query),
 					columns.name,
 					&match_condition.name,
 					query,
@@ -515,6 +536,7 @@ impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 {
+	#[tracing::instrument(name = "write MatchExpense clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -526,11 +548,16 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 	{
 		let columns = ExpenseColumns::default().scope(ident);
 
-		Self::write_where_clause(
-			Self::write_where_clause(
-				Self::write_where_clause(
-					Self::write_where_clause(
-						Self::write_where_clause(context, columns.id, &match_condition.id, query),
+		write_non_default_condition(
+			write_non_default_condition(
+				write_non_default_condition(
+					write_non_default_condition(
+						write_non_default_condition(
+							context,
+							columns.id,
+							&match_condition.id,
+							query,
+						),
 						columns.category,
 						&match_condition.category,
 						query,
@@ -553,6 +580,7 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchInvoice> for PgSchema
 {
+	#[tracing::instrument(name = "write MatchInvoice clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -564,9 +592,9 @@ impl WriteWhereClause<Postgres, &MatchInvoice> for PgSchema
 	{
 		let columns = JobColumns::default().scope(ident);
 
-		Self::write_where_clause(
-			Self::write_where_clause(
-				Self::write_where_clause(
+		write_non_default_condition(
+			write_non_default_condition(
+				write_non_default_condition(
 					context,
 					columns.invoice_date_issued,
 					&match_condition.date_issued,
@@ -586,6 +614,7 @@ impl WriteWhereClause<Postgres, &MatchInvoice> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 {
+	#[tracing::instrument(name = "write MatchJob clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -597,13 +626,13 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 	{
 		let columns = JobColumns::default().scope(ident);
 
-		Self::write_where_clause(
-			Self::write_where_clause(
-				Self::write_where_clause(
-					Self::write_where_clause(
-						Self::write_where_clause(
-							Self::write_where_clause(
-								Self::write_where_clause(
+		write_non_default_condition(
+			write_non_default_condition(
+				write_non_default_condition(
+					write_non_default_condition(
+						write_non_default_condition(
+							write_non_default_condition(
+								write_non_default_condition(
 									context,
 									columns.date_close,
 									&match_condition
@@ -640,6 +669,7 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 {
+	#[tracing::instrument(name = "write MatchOrganization clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -651,8 +681,8 @@ impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 	{
 		let columns = OrganizationColumns::default().scope(ident);
 
-		Self::write_where_clause(
-			Self::write_where_clause(context, columns.id, &match_condition.id, query),
+		write_non_default_condition(
+			write_non_default_condition(context, columns.id, &match_condition.id, query),
 			columns.name,
 			&match_condition.name,
 			query,
@@ -662,6 +692,7 @@ impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 
 impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 {
+	#[tracing::instrument(name = "write MatchTimesheet clause", level = "trace", skip_all)]
 	fn write_where_clause<Ident>(
 		context: WriteContext,
 		ident: Ident,
@@ -673,10 +704,10 @@ impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 	{
 		let columns = TimesheetColumns::default().scope(ident);
 
-		Self::write_where_clause(
-			Self::write_where_clause(
-				Self::write_where_clause(
-					Self::write_where_clause(context, columns.id, &match_condition.id, query),
+		write_non_default_condition(
+			write_non_default_condition(
+				write_non_default_condition(
+					write_non_default_condition(context, columns.id, &match_condition.id, query),
 					columns.time_begin,
 					&match_condition.time_begin.map_ref(|d| PgTimestampTz(*d)),
 					query,
@@ -689,5 +720,24 @@ impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 			&match_condition.work_notes,
 			query,
 		)
+	}
+}
+
+/// Ensure `condition` is not its [`Default`] value and then `write` it
+fn write_non_default_condition<'a, C, T>(
+	context: WriteContext,
+	column: C,
+	condition: &'a T,
+	query: &mut QueryBuilder<Postgres>,
+) -> WriteContext
+where
+	C: Copy + Display,
+	T: Default + PartialEq,
+	PgSchema: WriteWhereClause<Postgres, &'a T>,
+{
+	match T::default().eq(condition)
+	{
+		true => context,
+		false => PgSchema::write_where_clause(context, column, condition, query),
 	}
 }

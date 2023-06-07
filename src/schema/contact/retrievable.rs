@@ -23,6 +23,7 @@ impl Retrievable for PgContact
 	type Match = MatchContact;
 
 	/// Retrieve all [`Contact`]s (via `connection`) that match the `match_condition`.
+	#[tracing::instrument(level = "trace", skip(connection), err)]
 	async fn retrieve(
 		connection: &Pool<Postgres>,
 		match_condition: Self::Match,
@@ -43,6 +44,7 @@ impl Retrievable for PgContact
 		)
 		.await?;
 
+		tracing::debug!("Generated SQL: {}", query.sql());
 		query
 			.prepare()
 			.fetch(connection)

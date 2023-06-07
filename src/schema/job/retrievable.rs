@@ -29,6 +29,7 @@ impl Retrievable for PgJob
 	type Match = MatchJob;
 
 	/// Retrieve all [`Job`]s (via `connection`) that match the `match_condition`.
+	#[tracing::instrument(level = "trace", skip(connection), err)]
 	async fn retrieve(
 		connection: &Pool<Postgres>,
 		match_condition: Self::Match,
@@ -77,6 +78,7 @@ impl Retrievable for PgJob
 			&mut query,
 		);
 
+		tracing::debug!("Generated SQL: {}", query.sql());
 		query
 			.prepare()
 			.fetch(connection)
@@ -112,6 +114,7 @@ mod tests
 	use crate::schema::{util, PgJob, PgLocation, PgOrganization};
 
 	#[tokio::test]
+	#[tracing_test::traced_test]
 	async fn retrieve()
 	{
 		let connection = util::connect().await;

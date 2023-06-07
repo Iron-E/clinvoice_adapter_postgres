@@ -32,8 +32,8 @@ impl TimesheetAdapter for PgTimesheet
 			RETURNING id;",
 			employee.id,
 			job.id,
-			time_begin,
-			time_end,
+			time_begin.naive_utc(),
+			time_end.map(|d| d.naive_utc()),
 			work_notes,
 		)
 		.fetch_one(&mut *connection)
@@ -186,16 +186,16 @@ mod tests
 		assert_eq!(timesheet_db.employee_id, timesheet.employee.id);
 		assert_eq!(timesheet_db.id, timesheet.id);
 		assert_eq!(timesheet_db.job_id, timesheet.job.id);
-		assert_eq!(timesheet_db.time_begin, timesheet.time_begin);
-		assert_eq!(timesheet_db.time_end, timesheet.time_end);
+		assert_eq!(timesheet_db.time_begin.and_utc(), timesheet.time_begin);
+		assert_eq!(timesheet_db.time_end.map(|d| d.and_utc()), timesheet.time_end);
 		assert_eq!(timesheet_db.work_notes, timesheet.work_notes);
 
 		let timesheet2_db = select!(timesheet2.id);
 		assert_eq!(timesheet2_db.employee_id, timesheet2.employee.id);
 		assert_eq!(timesheet2_db.id, timesheet2.id);
 		assert_eq!(timesheet2_db.job_id, timesheet2.job.id);
-		assert_eq!(timesheet2_db.time_begin, timesheet2.time_begin);
-		assert_eq!(timesheet2_db.time_end, timesheet2.time_end);
+		assert_eq!(timesheet2_db.time_begin.and_utc(), timesheet2.time_begin);
+		assert_eq!(timesheet2_db.time_end.map(|d| d.and_utc()), timesheet2.time_end);
 		assert_eq!(timesheet2_db.work_notes, timesheet2.work_notes);
 	}
 }

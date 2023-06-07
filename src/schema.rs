@@ -38,6 +38,7 @@ impl PgSchema
 {
 	/// Via `connection`, execute `DELETE FROM {table} WHERE (id = №) OR … OR (id = №)` for each
 	/// [`Id`] in `ids`.
+	#[tracing::instrument(level = "trace", skip_all, fields(condition), err)]
 	pub async fn delete<'args, Conn, Iter, Table>(connection: Conn, ids: Iter) -> Result<()>
 	where
 		Conn: Executor<'args, Database = Postgres>,
@@ -55,13 +56,10 @@ impl PgSchema
 		let mut query = QueryBuilder::new(sql::DELETE);
 		query.push(sql::FROM).push(Table::TABLE_NAME);
 
-		Self::write_where_clause(
-			Default::default(),
-			"id",
-			&Match::Or(peekable_entities.map(Match::from).collect()),
-			&mut query,
-		);
+		let condition = Match::Or(peekable_entities.map(Match::from).collect());
+		Self::write_where_clause(Default::default(), "id", &condition, &mut query);
 
+		tracing::debug!("Generated SQL: {}", query.sql());
 		query.prepare().execute(connection).await?;
 
 		Ok(())
@@ -77,6 +75,7 @@ impl PgSchema
 	/// * [`ColumnsToSql::push_set`] for how the `SET` clause is generated.
 	/// * [`ColumnsToSql::push_update_where`] for how the `WHERE` condition is generated.
 	/// * [`QueryBuilder::push_values`] for what function to use for `push_values`.
+	#[tracing::instrument(level = "trace", skip_all, fields(table = Columns::TABLE_NAME), err)]
 	pub async fn update<'args, Columns, F>(
 		connection: &mut Transaction<'_, Postgres>,
 		columns: Columns,
@@ -86,6 +85,7 @@ impl PgSchema
 		Columns: ColumnsToSql + TableToSql,
 		F: FnOnce(&mut QueryBuilder<'args, Postgres>),
 	{
+		tracing::trace!("Generating SQL to update `{}`", Columns::TABLE_NAME);
 		let mut query = QueryBuilder::new(sql::UPDATE);
 
 		query.push(As(Columns::TABLE_NAME, Columns::DEFAULT_ALIAS)).push(sql::SET);
@@ -108,6 +108,7 @@ impl PgSchema
 
 		columns.push_update_where_to(&mut query, Columns::DEFAULT_ALIAS, values_alias);
 
+		tracing::debug!("Generated SQL: {}", query.sql());
 		query.prepare().execute(connection).await?;
 
 		Ok(())

@@ -36,6 +36,7 @@ impl Retrievable for PgTimesheet
 	type Match = MatchTimesheet;
 
 	/// Retrieve all [`Timesheet`]s (via `connection`) that match the `match_condition`.
+	#[tracing::instrument(level = "trace", skip(connection), err)]
 	async fn retrieve(
 		connection: &Pool<Postgres>,
 		match_condition: Self::Match,
@@ -129,6 +130,7 @@ impl Retrievable for PgTimesheet
 			.push(job_columns.id)
 			.push(organization_columns.id);
 
+		tracing::debug!("Generated SQL: {}", query.sql());
 		query
 			.prepare()
 			.fetch(connection)
@@ -178,6 +180,7 @@ mod tests
 	use crate::schema::{util, PgEmployee, PgJob, PgLocation, PgOrganization, PgTimesheet};
 
 	#[tokio::test]
+	#[tracing_test::traced_test]
 	async fn retrieve()
 	{
 		let connection = util::connect().await;
