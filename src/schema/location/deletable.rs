@@ -44,11 +44,11 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
+		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
 
 		let (chile, usa) = futures::try_join!(
-			PgLocation::create(&connection, "Chile".into(), Some(earth.clone())),
-			PgLocation::create(&connection, "Arizona".into(), Some(earth.clone())),
+			PgLocation::create(&connection, None, "Chile".into(), Some(earth.clone())),
+			PgLocation::create(&connection, None, "Arizona".into(), Some(earth.clone())),
 		)
 		.unwrap();
 

@@ -13,7 +13,7 @@ use winvoice_adapter::{
 	WriteWhereClause,
 };
 use winvoice_match::{Match, MatchLocation, MatchOption};
-use winvoice_schema::{Id, Location};
+use winvoice_schema::{Currency, Id, Location};
 
 use crate::{fmt::PgLocationRecursiveCte, PgSchema};
 
@@ -154,36 +154,31 @@ impl PgLocation
 		sqlx::query!(
 			r#"WITH RECURSIVE location_view AS
 			(
-				SELECT id, name, outer_id, 0 as "order" FROM locations WHERE id = $1
+				SELECT currency, id, name, outer_id, 0 as "order" FROM locations WHERE id = $1
 				UNION
-				SELECT L.id, L.name, L.outer_id, V."order" + 1 FROM locations L JOIN location_view V ON (L.id = V.outer_id)
+				SELECT L.currency, L.id, L.name, L.outer_id, V."order" + 1 FROM locations L JOIN location_view V ON (L.id = V.outer_id)
 			) SELECT * FROM location_view ORDER BY "order" DESC;"#,
 			id,
 		)
 		.fetch(connection)
 		.try_fold(None, |previous: Option<Location>, view| {
 			future::ok(Some(Location {
+				currency: match view.currency {
+					Some(s) => match Currency::try_from(s.as_str()) {
+						Ok(c) => c.into(),
+						Err(e) => return future::err(column_decode_err("currency", e.into())),
+					},
+					None => None,
+				},
 				id:    match view.id
 				{
 					Some(id) => id,
-					None =>
-					{
-						return future::err(Error::ColumnDecode {
-							index:  "id".into(),
-							source: SOURCE.into(),
-						})
-					},
+					None => return future::err(column_decode_err("id", SOURCE.into())),
 				},
 				name:  match view.name
 				{
 					Some(n) => n,
-					None =>
-					{
-						return future::err(Error::ColumnDecode {
-							index:  "name".into(),
-							source: SOURCE.into(),
-						})
-					},
+					None => return future::err(column_decode_err("name", SOURCE.into())),
 				},
 				outer: previous.map(Box::new),
 			}))
@@ -217,4 +212,10 @@ impl PgLocation
 			.map_ok(Match::Or)
 			.await
 	}
+}
+
+/// Create a [`ColumnDecode` error](Error::ColumnDecode).
+fn column_decode_err(index: &str, source: Box<dyn std::error::Error + Send + Sync>) -> Error
+{
+	Error::ColumnDecode { index: index.into(), source }
 }

@@ -11,6 +11,7 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS locations
 		(
+			currency text,
 			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 			outer_id bigint REFERENCES locations(id),
 			name text NOT NULL,
@@ -112,12 +113,12 @@ where
 	Ok(())
 }
 
-/// Initialize the `amount_of_currency` type.
+/// Initialize the `money_in_eur` type.
 async fn init_money<'connection, Conn>(connection: Conn) -> Result<()>
 where
 	Conn: Executor<'connection, Database = Postgres>,
 {
-	sqlx::query!(r#"CREATE DOMAIN amount_of_currency AS text CHECK (VALUE ~ '^\d+(\.\d+)?$');"#)
+	sqlx::query!(r#"CREATE DOMAIN money_in_eur AS text CHECK (VALUE ~ '^\d+(\.\d+)?$');"#)
 		.execute(connection)
 		.await?;
 	Ok(())
@@ -133,12 +134,12 @@ where
 		(
 			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 			client_id bigint NOT NULL REFERENCES organizations(id),
-			date_close timestamptz,
-			date_open timestamptz NOT NULL,
+			date_close timestamp,
+			date_open timestamp NOT NULL,
 			increment interval NOT NULL,
-			invoice_date_issued timestamptz,
-			invoice_date_paid timestamptz,
-			invoice_hourly_rate amount_of_currency NOT NULL,
+			invoice_date_issued timestamp,
+			invoice_date_paid timestamp,
+			invoice_hourly_rate money_in_eur NOT NULL,
 			notes text NOT NULL,
 			objectives text NOT NULL,
 
@@ -167,8 +168,8 @@ where
 			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 			employee_id bigint NOT NULL REFERENCES employees(id),
 			job_id bigint NOT NULL REFERENCES jobs(id),
-			time_begin timestamptz NOT NULL,
-			time_end timestamptz,
+			time_begin timestamp NOT NULL,
+			time_end timestamp,
 			work_notes text NOT NULL,
 
 			CONSTRAINT timesheets__date_integrity CHECK (time_begin < time_end),
@@ -191,7 +192,7 @@ where
 			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 			timesheet_id bigint NOT NULL REFERENCES timesheets(id) ON DELETE CASCADE,
 			category text NOT NULL,
-			cost amount_of_currency NOT NULL,
+			cost money_in_eur NOT NULL,
 			description text NOT NULL
 		);"
 	)

@@ -86,7 +86,7 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
+		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
 
 		let (office_number, primary_email, mailing_address) = futures::try_join!(
 			PgContact::create(

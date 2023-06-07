@@ -56,7 +56,7 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, "Earth".into(), None).await.unwrap();
+		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
 
 		let organization =
 			PgOrganization::create(&connection, earth.clone(), "Some Organization".into())

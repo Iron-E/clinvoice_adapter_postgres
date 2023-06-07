@@ -94,8 +94,8 @@ mod tests
 		let connection = util::connect().await;
 
 		let (earth, mars) = futures::try_join!(
-			PgLocation::create(&connection, "Earth".into(), None),
-			PgLocation::create(&connection, "Mars".into(), None),
+			PgLocation::create(&connection, None, "Earth".into(), None),
+			PgLocation::create(&connection, None, "Mars".into(), None),
 		)
 		.unwrap();
 

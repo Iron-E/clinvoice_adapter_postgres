@@ -7,16 +7,13 @@ use std::io;
 use money2::Error as FinanceError;
 use sqlx::{postgres::types::PgInterval, Error, Result};
 #[cfg(test)]
-use {lazy_static::lazy_static, sqlx::PgPool};
+use {sqlx::PgPool, std::sync::OnceLock};
 
 #[cfg(test)]
 pub(super) async fn connect() -> PgPool
 {
-	lazy_static! {
-		static ref URL: String = dotenvy::var("DATABASE_URL").unwrap();
-	}
-
-	PgPool::connect_lazy(&URL).unwrap()
+	static URL: OnceLock<String> = OnceLock::new();
+	PgPool::connect_lazy(&URL.get_or_init(|| dotenvy::var("DATABASE_URL").unwrap())).unwrap()
 }
 
 /// Convert a [`PgInterval`] to a concrete [`Duration`]
