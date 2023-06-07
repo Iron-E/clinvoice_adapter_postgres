@@ -85,7 +85,6 @@ impl PgSchema
 		Columns: ColumnsToSql + TableToSql,
 		F: FnOnce(&mut QueryBuilder<'args, Postgres>),
 	{
-		tracing::trace!("Generating SQL to update `{}`", Columns::TABLE_NAME);
 		let mut query = QueryBuilder::new(sql::UPDATE);
 
 		query.push(As(Columns::TABLE_NAME, Columns::DEFAULT_ALIAS)).push(sql::SET);

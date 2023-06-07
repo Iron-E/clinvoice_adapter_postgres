@@ -75,7 +75,10 @@ impl Updatable for PgLocation
 
 		PgSchema::update(connection, LocationColumns::default(), |query| {
 			query.push_values(entities_collected.iter(), |mut q, e| {
-				q.push_bind(e.id).push_bind(&e.name).push_bind(e.outer.as_ref().map(|o| o.id));
+				q.push_bind(e.currency.map(|c| -> &str { c.into() }))
+					.push_bind(e.id)
+					.push_bind(&e.name)
+					.push_bind(e.outer.as_ref().map(|o| o.id));
 			});
 		})
 		.await
