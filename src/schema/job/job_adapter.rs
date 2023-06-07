@@ -118,7 +118,7 @@ mod tests
 		assert_eq!(job.id, row.id);
 		assert_eq!(job.client.id, row.client_id);
 		assert_eq!(organization.id, row.client_id);
-		assert_eq!(job.date_close, row.date_close.map(|d| d.and_utc()));
+		assert_eq!(job.date_close, row.date_close.map(util::naive_date_to_utc));
 		assert_eq!(job.date_open, row.date_open.and_utc());
 		assert_eq!(job.increment, util::duration_from(row.increment).unwrap());
 		assert_eq!(None, row.invoice_date_issued);

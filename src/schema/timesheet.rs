@@ -50,8 +50,8 @@ impl PgTimesheet
 		Ok(Timesheet {
 			employee: PgEmployee::row_to_view(employee_columns, row),
 			id: row.try_get(columns.id.as_ref())?,
-			time_begin: row.try_get(columns.time_begin.as_ref())?,
-			time_end: row.try_get(columns.time_end.as_ref())?,
+			time_begin: row.try_get(columns.time_begin.as_ref()).map(util::naive_date_to_utc)?,
+			time_end: row.try_get(columns.time_end.as_ref()).map(util::naive_date_opt_to_utc)?,
 			work_notes: row.try_get(columns.work_notes.as_ref())?,
 			expenses: row
 				.try_get(expenses_ident.as_ref())

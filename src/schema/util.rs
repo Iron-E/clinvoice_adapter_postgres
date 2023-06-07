@@ -6,6 +6,7 @@ use std::io;
 
 use money2::Error as FinanceError;
 use sqlx::{postgres::types::PgInterval, Error, Result};
+use winvoice_schema::chrono::{DateTime, NaiveDateTime, Utc};
 #[cfg(test)]
 use {sqlx::PgPool, std::sync::OnceLock};
 
@@ -48,6 +49,18 @@ pub fn duration_from(interval: PgInterval) -> Result<Duration>
 				.unwrap_or(0),
 		nanoseconds,
 	))
+}
+
+/// Converts a [`NaiveDateTime`] to a [`DateTime<Utc>`].
+pub fn naive_date_opt_to_utc(date: Option<NaiveDateTime>) -> Option<DateTime<Utc>>
+{
+	date.map(naive_date_to_utc)
+}
+
+/// Converts a [`NaiveDateTime`] to a [`DateTime<Utc>`].
+pub fn naive_date_to_utc(date: NaiveDateTime) -> DateTime<Utc>
+{
+	date.and_utc()
 }
 
 /// Map some [error](money2::Error) `e` to an [`Error`].

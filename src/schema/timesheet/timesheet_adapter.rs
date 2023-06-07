@@ -187,7 +187,7 @@ mod tests
 		assert_eq!(timesheet_db.id, timesheet.id);
 		assert_eq!(timesheet_db.job_id, timesheet.job.id);
 		assert_eq!(timesheet_db.time_begin.and_utc(), timesheet.time_begin);
-		assert_eq!(timesheet_db.time_end.map(|d| d.and_utc()), timesheet.time_end);
+		assert_eq!(timesheet_db.time_end.map(util::naive_date_to_utc), timesheet.time_end);
 		assert_eq!(timesheet_db.work_notes, timesheet.work_notes);
 
 		let timesheet2_db = select!(timesheet2.id);
@@ -195,7 +195,7 @@ mod tests
 		assert_eq!(timesheet2_db.id, timesheet2.id);
 		assert_eq!(timesheet2_db.job_id, timesheet2.job.id);
 		assert_eq!(timesheet2_db.time_begin.and_utc(), timesheet2.time_begin);
-		assert_eq!(timesheet2_db.time_end.map(|d| d.and_utc()), timesheet2.time_end);
+		assert_eq!(timesheet2_db.time_end.map(util::naive_date_to_utc), timesheet2.time_end);
 		assert_eq!(timesheet2_db.work_notes, timesheet2.work_notes);
 	}
 }
