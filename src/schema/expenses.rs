@@ -16,7 +16,7 @@ pub struct PgExpenses;
 
 impl PgExpenses
 {
-	pub(super) fn row_to_view(columns: ExpenseColumns<&str>, row: &PgRow) -> Result<Expense>
+	pub fn row_to_view(columns: ExpenseColumns<&str>, row: &PgRow) -> Result<Expense>
 	{
 		Ok(Expense {
 			id: row.try_get(columns.id)?,

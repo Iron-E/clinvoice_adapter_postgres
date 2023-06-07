@@ -15,7 +15,7 @@ pub struct PgOrganization;
 
 impl PgOrganization
 {
-	pub(super) async fn row_to_view<'connection, Conn, Column>(
+	pub async fn row_to_view<'connection, Conn, Column>(
 		connection: Conn,
 		columns: OrganizationColumns<Column>,
 		row: &PgRow,

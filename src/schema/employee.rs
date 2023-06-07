@@ -13,7 +13,7 @@ pub struct PgEmployee;
 
 impl PgEmployee
 {
-	pub(super) fn row_to_view<T>(columns: EmployeeColumns<T>, row: &PgRow) -> Employee
+	pub fn row_to_view<T>(columns: EmployeeColumns<T>, row: &PgRow) -> Employee
 	where
 		T: AsRef<str>,
 	{

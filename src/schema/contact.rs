@@ -16,7 +16,7 @@ pub struct PgContact;
 
 impl PgContact
 {
-	pub(super) async fn row_to_view<'connection, Conn>(
+	pub async fn row_to_view<'connection, Conn>(
 		connection: Conn,
 		columns: ContactColumns<&str>,
 		row: &PgRow,

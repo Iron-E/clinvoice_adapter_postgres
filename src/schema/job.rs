@@ -16,7 +16,7 @@ pub struct PgJob;
 
 impl PgJob
 {
-	pub(super) async fn row_to_view<'connection, Conn, JobColumnName, OrgColumnName>(
+	pub async fn row_to_view<'connection, Conn, JobColumnName, OrgColumnName>(
 		connection: Conn,
 		columns: JobColumns<JobColumnName>,
 		organization_columns: OrganizationColumns<OrgColumnName>,
