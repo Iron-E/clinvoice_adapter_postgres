@@ -118,9 +118,16 @@ async fn init_money<'connection, Conn>(connection: Conn) -> Result<()>
 where
 	Conn: Executor<'connection, Database = Postgres>,
 {
-	sqlx::query!(r#"CREATE DOMAIN money_in_eur AS text CHECK (VALUE ~ '^\d+(\.\d+)?$');"#)
-		.execute(connection)
-		.await?;
+	sqlx::query!(
+		r"DO $$
+BEGIN
+	IF NOT EXISTS (SELECT FROM pg_type WHERE typname = 'money_in_eur') THEN
+		CREATE DOMAIN money_in_eur AS text CHECK (VALUE ~ '^\d+(\.\d+)?$');
+	END IF;
+END$$;"
+	)
+	.execute(connection)
+	.await?;
 	Ok(())
 }
 
