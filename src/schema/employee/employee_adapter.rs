@@ -1,6 +1,6 @@
 use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::schema::EmployeeAdapter;
-use winvoice_schema::Employee;
+use winvoice_schema::{Employee, Id};
 
 use super::PgEmployee;
 
@@ -16,16 +16,18 @@ impl EmployeeAdapter for PgEmployee
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{
-		let row = sqlx::query!(
-			"INSERT INTO employees (name, status, title) VALUES ($1, $2, $3) RETURNING id;",
+		let id = Id::new_v4();
+		sqlx::query!(
+			"INSERT INTO employees (id, name, status, title) VALUES ($1, $2, $3, $4);",
+			id,
 			name,
 			status,
 			title,
 		)
-		.fetch_one(connection)
+		.execute(connection)
 		.await?;
 
-		Ok(Employee { id: row.id, name, status, title })
+		Ok(Employee { id, name, status, title })
 	}
 }
 

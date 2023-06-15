@@ -1,9 +1,9 @@
 use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::{schema::columns::JobColumns, Deletable};
-use winvoice_schema::{Id, Job};
+use winvoice_schema::Job;
 
 use super::PgJob;
-use crate::PgSchema;
+use crate::{fmt::PgUuid, PgSchema};
 
 #[async_trait::async_trait]
 impl Deletable for PgJob
@@ -20,9 +20,9 @@ impl Deletable for PgJob
 		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		const fn mapper(j: &Job) -> Id
+		const fn mapper(j: &Job) -> PgUuid
 		{
-			j.id
+			PgUuid(j.id)
 		}
 
 		// TODO: use `for<'a> |e: &'a Job| e.id`

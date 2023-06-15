@@ -32,7 +32,7 @@ use winvoice_match::{
 };
 
 use super::{PgLocation, PgSchema};
-use crate::fmt::{PgContains, PgInterval, PgTimestampTz};
+use crate::fmt::{PgContains, PgInterval, PgTimestampTz, PgUuid};
 
 /// Write [`Match::Any`], [`MatchStr::Any`], [`MatchOption::Any`], or [`MatchSet::Any`] in a way
 /// that will produce valid syntax.
@@ -501,7 +501,12 @@ impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 		Self::write_where_clause(
 			Self::write_where_clause(
 				Self::write_where_clause(
-					Self::write_where_clause(context, columns.id, &match_condition.id, query),
+					Self::write_where_clause(
+						context,
+						columns.id,
+						&match_condition.id.map_ref(|id| PgUuid(*id)),
+						query,
+					),
 					columns.name,
 					&match_condition.name,
 					query,
@@ -534,7 +539,12 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 			Self::write_where_clause(
 				Self::write_where_clause(
 					Self::write_where_clause(
-						Self::write_where_clause(context, columns.id, &match_condition.id, query),
+						Self::write_where_clause(
+							context,
+							columns.id,
+							&match_condition.id.map_ref(|id| PgUuid(*id)),
+							query,
+						),
 						columns.category,
 						&match_condition.category,
 						query,
@@ -549,7 +559,7 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 				query,
 			),
 			columns.timesheet_id,
-			&match_condition.timesheet_id,
+			&match_condition.timesheet_id.map_ref(|id| PgUuid(*id)),
 			query,
 		)
 	}
@@ -620,7 +630,7 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 								query,
 							),
 							columns.id,
-							&match_condition.id,
+							&match_condition.id.map_ref(|id| PgUuid(*id)),
 							query,
 						),
 						columns.increment,
@@ -656,7 +666,12 @@ impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 		let columns = OrganizationColumns::default().scope(ident);
 
 		Self::write_where_clause(
-			Self::write_where_clause(context, columns.id, &match_condition.id, query),
+			Self::write_where_clause(
+				context,
+				columns.id,
+				&match_condition.id.map_ref(|id| PgUuid(*id)),
+				query,
+			),
 			columns.name,
 			&match_condition.name,
 			query,
@@ -680,7 +695,12 @@ impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 		Self::write_where_clause(
 			Self::write_where_clause(
 				Self::write_where_clause(
-					Self::write_where_clause(context, columns.id, &match_condition.id, query),
+					Self::write_where_clause(
+						context,
+						columns.id,
+						&match_condition.id.map_ref(|id| PgUuid(*id)),
+						query,
+					),
 					columns.time_begin,
 					&match_condition.time_begin.map_ref(|d| PgTimestampTz(*d)),
 					query,

@@ -4,6 +4,7 @@ use winvoice_adapter::schema::{ExpensesAdapter, TimesheetAdapter};
 use winvoice_schema::{
 	chrono::{DateTime, Utc},
 	Employee,
+	Id,
 	Job,
 	Timesheet,
 };
@@ -24,33 +25,26 @@ impl TimesheetAdapter for PgTimesheet
 		work_notes: String,
 	) -> Result<Timesheet>
 	{
-		let row = sqlx::query!(
+		let id = Id::new_v4();
+		sqlx::query!(
 			"INSERT INTO timesheets
-				(employee_id, job_id, time_begin, time_end, work_notes)
+				(id, employee_id, job_id, time_begin, time_end, work_notes)
 			VALUES
-				($1,          $2,     $3,         $4,       $5)
-			RETURNING id;",
+				($1, $2,          $3,     $4,         $5,       $6);",
+			id,
 			employee.id,
 			job.id,
 			time_begin.naive_utc(),
 			time_end.map(|d| d.naive_utc()),
 			work_notes,
 		)
-		.fetch_one(&mut *connection)
+		.execute(&mut *connection)
 		.await?;
 
-		let expenses_db = PgExpenses::create(connection, expenses, row.id).await?;
+		let expenses_db = PgExpenses::create(connection, expenses, id).await?;
 
-		Ok(Timesheet {
-			id: row.id,
-			employee,
-			expenses: expenses_db,
-			job,
-			time_begin,
-			time_end,
-			work_notes,
-		}
-		.pg_sanitize())
+		Ok(Timesheet { id, employee, expenses: expenses_db, job, time_begin, time_end, work_notes }
+			.pg_sanitize())
 	}
 }
 

@@ -1,6 +1,6 @@
 use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::schema::LocationAdapter;
-use winvoice_schema::{Currency, Location};
+use winvoice_schema::{Currency, Id, Location};
 
 use super::PgLocation;
 
@@ -16,16 +16,18 @@ impl LocationAdapter for PgLocation
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{
-		let row = sqlx::query!(
-			"INSERT INTO locations (currency, name, outer_id) VALUES ($1, $2, $3) RETURNING id;",
+		let id = Id::new_v4();
+		sqlx::query!(
+			"INSERT INTO locations (id, currency, name, outer_id) VALUES ($1, $2, $3, $4);",
+			id,
 			currency.map(|c| -> &str { c.into() }),
 			name,
 			outer.as_ref().map(|o| o.id)
 		)
-		.fetch_one(connection)
+		.execute(connection)
 		.await?;
 
-		Ok(Location { currency, id: row.id, name, outer: outer.map(Into::into) })
+		Ok(Location { currency, id, name, outer: outer.map(Into::into) })
 	}
 }
 

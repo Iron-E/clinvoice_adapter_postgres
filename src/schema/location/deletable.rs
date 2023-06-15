@@ -1,9 +1,9 @@
 use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::{schema::columns::LocationColumns, Deletable};
-use winvoice_schema::{Id, Location};
+use winvoice_schema::Location;
 
 use super::PgLocation;
-use crate::PgSchema;
+use crate::{fmt::PgUuid, PgSchema};
 
 #[async_trait::async_trait]
 impl Deletable for PgLocation
@@ -20,9 +20,9 @@ impl Deletable for PgLocation
 		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		const fn mapper(l: &Location) -> Id
+		const fn mapper(l: &Location) -> PgUuid
 		{
-			l.id
+			PgUuid(l.id)
 		}
 
 		// TODO: use `for<'a> |e: &'a Location| e.id`

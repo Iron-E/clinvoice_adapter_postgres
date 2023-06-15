@@ -15,7 +15,10 @@ use winvoice_adapter::{
 use winvoice_match::{Match, MatchLocation, MatchOption};
 use winvoice_schema::{Currency, Id, Location};
 
-use crate::{fmt::PgLocationRecursiveCte, PgSchema};
+use crate::{
+	fmt::{PgLocationRecursiveCte, PgUuid},
+	PgSchema,
+};
 
 const COLUMNS: LocationColumns<&str> = LocationColumns::default();
 
@@ -80,7 +83,7 @@ impl PgLocation
 							_ => Default::default(),
 						},
 						outer_columns.id,
-						&match_condition.id,
+						&match_condition.id.map_ref(|id| PgUuid(*id)),
 						query,
 					),
 					outer_columns.name,
@@ -195,7 +198,7 @@ impl PgLocation
 	pub(super) async fn retrieve_matching_ids<'connection, Conn>(
 		connection: Conn,
 		match_condition: &MatchLocation,
-	) -> Result<Match<Id>>
+	) -> Result<Match<PgUuid>>
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{
@@ -210,7 +213,7 @@ impl PgLocation
 		query
 			.prepare()
 			.fetch(connection)
-			.map_ok(|row| row.get::<Id, _>(COLUMNS.id).into())
+			.map_ok(|row| PgUuid(row.get::<Id, _>(COLUMNS.id)).into())
 			.try_collect()
 			.map_ok(Match::Or)
 			.await

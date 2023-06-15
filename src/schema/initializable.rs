@@ -12,8 +12,8 @@ where
 		"CREATE TABLE IF NOT EXISTS locations
 		(
 			currency text,
-			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-			outer_id bigint REFERENCES locations(id),
+			id uuid PRIMARY KEY,
+			outer_id uuid REFERENCES locations(id),
 			name text NOT NULL,
 
 			CONSTRAINT locations__not_outside_self CHECK (id <> outer_id)
@@ -32,8 +32,8 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS organizations
 		(
-			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-			location_id bigint NOT NULL REFERENCES locations(id),
+			id uuid PRIMARY KEY,
+			location_id uuid NOT NULL REFERENCES locations(id),
 			name text NOT NULL
 		);"
 	)
@@ -50,7 +50,7 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS employees
 		(
-			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+			id uuid PRIMARY KEY,
 			name text NOT NULL,
 			status text NOT NULL,
 			title text NOT NULL
@@ -67,11 +67,11 @@ where
 	Conn: Executor<'connection, Database = Postgres>,
 {
 	sqlx::query!(
-		r#"CREATE TABLE IF NOT EXISTS contact_information
+		r"CREATE TABLE IF NOT EXISTS contact_information
 		(
 			label text NOT NULL PRIMARY KEY,
 
-			address_id bigint REFERENCES locations(id),
+			address_id uuid REFERENCES locations(id),
 			email text CHECK (email ~ '^.*@.*\..*$'),
 			other text,
 			phone text CHECK (phone ~ '^[0-9\- ]+$'),
@@ -106,7 +106,7 @@ where
 					phone IS NOT null
 				)
 			)
-		);"#
+		);"
 	)
 	.execute(connection)
 	.await?;
@@ -139,8 +139,8 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS jobs
 		(
-			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-			client_id bigint NOT NULL REFERENCES organizations(id),
+			id uuid PRIMARY KEY,
+			client_id uuid NOT NULL REFERENCES organizations(id),
 			date_close timestamp,
 			date_open timestamp NOT NULL,
 			increment interval NOT NULL,
@@ -172,9 +172,9 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS timesheets
 		(
-			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-			employee_id bigint NOT NULL REFERENCES employees(id),
-			job_id bigint NOT NULL REFERENCES jobs(id),
+			id uuid PRIMARY KEY,
+			employee_id uuid NOT NULL REFERENCES employees(id),
+			job_id uuid NOT NULL REFERENCES jobs(id),
 			time_begin timestamp NOT NULL,
 			time_end timestamp,
 			work_notes text NOT NULL,
@@ -196,8 +196,8 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS expenses
 		(
-			id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-			timesheet_id bigint NOT NULL REFERENCES timesheets(id) ON DELETE CASCADE,
+			id uuid PRIMARY KEY,
+			timesheet_id uuid NOT NULL REFERENCES timesheets(id) ON DELETE CASCADE,
 			category text NOT NULL,
 			cost money_in_eur NOT NULL,
 			description text NOT NULL

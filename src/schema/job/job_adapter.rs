@@ -5,6 +5,7 @@ use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::schema::JobAdapter;
 use winvoice_schema::{
 	chrono::{DateTime, Utc},
+	Id,
 	Invoice,
 	Job,
 	Organization,
@@ -34,12 +35,13 @@ impl JobAdapter for PgJob
 			.map(|r| invoice.hourly_rate.exchange(Default::default(), &r))
 			.map_err(util::finance_err_to_sqlx)?;
 
-		let row = sqlx::query!(
+		let id = Id::new_v4();
+		sqlx::query!(
 			"INSERT INTO jobs
-				(client_id, date_close, date_open, increment, invoice_date_issued, invoice_date_paid, invoice_hourly_rate, notes, objectives)
+				(id, client_id, date_close, date_open, increment, invoice_date_issued, invoice_date_paid, invoice_hourly_rate, notes, objectives)
 			VALUES
-				($1,        $2,         $3,        $4,        $5,                  $6,                $7,                  $8,    $9)
-			RETURNING id;",
+				($1, $2,        $3,         $4,        $5,        $6,                  $7,                $8,                  $9,    $10);",
+			id,
 			client.id,
 			date_close.map(|d| d.naive_utc()),
 			date_open.naive_utc(),
@@ -50,10 +52,10 @@ impl JobAdapter for PgJob
 			notes,
 			objectives,
 		)
-		.fetch_one(connection)
+		.execute(connection)
 		.await?;
 
-		Ok(Job { client, date_close, date_open, id: row.id, increment, invoice, notes, objectives }
+		Ok(Job { client, date_close, date_open, id, increment, invoice, notes, objectives }
 			.pg_sanitize())
 	}
 }

@@ -75,6 +75,7 @@ mod tests
 		Retrievable,
 	};
 	use winvoice_match::{Match, MatchLocation, MatchOrganization};
+	use winvoice_schema::Id;
 
 	use crate::schema::{util, PgLocation, PgOrganization};
 
@@ -111,7 +112,7 @@ mod tests
 				location: MatchLocation {
 					outer: Some(
 						MatchLocation {
-							id: Match::InRange(usa.id - 1, usa.id + 1),
+							id: Match::Or(vec![usa.id.into(), Id::new_v4().into()]),
 							name: usa.name.into(),
 							..Default::default()
 						}

@@ -28,7 +28,8 @@ use winvoice_adapter::{
 	WriteWhereClause,
 };
 use winvoice_match::Match;
-use winvoice_schema::Id;
+
+use crate::fmt::PgUuid;
 
 /// The struct which implements several [`winvoice_adapter`] traits to allow Winvoice to function
 /// within a Postgres database environment.
@@ -42,7 +43,7 @@ impl PgSchema
 	pub async fn delete<'args, Conn, Iter, Table>(connection: Conn, ids: Iter) -> Result<()>
 	where
 		Conn: Executor<'args, Database = Postgres>,
-		Iter: Iterator<Item = Id>,
+		Iter: Iterator<Item = PgUuid>,
 		Table: TableToSql,
 	{
 		let mut peekable_entities = ids.peekable();

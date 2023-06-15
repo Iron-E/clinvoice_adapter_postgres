@@ -1,6 +1,6 @@
 use sqlx::{Executor, Postgres, Result};
 use winvoice_adapter::schema::OrganizationAdapter;
-use winvoice_schema::{Location, Organization};
+use winvoice_schema::{Id, Location, Organization};
 
 use super::PgOrganization;
 
@@ -15,15 +15,17 @@ impl OrganizationAdapter for PgOrganization
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{
-		let row = sqlx::query!(
-			"INSERT INTO organizations (location_id, name) VALUES ($1, $2) RETURNING id;",
+		let id = Id::new_v4();
+		sqlx::query!(
+			"INSERT INTO organizations (id, location_id, name) VALUES ($1, $2, $3);",
+			id,
 			location.id,
 			name
 		)
-		.fetch_one(connection)
+		.execute(connection)
 		.await?;
 
-		Ok(Organization { id: row.id, location, name })
+		Ok(Organization { id, location, name })
 	}
 }
 
