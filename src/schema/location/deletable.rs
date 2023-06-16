@@ -20,9 +20,9 @@ impl Deletable for PgLocation
 		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		const fn mapper(l: &Location) -> PgUuid
+		fn mapper(l: &Location) -> PgUuid
 		{
-			PgUuid(l.id)
+			PgUuid::from(l.id)
 		}
 
 		// TODO: use `for<'a> |e: &'a Location| e.id`

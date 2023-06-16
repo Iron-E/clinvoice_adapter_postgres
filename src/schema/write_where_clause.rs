@@ -452,7 +452,7 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 					.push(context)
 					.push(ident)
 					.push(sql::LIKE)
-					.push_bind(PgContains(string).to_string());
+					.push_bind(PgContains::from(string).to_string());
 			},
 			MatchStr::EqualTo(string) =>
 			{
@@ -504,7 +504,7 @@ impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 					Self::write_where_clause(
 						context,
 						columns.id,
-						&match_condition.id.map_ref(|id| PgUuid(*id)),
+						&match_condition.id.map_copied(PgUuid::from),
 						query,
 					),
 					columns.name,
@@ -542,7 +542,7 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 						Self::write_where_clause(
 							context,
 							columns.id,
-							&match_condition.id.map_ref(|id| PgUuid(*id)),
+							&match_condition.id.map_copied(PgUuid::from),
 							query,
 						),
 						columns.category,
@@ -551,7 +551,7 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 					),
 					// NOTE: `cost` is stored as text on the DB
 					columns.typecast("numeric").cost,
-					&match_condition.cost.map_ref(|c| c.amount),
+					&match_condition.cost.map_copied(|c| c.amount),
 					query,
 				),
 				columns.description,
@@ -559,7 +559,7 @@ impl WriteWhereClause<Postgres, &MatchExpense> for PgSchema
 				query,
 			),
 			columns.timesheet_id,
-			&match_condition.timesheet_id.map_ref(|id| PgUuid(*id)),
+			&match_condition.timesheet_id.map_copied(PgUuid::from),
 			query,
 		)
 	}
@@ -592,7 +592,7 @@ impl WriteWhereClause<Postgres, &MatchInvoice> for PgSchema
 			),
 			// NOTE: `hourly_rate` is stored as text on the DB
 			columns.typecast("numeric").invoice_hourly_rate,
-			&match_condition.hourly_rate.map_ref(|r| r.amount),
+			&match_condition.hourly_rate.map_copied(|r| r.amount),
 			query,
 		)
 	}
@@ -622,19 +622,19 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 									columns.date_close,
 									&match_condition
 										.date_close
-										.map_ref(|m| m.map_ref(|d| PgTimestampTz(*d))),
+										.map_ref(|m| m.map_copied(PgTimestampTz::from)),
 									query,
 								),
 								columns.date_open,
-								&match_condition.date_open.map_ref(|d| PgTimestampTz(*d)),
+								&match_condition.date_open.map_copied(PgTimestampTz::from),
 								query,
 							),
 							columns.id,
-							&match_condition.id.map_ref(|id| PgUuid(*id)),
+							&match_condition.id.map_copied(PgUuid::from),
 							query,
 						),
 						columns.increment,
-						&match_condition.increment.map_ref(|i| PgInterval(i.into_inner())),
+						&match_condition.increment.map_copied(PgInterval::from),
 						query,
 					),
 					ident,
@@ -669,7 +669,7 @@ impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 			Self::write_where_clause(
 				context,
 				columns.id,
-				&match_condition.id.map_ref(|id| PgUuid(*id)),
+				&match_condition.id.map_copied(PgUuid::from),
 				query,
 			),
 			columns.name,
@@ -698,15 +698,15 @@ impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 					Self::write_where_clause(
 						context,
 						columns.id,
-						&match_condition.id.map_ref(|id| PgUuid(*id)),
+						&match_condition.id.map_copied(PgUuid::from),
 						query,
 					),
 					columns.time_begin,
-					&match_condition.time_begin.map_ref(|d| PgTimestampTz(*d)),
+					&match_condition.time_begin.map_copied(PgTimestampTz::from),
 					query,
 				),
 				columns.time_end,
-				&match_condition.time_end.map_ref(|m| m.map_ref(|d| PgTimestampTz(*d))),
+				&match_condition.time_end.map_ref(|m| m.map_copied(PgTimestampTz::from)),
 				query,
 			),
 			columns.work_notes,

@@ -20,9 +20,9 @@ impl Deletable for PgExpenses
 		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		const fn mapper(x: &Expense) -> PgUuid
+		fn mapper(x: &Expense) -> PgUuid
 		{
-			PgUuid(x.id)
+			PgUuid::from(x.id)
 		}
 
 		// TODO: use `for<'a> |e: &'a Expense| e.id`

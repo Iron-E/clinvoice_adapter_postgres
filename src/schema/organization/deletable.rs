@@ -20,9 +20,9 @@ impl Deletable for PgOrganization
 		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		const fn mapper(o: &Organization) -> PgUuid
+		fn mapper(o: &Organization) -> PgUuid
 		{
-			PgUuid(o.id)
+			PgUuid::from(o.id)
 		}
 
 		// TODO: use `for<'a> |e: &'a Organization| e.id`

@@ -20,9 +20,9 @@ impl Deletable for PgTimesheet
 		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
-		const fn mapper(t: &Timesheet) -> PgUuid
+		fn mapper(t: &Timesheet) -> PgUuid
 		{
-			PgUuid(t.id)
+			PgUuid::from(t.id)
 		}
 
 		// TODO: use `for<'a> |e: &'a Timesheet| e.id`

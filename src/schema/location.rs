@@ -83,7 +83,7 @@ impl PgLocation
 							_ => Default::default(),
 						},
 						outer_columns.id,
-						&match_condition.id.map_ref(|id| PgUuid(*id)),
+						&match_condition.id.map_copied(PgUuid::from),
 						query,
 					),
 					outer_columns.name,
@@ -213,7 +213,7 @@ impl PgLocation
 		query
 			.prepare()
 			.fetch(connection)
-			.map_ok(|row| PgUuid(row.get::<Id, _>(COLUMNS.id)).into())
+			.map_ok(|row| PgUuid::from(row.get::<Id, _>(COLUMNS.id)).into())
 			.try_collect()
 			.map_ok(Match::Or)
 			.await
