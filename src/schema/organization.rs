@@ -15,6 +15,7 @@ pub struct PgOrganization;
 
 impl PgOrganization
 {
+	/// Convert the `row` into a typed [`Organization`].
 	pub async fn row_to_view<'connection, Conn, Column>(
 		connection: Conn,
 		columns: OrganizationColumns<Column>,

@@ -12,7 +12,7 @@ where
 		"CREATE TABLE IF NOT EXISTS locations
 		(
 			currency text,
-			id uuid PRIMARY KEY,
+			id uuid NOT NULL PRIMARY KEY,
 			outer_id uuid REFERENCES locations(id),
 			name text NOT NULL,
 
@@ -32,9 +32,26 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS organizations
 		(
-			id uuid PRIMARY KEY,
+			id uuid NOT NULL PRIMARY KEY,
 			location_id uuid NOT NULL REFERENCES locations(id),
 			name text NOT NULL
+		);"
+	)
+	.execute(connection)
+	.await?;
+	Ok(())
+}
+
+/// Initialize the `departments` table.
+async fn init_departments<'connection, Conn>(connection: Conn) -> Result<()>
+where
+	Conn: Executor<'connection, Database = Postgres>,
+{
+	sqlx::query!(
+		"CREATE TABLE IF NOT EXISTS departments
+		(
+			id uuid NOT NULL PRIMARY KEY,
+			name text NOT NULL UNIQUE
 		);"
 	)
 	.execute(connection)
@@ -50,9 +67,10 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS employees
 		(
-			id uuid PRIMARY KEY,
+			active boolean NOT NULL,
+			department_id uuid NOT NULL REFERENCES departments(id),
+			id uuid NOT NULL PRIMARY KEY,
 			name text NOT NULL,
-			status text NOT NULL,
 			title text NOT NULL
 		);"
 	)
@@ -120,11 +138,11 @@ where
 {
 	sqlx::query!(
 		r"DO $$
-BEGIN
-	IF NOT EXISTS (SELECT FROM pg_type WHERE typname = 'money_in_eur') THEN
-		CREATE DOMAIN money_in_eur AS text CHECK (VALUE ~ '^\d+(\.\d+)?$');
-	END IF;
-END$$;"
+		BEGIN
+			IF NOT EXISTS (SELECT FROM pg_type WHERE typname = 'money_in_eur') THEN
+				CREATE DOMAIN money_in_eur AS text CHECK (VALUE ~ '^\d+(\.\d+)?$');
+			END IF;
+		END$$;"
 	)
 	.execute(connection)
 	.await?;
@@ -139,7 +157,7 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS jobs
 		(
-			id uuid PRIMARY KEY,
+			id uuid NOT NULL PRIMARY KEY,
 			client_id uuid NOT NULL REFERENCES organizations(id),
 			date_close timestamp,
 			date_open timestamp NOT NULL,
@@ -164,6 +182,24 @@ where
 	Ok(())
 }
 
+/// Initialize the `jobs` table.
+async fn init_job_departments<'connection, Conn>(connection: Conn) -> Result<()>
+where
+	Conn: Executor<'connection, Database = Postgres>,
+{
+	sqlx::query!(
+		"CREATE TABLE IF NOT EXISTS job_departments
+		(
+			department_id uuid REFERENCES departments(id),
+			job_id uuid REFERENCES jobs(id) ON DELETE CASCADE,
+			PRIMARY KEY (department_id, job_id)
+		);"
+	)
+	.execute(connection)
+	.await?;
+	Ok(())
+}
+
 /// Initialize the `timesheets` table.
 async fn init_timesheets<'connection, Conn>(connection: Conn) -> Result<()>
 where
@@ -172,9 +208,9 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS timesheets
 		(
-			id uuid PRIMARY KEY,
+			id uuid NOT NULL PRIMARY KEY,
 			employee_id uuid NOT NULL REFERENCES employees(id),
-			job_id uuid NOT NULL REFERENCES jobs(id),
+			job_id uuid NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
 			time_begin timestamp NOT NULL,
 			time_end timestamp,
 			work_notes text NOT NULL,
@@ -196,7 +232,7 @@ where
 	sqlx::query!(
 		"CREATE TABLE IF NOT EXISTS expenses
 		(
-			id uuid PRIMARY KEY,
+			id uuid NOT NULL PRIMARY KEY,
 			timesheet_id uuid NOT NULL REFERENCES timesheets(id) ON DELETE CASCADE,
 			category text NOT NULL,
 			cost money_in_eur NOT NULL,
@@ -222,9 +258,11 @@ impl Initializable for PgSchema
 		init_locations(&mut transaction).await?;
 		init_organizations(&mut transaction).await?;
 		init_contact_info(&mut transaction).await?;
+		init_departments(&mut transaction).await?;
 		init_employees(&mut transaction).await?;
 		init_money(&mut transaction).await?;
 		init_jobs(&mut transaction).await?;
+		init_job_departments(&mut transaction).await?;
 		init_timesheets(&mut transaction).await?;
 		init_expenses(&mut transaction).await?;
 

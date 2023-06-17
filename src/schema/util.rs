@@ -2,11 +2,16 @@
 //! [`winvoice_adapter_postgres::schema`].
 
 use core::time::Duration;
-use std::io;
+use std::{collections::BTreeSet, io};
 
 use money2::Error as FinanceError;
-use sqlx::{postgres::types::PgInterval, Error, Result};
-use winvoice_schema::chrono::{DateTime, NaiveDateTime, Utc};
+use sqlx::{postgres::types::PgInterval, Error, Executor, Postgres, QueryBuilder, Result};
+use winvoice_adapter::fmt::QueryBuilderExt;
+use winvoice_schema::{
+	chrono::{DateTime, NaiveDateTime, Utc},
+	Department,
+	Id,
+};
 #[cfg(test)]
 use {sqlx::PgPool, std::sync::OnceLock};
 
@@ -49,6 +54,28 @@ pub fn duration_from(interval: PgInterval) -> Result<Duration>
 				.unwrap_or(0),
 		nanoseconds,
 	))
+}
+
+pub(crate) async fn insert_into_job_departments<'conn, Conn>(
+	connection: Conn,
+	departments: &BTreeSet<Department>,
+	job_id: Id,
+) -> Result<()>
+where
+	Conn: Executor<'conn, Database = Postgres>,
+{
+	if !departments.is_empty()
+	{
+		let mut query = QueryBuilder::new("INSERT INTO job_departments (department_id, job_id) ");
+		query.push_values(departments.iter(), |mut q, d| {
+			q.push_bind(d.id).push_bind(job_id);
+		});
+
+		tracing::debug!("Generated SQL: {}", query.sql());
+		query.prepare().execute(connection).await?;
+	}
+
+	Ok(())
 }
 
 /// Converts a [`NaiveDateTime`] to a [`DateTime<Utc>`].

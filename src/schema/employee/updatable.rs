@@ -3,7 +3,7 @@ use winvoice_adapter::{schema::columns::EmployeeColumns, Updatable};
 use winvoice_schema::Employee;
 
 use super::PgEmployee;
-use crate::PgSchema;
+use crate::{schema::PgDepartment, PgSchema};
 
 #[async_trait::async_trait]
 impl Updatable for PgEmployee
@@ -29,33 +29,45 @@ impl Updatable for PgEmployee
 
 		PgSchema::update(connection, EmployeeColumns::default(), |query| {
 			query.push_values(peekable_entities, |mut q, e| {
-				q.push_bind(e.id).push_bind(&e.name).push_bind(&e.status).push_bind(&e.title);
+				q.push_bind(e.active)
+					.push_bind(e.department.id)
+					.push_bind(e.id)
+					.push_bind(&e.name)
+					.push_bind(&e.title);
 			});
 		})
-		.await
+		.await?;
+
+		PgDepartment::update(connection, entities.map(|e| &e.department)).await
 	}
 }
 
 #[cfg(test)]
 mod tests
 {
+	use mockd::{job, name};
 	use pretty_assertions::assert_eq;
-	use winvoice_adapter::{schema::EmployeeAdapter, Retrievable, Updatable};
+	use winvoice_adapter::{
+		schema::{DepartmentAdapter, EmployeeAdapter},
+		Retrievable,
+		Updatable,
+	};
 
-	use crate::schema::{util, PgEmployee};
+	use crate::schema::{util, PgDepartment, PgEmployee};
 
 	#[tokio::test]
 	async fn update()
 	{
 		let connection = util::connect().await;
 
-		let mut employee =
-			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into())
-				.await
-				.unwrap();
+		let department = PgDepartment::create(&connection, job::level()).await.unwrap();
 
+		let mut employee =
+			PgEmployee::create(&connection, department, name::full(), job::title()).await.unwrap();
+
+		employee.active = !employee.active;
+		employee.department.name = format!("Not {}", employee.department.name);
 		employee.name = format!("Not {}", employee.name);
-		employee.status = format!("Not {}", employee.status);
 		employee.title = format!("Not {}", employee.title);
 
 		{

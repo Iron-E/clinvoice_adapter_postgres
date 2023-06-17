@@ -50,14 +50,14 @@ mod tests
 			&connection,
 			Currency::Usd.into(),
 			"USA".into(),
-			Some(earth.clone()),
+			earth.clone().into(),
 		)
 		.await
 		.unwrap();
 
 		let (arizona, utah) = futures::try_join!(
-			PgLocation::create(&connection, None, "Arizona".into(), Some(usa.clone())),
-			PgLocation::create(&connection, None, "Utah".into(), Some(usa.clone())),
+			PgLocation::create(&connection, None, "Arizona".into(), usa.clone().into()),
+			PgLocation::create(&connection, None, "Utah".into(), usa.clone().into()),
 		)
 		.unwrap();
 

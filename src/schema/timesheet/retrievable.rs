@@ -4,9 +4,11 @@ use sqlx::{Pool, Postgres, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
 	schema::columns::{
+		DepartmentColumns,
 		EmployeeColumns,
 		ExpenseColumns,
 		JobColumns,
+		JobDepartmentColumns,
 		LocationColumns,
 		OrganizationColumns,
 		TimesheetColumns,
@@ -44,18 +46,24 @@ impl Retrievable for PgTimesheet
 	{
 		const COLUMNS: TimesheetColumns<&str> = TimesheetColumns::default();
 
+		const DEPARTMENTS_AGGREGATED_ALIAS: &str = "D_A";
+		const DEPARTMENTS_AGGREGATED_IDENT: &str = "departments_aggregated";
 		const EXPENSES_AGGREGATED_IDENT: &str = "expenses_aggregated";
 
+		const EMPLOYEE_DEPARTMENT_COLUMNS_UNIQUE: DepartmentColumns = DepartmentColumns::unique();
 		const EMPLOYEE_COLUMNS_UNIQUE: EmployeeColumns<&str> = EmployeeColumns::unique();
 		const JOB_COLUMNS_UNIQUE: JobColumns<&str> = JobColumns::unique();
 		const ORGANIZATION_COLUMNS_UNIQUE: OrganizationColumns<&str> =
 			OrganizationColumns::unique();
 
 		let columns = COLUMNS.default_scope();
+		let department_columns = DepartmentColumns::default().scope(DEPARTMENTS_AGGREGATED_ALIAS);
 		let employee_columns = EmployeeColumns::default().default_scope();
+		let employee_department_columns = DepartmentColumns::default().default_scope();
 		let exchange_rates_fut = ExchangeRates::new().map_err(util::finance_err_to_sqlx);
 		let expense_columns = ExpenseColumns::default().default_scope();
 		let job_columns = JobColumns::default().default_scope();
+		let job_department_columns = JobDepartmentColumns::default().default_scope();
 		let location_columns = LocationColumns::default().default_scope();
 		let match_location = match_condition.job.client.location.clone();
 		let mut query = PgLocation::query_with_recursive(&match_location);
@@ -65,8 +73,16 @@ impl Retrievable for PgTimesheet
 			.push(sql::SELECT)
 			.push_columns(&columns)
 			.push_more_columns(&employee_columns.r#as(EMPLOYEE_COLUMNS_UNIQUE))
+			.push_more_columns(
+				&employee_department_columns.r#as(EMPLOYEE_DEPARTMENT_COLUMNS_UNIQUE),
+			)
 			.push(",array_agg((")
-			.push_columns(&expense_columns)
+			.push(DepartmentColumns::DEFAULT_ALIAS)
+			.push("))")
+			.push(sql::AS)
+			.push(DEPARTMENTS_AGGREGATED_IDENT)
+			.push(",array_agg((")
+			.push(ExpenseColumns::DEFAULT_ALIAS)
 			.push("))")
 			.push(sql::AS)
 			.push(EXPENSES_AGGREGATED_IDENT)
@@ -77,9 +93,25 @@ impl Retrievable for PgTimesheet
 				employee_columns.id,
 				columns.employee_id,
 			)
+			.push_default_equijoin::<DepartmentColumns, _, _>(
+				employee_department_columns.id,
+				employee_columns.department_id,
+			)
 			.push(sql::LEFT)
 			.push_default_equijoin::<ExpenseColumns, _, _>(expense_columns.timesheet_id, columns.id)
 			.push_default_equijoin::<JobColumns, _, _>(job_columns.id, columns.job_id)
+			.push(sql::LEFT)
+			.push_default_equijoin::<JobDepartmentColumns, _, _>(
+				job_department_columns.job_id,
+				columns.id,
+			)
+			.push(sql::LEFT)
+			.push_equijoin(
+				DepartmentColumns::TABLE_NAME,
+				DEPARTMENTS_AGGREGATED_ALIAS,
+				department_columns.id,
+				job_department_columns.department_id,
+			)
 			.push_default_equijoin::<OrganizationColumns, _, _>(
 				organization_columns.id,
 				job_columns.client_id,
@@ -100,25 +132,35 @@ impl Retrievable for PgTimesheet
 				PgSchema::write_where_clause(
 					PgSchema::write_where_clause(
 						PgSchema::write_where_clause(
-							Default::default(),
-							TimesheetColumns::DEFAULT_ALIAS,
-							&exchanged_condition,
+							PgSchema::write_where_clause(
+								PgSchema::write_where_clause(
+									Default::default(),
+									TimesheetColumns::DEFAULT_ALIAS,
+									&exchanged_condition,
+									&mut query,
+								),
+								EmployeeColumns::DEFAULT_ALIAS,
+								&exchanged_condition.employee,
+								&mut query,
+							),
+							EmployeeColumns::DEFAULT_ALIAS,
+							&exchanged_condition.employee.department,
 							&mut query,
 						),
-						EmployeeColumns::DEFAULT_ALIAS,
-						&exchanged_condition.employee,
+						ExpenseColumns::DEFAULT_ALIAS,
+						&exchanged_condition.expenses,
 						&mut query,
 					),
-					ExpenseColumns::DEFAULT_ALIAS,
-					&exchanged_condition.expenses,
+					JobColumns::DEFAULT_ALIAS,
+					&exchanged_condition.job,
 					&mut query,
 				),
-				JobColumns::DEFAULT_ALIAS,
-				&exchanged_condition.job,
+				OrganizationColumns::DEFAULT_ALIAS,
+				&exchanged_condition.job.client,
 				&mut query,
 			),
-			OrganizationColumns::DEFAULT_ALIAS,
-			&exchanged_condition.job.client,
+			DEPARTMENTS_AGGREGATED_ALIAS,
+			&exchanged_condition.job.departments,
 			&mut query,
 		);
 
@@ -127,6 +169,7 @@ impl Retrievable for PgTimesheet
 			.separated(',')
 			.push(columns.id)
 			.push(employee_columns.id)
+			.push(employee_department_columns.id)
 			.push(job_columns.id)
 			.push(organization_columns.id);
 
@@ -138,6 +181,8 @@ impl Retrievable for PgTimesheet
 				Self::row_to_view(
 					connection,
 					COLUMNS,
+					DEPARTMENTS_AGGREGATED_IDENT,
+					EMPLOYEE_DEPARTMENT_COLUMNS_UNIQUE,
 					EMPLOYEE_COLUMNS_UNIQUE,
 					EXPENSES_AGGREGATED_IDENT,
 					JOB_COLUMNS_UNIQUE,
@@ -156,10 +201,12 @@ mod tests
 {
 	use core::time::Duration;
 
+	use mockd::{address, company, job, name, words};
 	use money2::{Exchange, ExchangeRates};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{
+			DepartmentAdapter,
 			EmployeeAdapter,
 			JobAdapter,
 			LocationAdapter,
@@ -168,7 +215,7 @@ mod tests
 		},
 		Retrievable,
 	};
-	use winvoice_match::{Match, MatchSet, MatchTimesheet};
+	use winvoice_match::{Match, MatchDepartment, MatchSet, MatchTimesheet};
 	use winvoice_schema::{
 		chrono::{TimeZone, Utc},
 		Currency,
@@ -177,7 +224,15 @@ mod tests
 		Money,
 	};
 
-	use crate::schema::{util, PgEmployee, PgJob, PgLocation, PgOrganization, PgTimesheet};
+	use crate::schema::{
+		util,
+		PgDepartment,
+		PgEmployee,
+		PgJob,
+		PgLocation,
+		PgOrganization,
+		PgTimesheet,
+	};
 
 	#[tokio::test]
 	#[tracing_test::traced_test]
@@ -185,102 +240,109 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let city = PgLocation::create(&connection, None, address::state(), None).await.unwrap();
+		let street = PgLocation::create(
+			&connection,
+			None,
+			format!(
+				"{} {} {}",
+				address::street_prefix(),
+				address::street_name(),
+				address::street_suffix()
+			),
+			city.into(),
+		)
+		.await
+		.unwrap();
 
-		let usa = PgLocation::create(&connection, None, "USA".into(), Some(earth)).await.unwrap();
-
-		let (arizona, utah) = futures::try_join!(
-			PgLocation::create(&connection, None, "Arizona".into(), Some(usa.clone())),
-			PgLocation::create(&connection, None, "Utah".into(), Some(usa.clone())),
+		let (department, department2, location, location2) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, job::level()),
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 		)
 		.unwrap();
 
 		let (organization, organization2) = futures::try_join!(
-			PgOrganization::create(&connection, arizona.clone(), "Some Organization".into()),
-			PgOrganization::create(&connection, utah, "Some Other Organizatión".into()),
+			PgOrganization::create(&connection, location.clone(), company::company()),
+			PgOrganization::create(&connection, location2.clone(), company::company()),
 		)
 		.unwrap();
 
 		let (employee, employee2) = futures::try_join!(
-			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into()),
-			PgEmployee::create(
-				&connection,
-				"Another Gúy".into(),
-				"Management".into(),
-				"Assistant to Regional Manager".into(),
-			),
+			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
+			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
 		)
 		.unwrap();
 
-		let (job, job2) = futures::try_join!(
-			PgJob::create(
-				&connection,
-				organization.clone(),
-				None,
-				Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
-				Duration::from_secs(900),
-				Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
-				String::new(),
-				"Do something".into()
-			),
-			PgJob::create(
-				&connection,
-				organization2.clone(),
-				Utc.with_ymd_and_hms(3000, 01, 13, 11, 30, 00).latest(),
-				Utc.with_ymd_and_hms(3000, 01, 12, 09, 15, 42).unwrap(),
-				Duration::from_secs(900),
-				Invoice {
-					date: Some(InvoiceDate {
-						issued: Utc.with_ymd_and_hms(3000, 01, 13, 11, 45, 00).unwrap(),
-						paid: Utc.with_ymd_and_hms(3000, 01, 15, 14, 27, 00).latest(),
-					}),
-					hourly_rate: Money::new(200_00, 2, Currency::Jpy),
-				},
-				String::new(),
-				"Do something".into()
-			),
+		let mut tx = connection.begin().await.unwrap();
+		let job = PgJob::create(
+			&mut tx,
+			organization.clone(),
+			None,
+			Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
+			[department.clone()].into_iter().collect(),
+			Duration::from_secs(900),
+			Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
+			String::new(),
+			"Do something".into(),
 		)
+		.await
 		.unwrap();
 
-		// {{{
-		let mut transaction = connection.begin().await.unwrap();
+		let job2 = PgJob::create(
+			&mut tx,
+			organization2.clone(),
+			Utc.with_ymd_and_hms(3000, 01, 13, 11, 30, 00).latest(),
+			Utc.with_ymd_and_hms(3000, 01, 12, 09, 15, 42).unwrap(),
+			[department2.clone()].into_iter().collect(),
+			Duration::from_secs(900),
+			Invoice {
+				date: InvoiceDate {
+					issued: Utc.with_ymd_and_hms(3000, 01, 13, 11, 45, 00).unwrap(),
+					paid: Utc.with_ymd_and_hms(3000, 01, 15, 14, 27, 00).latest(),
+				}
+				.into(),
+				hourly_rate: Money::new(200_00, 2, Currency::Jpy),
+			},
+			String::new(),
+			"Do something".into(),
+		)
+		.await
+		.unwrap();
 
 		let timesheet = PgTimesheet::create(
-			&mut transaction,
+			&mut tx,
 			employee,
 			Vec::new(),
 			job,
 			Utc::now(),
 			None,
-			"My work notes".into(),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
 
 		let timesheet2 = PgTimesheet::create(
-			&mut transaction,
+			&mut tx,
 			employee2,
-			vec![(
-				"Flight".into(),
-				Money::new(300_56, 2, Currency::Usd),
-				"Trip to Hawaii for research".into(),
-			)],
+			vec![(words::word(), Money::new(300_56, 2, Currency::Usd), words::sentence(5))],
 			job2,
 			Utc.with_ymd_and_hms(2022, 06, 08, 15, 27, 00).unwrap(),
 			Utc.with_ymd_and_hms(2022, 06, 09, 07, 00, 00).latest(),
-			"More work notes".into(),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
 
-		transaction.commit().await.unwrap();
+		tx.commit().await.unwrap();
 		// }}}
 
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 
 		assert_eq!(
 			PgTimesheet::retrieve(&connection, MatchTimesheet {
-				expenses: MatchSet::Not(MatchSet::Contains(Default::default()).into()),
+				expenses: MatchSet::Not(Default::default()),
 				employee: Match::Or(vec![
 					timesheet.employee.id.into(),
 					timesheet2.employee.id.into(),
@@ -293,6 +355,19 @@ mod tests
 			.into_iter()
 			.as_slice(),
 			&[timesheet.exchange(Default::default(), &exchange_rates)],
+		);
+
+		assert_eq!(
+			PgTimesheet::retrieve(&connection, MatchTimesheet {
+				job: MatchDepartment::from(department2.id).into(),
+				employee: MatchDepartment::from(department2.name).into(),
+				..Default::default()
+			})
+			.await
+			.unwrap()
+			.into_iter()
+			.as_slice(),
+			&[timesheet2.exchange(Default::default(), &exchange_rates)],
 		);
 	}
 }

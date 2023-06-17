@@ -2,6 +2,7 @@ use winvoice_adapter::schema::Adapter;
 
 use super::{
 	PgContact,
+	PgDepartment,
 	PgEmployee,
 	PgExpenses,
 	PgJob,
@@ -14,6 +15,7 @@ use super::{
 impl Adapter for PgSchema
 {
 	type Contact = PgContact;
+	type Department = PgDepartment;
 	type Employee = PgEmployee;
 	type Expenses = PgExpenses;
 	type Job = PgJob;

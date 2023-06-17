@@ -53,8 +53,10 @@ mod tests
 {
 	use core::time::Duration;
 
+	use mockd::{address, company, job, name, words};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::schema::{
+		DepartmentAdapter,
 		EmployeeAdapter,
 		JobAdapter,
 		LocationAdapter,
@@ -69,102 +71,109 @@ mod tests
 	};
 
 	use super::{PgTimesheet, TimesheetAdapter};
-	use crate::schema::{util, PgEmployee, PgJob, PgLocation, PgOrganization};
+	use crate::schema::{util, PgDepartment, PgEmployee, PgJob, PgLocation, PgOrganization};
 
 	#[tokio::test]
 	async fn retrieve()
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
+		let street = PgLocation::create(
+			&connection,
+			None,
+			format!(
+				"{} {} {}",
+				address::street_prefix(),
+				address::street_name(),
+				address::street_suffix()
+			),
+			city.into(),
+		)
+		.await
+		.unwrap();
 
-		let usa = PgLocation::create(&connection, None, "USA".into(), Some(earth)).await.unwrap();
-
-		let (arizona, utah) = futures::try_join!(
-			PgLocation::create(&connection, None, "Arizona".into(), Some(usa.clone())),
-			PgLocation::create(&connection, None, "Utah".into(), Some(usa.clone())),
+		let (location, location2) = futures::try_join!(
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 		)
 		.unwrap();
 
-		let (organization, organization2) = futures::try_join!(
-			PgOrganization::create(&connection, arizona.clone(), "Some Organization".into()),
-			PgOrganization::create(&connection, utah, "Some Other Organizatión".into()),
+		let (department, department2, organization, organization2) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, job::level()),
+			PgOrganization::create(&connection, location.clone(), company::company()),
+			PgOrganization::create(&connection, location2.clone(), company::company()),
 		)
 		.unwrap();
 
 		let (employee, employee2) = futures::try_join!(
-			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into()),
-			PgEmployee::create(
-				&connection,
-				"Another Gúy".into(),
-				"Management".into(),
-				"Assistant to Regional Manager".into(),
-			),
+			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
+			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
 		)
 		.unwrap();
 
-		let (job, job2) = futures::try_join!(
-			PgJob::create(
-				&connection,
-				organization.clone(),
-				None,
-				Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
-				Duration::from_secs(900),
-				Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
-				String::new(),
-				"Do something".into()
-			),
-			PgJob::create(
-				&connection,
-				organization2.clone(),
-				Utc.with_ymd_and_hms(3000, 01, 13, 11, 30, 00).latest(),
-				Utc.with_ymd_and_hms(3000, 01, 12, 09, 15, 42).unwrap(),
-				Duration::from_secs(900),
-				Invoice {
-					date: Some(InvoiceDate {
-						issued: Utc.with_ymd_and_hms(3000, 01, 13, 11, 45, 00).unwrap(),
-						paid: Utc.with_ymd_and_hms(3000, 01, 15, 14, 27, 00).latest(),
-					}),
-					hourly_rate: Money::new(200_00, 2, Currency::Jpy),
-				},
-				String::new(),
-				"Do something".into()
-			),
+		let mut tx = connection.begin().await.unwrap();
+		let job = PgJob::create(
+			&mut tx,
+			organization.clone(),
+			None,
+			Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
+			[department.clone()].into_iter().collect(),
+			Duration::from_secs(900),
+			Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
+			words::sentence(5),
+			words::sentence(5),
 		)
+		.await
 		.unwrap();
 
-		// {{{
-		let mut transaction = connection.begin().await.unwrap();
+		let job2 = PgJob::create(
+			&mut tx,
+			organization2.clone(),
+			Utc.with_ymd_and_hms(3000, 01, 13, 11, 30, 00).latest(),
+			Utc.with_ymd_and_hms(3000, 01, 12, 09, 15, 42).unwrap(),
+			[department2.clone()].into_iter().collect(),
+			Duration::from_secs(900),
+			Invoice {
+				date: InvoiceDate {
+					issued: Utc.with_ymd_and_hms(3000, 01, 13, 11, 45, 00).unwrap(),
+					paid: Utc.with_ymd_and_hms(3000, 01, 15, 14, 27, 00).latest(),
+				}
+				.into(),
+				hourly_rate: Money::new(200_00, 2, Currency::Jpy),
+			},
+			words::sentence(5),
+			words::sentence(5),
+		)
+		.await
+		.unwrap();
 
 		let timesheet = PgTimesheet::create(
-			&mut transaction,
+			&mut tx,
 			employee,
 			Vec::new(),
 			job,
 			Utc::now(),
 			None,
-			"This is my work notes".into(),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
 
 		let timesheet2 = PgTimesheet::create(
-			&mut transaction,
+			&mut tx,
 			employee2,
-			vec![(
-				"Flight".into(),
-				Money::new(300_56, 2, Currency::Usd),
-				"Trip to Hawaii for research".into(),
-			)],
+			vec![(words::word(), Money::new(300_56, 2, Currency::Usd), words::sentence(5))],
 			job2,
 			Utc.with_ymd_and_hms(2022, 06, 08, 15, 27, 00).unwrap(),
 			Utc.with_ymd_and_hms(2022, 06, 09, 07, 00, 00).latest(),
-			"This is more work notes".into(),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
 
-		transaction.commit().await.unwrap();
+		tx.commit().await.unwrap();
 		// }}}
 
 		macro_rules! select {

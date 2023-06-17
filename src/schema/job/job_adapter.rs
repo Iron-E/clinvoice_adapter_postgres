@@ -1,10 +1,12 @@
 use core::time::Duration;
+use std::collections::BTreeSet;
 
 use money2::{Exchange, ExchangeRates};
-use sqlx::{Executor, Postgres, Result};
+use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::schema::JobAdapter;
 use winvoice_schema::{
 	chrono::{DateTime, Utc},
+	Department,
 	Id,
 	Invoice,
 	Job,
@@ -17,18 +19,17 @@ use crate::{fmt::DateTimeExt, schema::util};
 #[async_trait::async_trait]
 impl JobAdapter for PgJob
 {
-	async fn create<'connection, Conn>(
-		connection: Conn,
+	async fn create(
+		connection: &mut Transaction<Postgres>,
 		client: Organization,
 		date_close: Option<DateTime<Utc>>,
 		date_open: DateTime<Utc>,
+		departments: BTreeSet<Department>,
 		increment: Duration,
 		invoice: Invoice,
 		notes: String,
 		objectives: String,
 	) -> Result<Job>
-	where
-		Conn: Executor<'connection, Database = Postgres>,
 	{
 		let standardized_rate = ExchangeRates::new()
 			.await
@@ -52,11 +53,23 @@ impl JobAdapter for PgJob
 			notes,
 			objectives,
 		)
-		.execute(connection)
+		.execute(&mut *connection)
 		.await?;
 
-		Ok(Job { client, date_close, date_open, id, increment, invoice, notes, objectives }
-			.pg_sanitize())
+		util::insert_into_job_departments(connection, &departments, id).await?;
+
+		Ok(Job {
+			client,
+			date_close,
+			date_open,
+			departments,
+			id,
+			increment,
+			invoice,
+			notes,
+			objectives,
+		}
+		.pg_sanitize())
 	}
 }
 
@@ -65,51 +78,63 @@ mod tests
 {
 	use core::time::Duration;
 
+	use mockd::{address, company, job, words};
 	use money2::{Exchange, ExchangeRates};
 	use pretty_assertions::assert_eq;
-	use winvoice_adapter::schema::{LocationAdapter, OrganizationAdapter};
-	use winvoice_schema::{chrono::Utc, Currency, Invoice, Money};
+	use winvoice_adapter::schema::{DepartmentAdapter, LocationAdapter, OrganizationAdapter};
+	use winvoice_schema::{chrono::Utc, Currency, Department, Id, Invoice, Money};
 
 	use super::{JobAdapter, PgJob};
-	use crate::schema::{util, PgLocation, PgOrganization};
+	use crate::schema::{util, PgDepartment, PgLocation, PgOrganization};
 
 	#[tokio::test]
 	async fn create()
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let (department, location) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgLocation::create(&connection, None, address::country(), None),
+		)
+		.unwrap();
 
+		let mut tx = connection.begin().await.unwrap();
 		let organization =
-			PgOrganization::create(&connection, earth, "Some Organization".into()).await.unwrap();
+			PgOrganization::create(&connection, location, company::company()).await.unwrap();
 
 		let job = PgJob::create(
-			&connection,
+			&mut tx,
 			organization.clone(),
 			None,
 			Utc::now(),
+			[department].into_iter().collect(),
 			Duration::new(7640, 0),
 			Invoice { date: None, hourly_rate: Money::new(13_27, 2, Currency::Usd) },
 			String::new(),
-			"Write the test".into(),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
 
+		tx.commit().await.unwrap();
 		let row = sqlx::query!(
-			"SELECT
-					id,
-					client_id,
-					date_close,
-					date_open,
-					increment,
-					invoice_date_issued,
-					invoice_date_paid,
-					invoice_hourly_rate,
-					notes,
-					objectives
-				FROM jobs
-				WHERE id = $1;",
+			r#"SELECT
+					J.id,
+					J.client_id,
+					J.date_close,
+					J.date_open,
+					array_agg(D) as "departments!: Vec<(Id, String)>",
+					J.increment,
+					J.invoice_date_issued,
+					J.invoice_date_paid,
+					J.invoice_hourly_rate,
+					J.notes,
+					J.objectives
+				FROM jobs J
+				LEFT JOIN job_departments Jd ON Jd.job_id = J.id
+				LEFT JOIN departments D ON D.id = Jd.department_id
+				WHERE J.id = $1
+				GROUP BY J.id"#,
 			job.id,
 		)
 		.fetch_one(&connection)
@@ -120,6 +145,10 @@ mod tests
 		assert_eq!(job.id, row.id);
 		assert_eq!(job.client.id, row.client_id);
 		assert_eq!(organization.id, row.client_id);
+		assert_eq!(
+			job.departments,
+			row.departments.into_iter().map(|(id, name)| Department { id, name }).collect()
+		);
 		assert_eq!(job.date_close, row.date_close.map(util::naive_date_to_utc));
 		assert_eq!(job.date_open, row.date_open.and_utc());
 		assert_eq!(job.increment, util::duration_from(row.increment).unwrap());

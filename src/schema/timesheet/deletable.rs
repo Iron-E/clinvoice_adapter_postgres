@@ -35,10 +35,12 @@ mod tests
 {
 	use core::time::Duration;
 
+	use mockd::{address, company, job, name, words};
 	use money2::{Currency, Exchange, ExchangeRates, Money};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{
+			DepartmentAdapter,
 			EmployeeAdapter,
 			JobAdapter,
 			LocationAdapter,
@@ -56,6 +58,7 @@ mod tests
 
 	use crate::schema::{
 		util,
+		PgDepartment,
 		PgEmployee,
 		PgExpenses,
 		PgJob,
@@ -69,34 +72,37 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let location =
+			PgLocation::create(&connection, None, address::country(), None).await.unwrap();
 
-		let organization =
-			PgOrganization::create(&connection, earth, "Some Organization".into()).await.unwrap();
+		let (department, organization) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgOrganization::create(&connection, location, company::company()),
+		)
+		.unwrap();
 
 		let employee =
-			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into())
+			PgEmployee::create(&connection, department.clone(), name::full(), job::title())
 				.await
 				.unwrap();
 
+		let mut tx = connection.begin().await.unwrap();
 		let job = PgJob::create(
-			&connection,
+			&mut tx,
 			organization.clone(),
 			None,
 			Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
+			[department].into_iter().collect(),
 			Duration::from_secs(900),
 			Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
-			String::new(),
-			"Do something".into(),
+			words::sentence(5),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
 
-		// {{{
-		let mut transaction = connection.begin().await.unwrap();
-
 		let timesheet = PgTimesheet::create(
-			&mut transaction,
+			&mut tx,
 			employee.clone(),
 			Vec::new(),
 			job.clone(),
@@ -108,7 +114,7 @@ mod tests
 		.unwrap();
 
 		let timesheet2 = PgTimesheet::create(
-			&mut transaction,
+			&mut tx,
 			employee.clone(),
 			vec![(
 				"Flight".into(),
@@ -124,7 +130,7 @@ mod tests
 		.unwrap();
 
 		let timesheet3 = PgTimesheet::create(
-			&mut transaction,
+			&mut tx,
 			employee,
 			vec![("Food".into(), Money::new(10_17, 2, Currency::Usd), "Takeout".into())],
 			job.clone(),
@@ -135,7 +141,7 @@ mod tests
 		.await
 		.unwrap();
 
-		transaction.commit().await.unwrap();
+		tx.commit().await.unwrap();
 		// }}}
 
 		assert!(PgJob::delete(&connection, [job].iter()).await.is_err());
@@ -145,7 +151,7 @@ mod tests
 		assert_eq!(
 			PgTimesheet::retrieve(
 				&connection,
-				Match::Or(vec![timesheet.id.into(), timesheet2.id.into(), timesheet3.id.into(),])
+				Match::Or(vec![timesheet.id.into(), timesheet2.id.into(), timesheet3.id.into()])
 					.into(),
 			)
 			.await

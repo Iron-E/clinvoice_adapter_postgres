@@ -2,7 +2,7 @@ use futures::TryStreamExt;
 use sqlx::{Pool, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
-	schema::columns::EmployeeColumns,
+	schema::columns::{DepartmentColumns, EmployeeColumns},
 	Retrievable,
 	WriteWhereClause,
 };
@@ -31,15 +31,30 @@ impl Retrievable for PgEmployee
 	) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: EmployeeColumns<&'static str> = EmployeeColumns::default();
+		const DEPARTMENT_COLUMNS_UNIQUE: DepartmentColumns = DepartmentColumns::unique();
 
+		let columns = COLUMNS.default_scope();
+		let department_columns = DepartmentColumns::default().default_scope();
 		let mut query = QueryBuilder::new(sql::SELECT);
 
-		query.push_columns(&COLUMNS.default_scope()).push_default_from::<EmployeeColumns>();
+		query
+			.push_columns(&columns)
+			.push_more_columns(&department_columns.r#as(DEPARTMENT_COLUMNS_UNIQUE))
+			.push_default_from::<EmployeeColumns>()
+			.push_default_equijoin::<DepartmentColumns, _, _>(
+				department_columns.id,
+				columns.department_id,
+			);
 
 		PgSchema::write_where_clause(
-			Default::default(),
-			EmployeeColumns::DEFAULT_ALIAS,
-			&match_condition,
+			PgSchema::write_where_clause(
+				Default::default(),
+				EmployeeColumns::DEFAULT_ALIAS,
+				&match_condition,
+				&mut query,
+			),
+			DepartmentColumns::DEFAULT_ALIAS,
+			&match_condition.department,
 			&mut query,
 		);
 
@@ -47,7 +62,7 @@ impl Retrievable for PgEmployee
 		query
 			.prepare()
 			.fetch(connection)
-			.map_ok(|row| Self::row_to_view(COLUMNS, &row))
+			.map_ok(|row| Self::row_to_view(COLUMNS, DEPARTMENT_COLUMNS_UNIQUE, &row))
 			.try_collect()
 			.await
 	}
@@ -58,10 +73,14 @@ mod tests
 {
 	use std::collections::HashSet;
 
-	use winvoice_adapter::{schema::EmployeeAdapter, Retrievable};
+	use mockd::{job, name};
+	use winvoice_adapter::{
+		schema::{DepartmentAdapter, EmployeeAdapter},
+		Retrievable,
+	};
 	use winvoice_match::{Match, MatchEmployee, MatchStr};
 
-	use crate::schema::{util, PgEmployee};
+	use crate::schema::{util, PgDepartment, PgEmployee};
 
 	#[tokio::test]
 	#[tracing_test::traced_test]
@@ -69,20 +88,22 @@ mod tests
 	{
 		let connection = util::connect().await;
 
+		let (department, department2) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, job::level()),
+		)
+		.unwrap();
+
 		let (employee, employee2) = futures::try_join!(
-			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into(),),
-			PgEmployee::create(
-				&connection,
-				"Another Gúy".into(),
-				"Management".into(),
-				"Assistant to Regional Manager".into(),
-			),
+			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
+			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
 		)
 		.unwrap();
 
 		assert_eq!(
 			PgEmployee::retrieve(&connection, MatchEmployee {
-				id: Match::Or(vec![employee.id.into(), employee2.id.into()]),
+				department: department.id.into(),
+				id: Match::Or([&employee, &employee2].into_iter().map(|e| e.id.into()).collect()),
 				name: employee.name.clone().into(),
 				..Default::default()
 			})
@@ -94,8 +115,15 @@ mod tests
 
 		assert_eq!(
 			PgEmployee::retrieve(&connection, MatchEmployee {
-				id: Match::Or(vec![employee.id.into(), employee2.id.into()]),
-				name: MatchStr::Not(MatchStr::from("Fired".to_string()).into()),
+				department: MatchStr::Or(
+					[&department, &department2]
+						.into_iter()
+						.map(|e| e.name.clone().into())
+						.collect()
+				)
+				.into(),
+				id: Match::Or([&employee, &employee2].into_iter().map(|e| e.id.into()).collect()),
+				name: MatchStr::Not(MatchStr::from("Fired".to_owned()).into()),
 				..Default::default()
 			})
 			.await

@@ -64,11 +64,12 @@ mod tests
 {
 	use std::{collections::HashSet, time::Duration};
 
-	use futures::TryFutureExt;
+	use mockd::{address, company, job, name, words};
 	use money2::{Currency, Money};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{
+			DepartmentAdapter,
 			EmployeeAdapter,
 			ExpensesAdapter,
 			JobAdapter,
@@ -83,7 +84,16 @@ mod tests
 
 	use crate::{
 		fmt::DateTimeExt,
-		schema::{util, PgEmployee, PgExpenses, PgJob, PgLocation, PgOrganization, PgTimesheet},
+		schema::{
+			util,
+			PgDepartment,
+			PgEmployee,
+			PgExpenses,
+			PgJob,
+			PgLocation,
+			PgOrganization,
+			PgTimesheet,
+		},
 	};
 
 	#[tokio::test]
@@ -91,59 +101,55 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let (earth, mars) = futures::try_join!(
-			PgLocation::create(&connection, None, "Earth".into(), None),
-			PgLocation::create(&connection, None, "Mars".into(), None),
+		let (department, department2, location, location2) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, job::level()),
+			PgLocation::create(&connection, None, address::country(), None),
+			PgLocation::create(&connection, None, address::country(), None),
 		)
 		.unwrap();
 
-		let job = PgOrganization::create(&connection, earth, "Some Organization".into())
-			.and_then(|organization| {
-				PgJob::create(
-					&connection,
-					organization,
-					None,
-					chrono::Utc::now(),
-					Duration::from_secs(900),
-					Default::default(),
-					Default::default(),
-					Default::default(),
-				)
-			})
-			.await
-			.unwrap();
+		let organization =
+			PgOrganization::create(&connection, location, company::company()).await.unwrap();
 
-		let (employee, employee2) = futures::try_join!(
-			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into(),),
-			PgEmployee::create(
-				&connection,
-				"Not My Name".into(),
-				"Not Employed".into(),
-				"Not Janitor".into(),
-			),
-		)
-		.unwrap();
-
-		// {{{
-		let mut transaction = connection.begin().await.unwrap();
-
-		let mut timesheet = PgTimesheet::create(
-			&mut transaction,
-			employee,
-			vec![("Travel".into(), Money::new(500_00, 2, Currency::default()), "Flight".into())],
-			job,
-			chrono::Utc::now(),
+		let mut tx = connection.begin().await.unwrap();
+		let job = PgJob::create(
+			&mut tx,
+			organization,
 			None,
-			"My work notes".into(),
+			chrono::Utc::now(),
+			[&department, &department2].into_iter().cloned().collect(),
+			Duration::from_secs(900),
+			Default::default(),
+			words::sentence(5),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
 
-		transaction.commit().await.unwrap();
-		// }}}
+		tx.commit().await.unwrap();
+		let (employee, employee2) = futures::try_join!(
+			PgEmployee::create(&connection, department, name::full(), job::title()),
+			PgEmployee::create(&connection, department2.clone(), name::full(), job::title()),
+		)
+		.unwrap();
+
+		let mut tx = connection.begin().await.unwrap();
+
+		let mut timesheet = PgTimesheet::create(
+			&mut tx,
+			employee,
+			vec![(words::word(), Money::new(500_00, 2, Currency::default()), words::sentence(5))],
+			job,
+			chrono::Utc::now(),
+			None,
+			words::sentence(5),
+		)
+		.await
+		.unwrap();
 
 		let new_expense = PgExpenses::create(
-			&connection,
+			&mut tx,
 			vec![("category".into(), Money::default(), "description".into())],
 			timesheet.id,
 		)
@@ -154,27 +160,26 @@ mod tests
 
 		timesheet.employee = employee2;
 		timesheet.expenses.push(new_expense);
-		timesheet.job.client.location = mars;
+		timesheet.job.client.location = location2;
 		timesheet.job.client.name = format!("Not {}", timesheet.job.client.name);
-		timesheet.job.date_close = Some(chrono::Utc::now());
+		timesheet.job.date_close = chrono::Utc::now().into();
+		timesheet.job.departments.remove(&department2);
 		timesheet.job.increment = Duration::from_secs(300);
 		timesheet.job.invoice = Invoice {
-			date: Some(InvoiceDate {
+			date: InvoiceDate {
 				issued: chrono::Utc::now(),
 				paid: Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
-			}),
+			}
+			.into(),
 			hourly_rate: Money::new(200_00, 2, Default::default()),
 		};
 		timesheet.job.notes = format!("Finished {}", timesheet.job.notes);
 		timesheet.job.objectives = format!("Test {}", timesheet.job.notes);
-		timesheet.time_end = Some(chrono::Utc::now());
+		timesheet.time_end = chrono::Utc::now().into();
 		timesheet.work_notes = "Updated work notes".into();
 
-		{
-			let mut transaction = connection.begin().await.unwrap();
-			PgTimesheet::update(&mut transaction, [&timesheet].into_iter()).await.unwrap();
-			transaction.commit().await.unwrap();
-		}
+		PgTimesheet::update(&mut tx, [&timesheet].into_iter()).await.unwrap();
+		tx.commit().await.unwrap();
 
 		let db_timesheet =
 			PgTimesheet::retrieve(&connection, timesheet.id.into()).await.unwrap().pop().unwrap();

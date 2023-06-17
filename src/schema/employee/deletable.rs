@@ -33,31 +33,32 @@ impl Deletable for PgEmployee
 #[cfg(test)]
 mod tests
 {
+	use mockd::{job, name};
 	use pretty_assertions::assert_eq;
-	use winvoice_adapter::{schema::EmployeeAdapter, Deletable, Retrievable};
+	use winvoice_adapter::{
+		schema::{DepartmentAdapter, EmployeeAdapter},
+		Deletable,
+		Retrievable,
+	};
 	use winvoice_match::Match;
 
-	use crate::schema::{util, PgEmployee};
+	use crate::schema::{util, PgDepartment, PgEmployee};
 
 	#[tokio::test]
 	async fn delete()
 	{
 		let connection = util::connect().await;
 
+		let (department, department2) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, job::level()),
+		)
+		.unwrap();
+
 		let (employee, employee2, employee3) = futures::try_join!(
-			PgEmployee::create(&connection, "My Name".into(), "Employed".into(), "Janitor".into(),),
-			PgEmployee::create(
-				&connection,
-				"Another Gúy".into(),
-				"Management".into(),
-				"Assistant to Regional Manager".into(),
-			),
-			PgEmployee::create(
-				&connection,
-				"Another Another Gúy".into(),
-				"Management".into(),
-				"Assistant to the Assistant to the Regional Manager".into(),
-			),
+			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
+			PgEmployee::create(&connection, department, name::full(), job::title()),
+			PgEmployee::create(&connection, department2, name::full(), job::title()),
 		)
 		.unwrap();
 

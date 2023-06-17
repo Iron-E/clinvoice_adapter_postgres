@@ -35,10 +35,11 @@ mod tests
 {
 	use core::time::Duration;
 
+	use mockd::{address, company, job, words};
 	use money2::{Currency, Exchange, ExchangeRates, Money};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
-		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
+		schema::{DepartmentAdapter, JobAdapter, LocationAdapter, OrganizationAdapter},
 		Deletable,
 		Retrievable,
 	};
@@ -49,65 +50,80 @@ mod tests
 		InvoiceDate,
 	};
 
-	use crate::schema::{util, PgJob, PgLocation, PgOrganization};
+	use crate::schema::{util, PgDepartment, PgJob, PgLocation, PgOrganization};
 
 	#[tokio::test]
 	async fn delete()
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
-
-		let organization =
-			PgOrganization::create(&connection, earth.clone(), "Some Organization".into())
-				.await
-				.unwrap();
-
-		let (job, job2, job3) = futures::try_join!(
-			PgJob::create(
-				&connection,
-				organization.clone(),
-				Utc.with_ymd_and_hms(1990, 08, 01, 09, 00, 00).latest(),
-				Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
-				Duration::from_secs(300),
-				Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
-				String::new(),
-				"Do something".into()
-			),
-			PgJob::create(
-				&connection,
-				organization.clone(),
-				Utc.with_ymd_and_hms(3000, 01, 16, 10, 00, 00).latest(),
-				Utc.with_ymd_and_hms(3000, 01, 12, 09, 15, 42).unwrap(),
-				Duration::from_secs(900),
-				Invoice {
-					date: Some(InvoiceDate {
-						issued: Utc.with_ymd_and_hms(3000, 01, 17, 12, 30, 00).unwrap(),
-						paid: None,
-					}),
-					hourly_rate: Money::new(299_99, 2, Currency::Jpy),
-				},
-				String::new(),
-				"Do something".into()
-			),
-			PgJob::create(
-				&connection,
-				organization.clone(),
-				Utc.with_ymd_and_hms(2011, 03, 17, 13, 07, 07).latest(),
-				Utc.with_ymd_and_hms(2011, 03, 17, 12, 07, 07).unwrap(),
-				Duration::from_secs(900),
-				Invoice {
-					date: Some(InvoiceDate {
-						issued: Utc.with_ymd_and_hms(2011, 03, 18, 08, 00, 00).unwrap(),
-						paid: Utc.with_ymd_and_hms(2011, 03, 19, 17, 00, 00).latest(),
-					}),
-					hourly_rate: Money::new(20_00, 2, Currency::Eur),
-				},
-				String::new(),
-				"Do something".into()
-			),
+		let (department, location) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgLocation::create(&connection, None, address::country(), None),
 		)
 		.unwrap();
+
+		let mut tx = connection.begin().await.unwrap();
+		let organization =
+			PgOrganization::create(&mut tx, location.clone(), company::company()).await.unwrap();
+
+		let job = PgJob::create(
+			&mut tx,
+			organization.clone(),
+			Utc.with_ymd_and_hms(1990, 08, 01, 09, 00, 00).latest(),
+			Utc.with_ymd_and_hms(1990, 07, 12, 14, 10, 00).unwrap(),
+			[department.clone()].into_iter().collect(),
+			Duration::from_secs(300),
+			Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
+			words::sentence(5),
+			words::sentence(5),
+		)
+		.await
+		.unwrap();
+
+		let job2 = PgJob::create(
+			&mut tx,
+			organization.clone(),
+			Utc.with_ymd_and_hms(3000, 01, 16, 10, 00, 00).latest(),
+			Utc.with_ymd_and_hms(3000, 01, 12, 09, 15, 42).unwrap(),
+			[department.clone()].into_iter().collect(),
+			Duration::from_secs(900),
+			Invoice {
+				date: InvoiceDate {
+					issued: Utc.with_ymd_and_hms(3000, 01, 17, 12, 30, 00).unwrap(),
+					paid: None,
+				}
+				.into(),
+				hourly_rate: Money::new(299_99, 2, Currency::Jpy),
+			},
+			words::sentence(5),
+			words::sentence(5),
+		)
+		.await
+		.unwrap();
+
+		let job3 = PgJob::create(
+			&mut tx,
+			organization.clone(),
+			Utc.with_ymd_and_hms(2011, 03, 17, 13, 07, 07).latest(),
+			Utc.with_ymd_and_hms(2011, 03, 17, 12, 07, 07).unwrap(),
+			[department.clone()].into_iter().collect(),
+			Duration::from_secs(900),
+			Invoice {
+				date: InvoiceDate {
+					issued: Utc.with_ymd_and_hms(2011, 03, 18, 08, 00, 00).unwrap(),
+					paid: Utc.with_ymd_and_hms(2011, 03, 19, 17, 00, 00).latest(),
+				}
+				.into(),
+				hourly_rate: Money::new(20_00, 2, Currency::Eur),
+			},
+			words::sentence(5),
+			words::sentence(5),
+		)
+		.await
+		.unwrap();
+
+		tx.commit().await.unwrap();
 
 		assert!(PgOrganization::delete(&connection, [&organization].into_iter()).await.is_err());
 		PgJob::delete(&connection, [&job, &job2].into_iter()).await.unwrap();

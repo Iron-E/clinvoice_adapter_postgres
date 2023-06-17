@@ -3,10 +3,7 @@ use core::iter;
 use futures::TryFutureExt;
 use money2::{Exchange, ExchangeRates, Money};
 use sqlx::{Executor, Postgres, QueryBuilder, Result};
-use winvoice_adapter::{
-	fmt::QueryBuilderExt,
-	schema::{columns::ExpenseColumns, ExpensesAdapter},
-};
+use winvoice_adapter::{fmt::QueryBuilderExt, schema::ExpensesAdapter};
 use winvoice_schema::{Expense, Id};
 
 use super::PgExpenses;
@@ -24,8 +21,6 @@ impl ExpensesAdapter for PgExpenses
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{
-		const COLUMNS: ExpenseColumns<&'static str> = ExpenseColumns::default();
-
 		if expenses.is_empty()
 		{
 			return Ok(Vec::new());

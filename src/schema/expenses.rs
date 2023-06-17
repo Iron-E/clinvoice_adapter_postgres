@@ -16,6 +16,7 @@ pub struct PgExpenses;
 
 impl PgExpenses
 {
+	/// Convert the `row` into a typed [`Expense`].
 	pub fn row_to_view(columns: ExpenseColumns<&str>, row: &PgRow) -> Result<Expense>
 	{
 		Ok(Expense {

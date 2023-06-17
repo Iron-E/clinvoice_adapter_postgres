@@ -6,6 +6,7 @@ mod updatable;
 use money2::{Decimal, Money};
 use sqlx::{error::UnexpectedNullError, postgres::PgRow, Error, Executor, Postgres, Result, Row};
 use winvoice_adapter::schema::columns::{
+	DepartmentColumns,
 	EmployeeColumns,
 	JobColumns,
 	OrganizationColumns,
@@ -21,34 +22,45 @@ pub struct PgTimesheet;
 
 impl PgTimesheet
 {
+	/// Convert the `row` into a typed [`Timesheet`].
 	pub async fn row_to_view<
 		'connection,
 		Conn,
-		TimesheetColumnNames,
-		EmployeeColumnNames,
-		ExpenseColumnNames,
-		JobColumnNames,
-		OrganizationColumnNames,
+		TimesheetColumnT,
+		DepartmentColumnT,
+		EmployeeColumnT,
+		ExpenseColumnT,
+		JobColumnT,
+		OrganizationColumnT,
 	>(
 		connection: Conn,
-		columns: TimesheetColumns<TimesheetColumnNames>,
-		employee_columns: EmployeeColumns<EmployeeColumnNames>,
-		expenses_ident: ExpenseColumnNames,
-		job_columns: JobColumns<JobColumnNames>,
-		organization_columns: OrganizationColumns<OrganizationColumnNames>,
+		columns: TimesheetColumns<TimesheetColumnT>,
+		departments_ident: DepartmentColumnT,
+		department_columns: DepartmentColumns<DepartmentColumnT>,
+		employee_columns: EmployeeColumns<EmployeeColumnT>,
+		expenses_ident: ExpenseColumnT,
+		job_columns: JobColumns<JobColumnT>,
+		organization_columns: OrganizationColumns<OrganizationColumnT>,
 		row: &PgRow,
 	) -> Result<Timesheet>
 	where
 		Conn: Executor<'connection, Database = Postgres>,
-		EmployeeColumnNames: AsRef<str>,
-		JobColumnNames: AsRef<str>,
-		OrganizationColumnNames: AsRef<str>,
-		TimesheetColumnNames: AsRef<str>,
-		ExpenseColumnNames: AsRef<str>,
+		DepartmentColumnT: AsRef<str>,
+		EmployeeColumnT: AsRef<str>,
+		ExpenseColumnT: AsRef<str>,
+		JobColumnT: AsRef<str>,
+		OrganizationColumnT: AsRef<str>,
+		TimesheetColumnT: AsRef<str>,
 	{
-		let job_fut = PgJob::row_to_view(connection, job_columns, organization_columns, row);
+		let job_fut = PgJob::row_to_view(
+			connection,
+			job_columns,
+			departments_ident,
+			organization_columns,
+			row,
+		);
 		Ok(Timesheet {
-			employee: PgEmployee::row_to_view(employee_columns, row),
+			employee: PgEmployee::row_to_view(employee_columns, department_columns, row),
 			id: row.try_get(columns.id.as_ref())?,
 			time_begin: row.try_get(columns.time_begin.as_ref()).map(util::naive_date_to_utc)?,
 			time_end: row.try_get(columns.time_end.as_ref()).map(util::naive_date_opt_to_utc)?,
@@ -78,7 +90,7 @@ impl PgTimesheet
 				{
 					Error::ColumnDecode { source: s, .. } if s.is::<UnexpectedNullError>() =>
 					{
-						Ok(Vec::new())
+						Ok(Default::default())
 					},
 					_ => Err(e),
 				})?,

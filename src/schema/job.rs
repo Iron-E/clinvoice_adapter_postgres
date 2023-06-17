@@ -4,9 +4,9 @@ mod retrievable;
 mod updatable;
 
 use money2::{Decimal, Money};
-use sqlx::{postgres::PgRow, Executor, Postgres, Result, Row};
+use sqlx::{error::UnexpectedNullError, postgres::PgRow, Error, Executor, Postgres, Result, Row};
 use winvoice_adapter::schema::columns::{JobColumns, OrganizationColumns};
-use winvoice_schema::{chrono::NaiveDateTime, Invoice, InvoiceDate, Job};
+use winvoice_schema::{chrono::NaiveDateTime, Department, Invoice, InvoiceDate, Job};
 
 use super::{util, PgOrganization};
 
@@ -16,16 +16,19 @@ pub struct PgJob;
 
 impl PgJob
 {
-	pub async fn row_to_view<'connection, Conn, JobColumnName, OrgColumnName>(
+	/// Convert the `row` into a typed [`Job`].
+	pub async fn row_to_view<'connection, Conn, JobColumnT, DepartmentColumnT, OrgColumnT>(
 		connection: Conn,
-		columns: JobColumns<JobColumnName>,
-		organization_columns: OrganizationColumns<OrgColumnName>,
+		columns: JobColumns<JobColumnT>,
+		departments_ident: DepartmentColumnT,
+		organization_columns: OrganizationColumns<OrgColumnT>,
 		row: &PgRow,
 	) -> Result<Job>
 	where
 		Conn: Executor<'connection, Database = Postgres>,
-		JobColumnName: AsRef<str>,
-		OrgColumnName: AsRef<str>,
+		JobColumnT: AsRef<str>,
+		DepartmentColumnT: AsRef<str>,
+		OrgColumnT: AsRef<str>,
 	{
 		let client_fut = PgOrganization::row_to_view(connection, organization_columns, row);
 
@@ -45,6 +48,19 @@ impl PgJob
 				.try_get(columns.date_close.as_ref())
 				.map(util::naive_date_opt_to_utc)?,
 			date_open: row.try_get(columns.date_open.as_ref()).map(util::naive_date_to_utc)?,
+			departments: row
+				.try_get(departments_ident.as_ref())
+				.map(|raw_departments: Vec<_>| {
+					raw_departments.into_iter().map(|(id, name)| Department { id, name }).collect()
+				})
+				.or_else(|e| match e
+				{
+					Error::ColumnDecode { source: s, .. } if s.is::<UnexpectedNullError>() =>
+					{
+						Ok(Default::default())
+					},
+					_ => Err(e),
+				})?,
 			id: row.try_get(columns.id.as_ref())?,
 			increment,
 			invoice: Invoice {

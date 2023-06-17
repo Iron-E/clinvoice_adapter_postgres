@@ -1,4 +1,4 @@
-use futures::TryFutureExt;
+use futures::{stream, TryFutureExt, TryStreamExt};
 use money2::{Exchange, ExchangeRates};
 use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::JobColumns, Updatable};
@@ -64,7 +64,21 @@ impl Updatable for PgJob
 		})
 		.await?;
 
-		PgOrganization::update(connection, entities.map(|e| &e.client)).await
+		let clients = entities.clone().map(|e| &e.client);
+		PgOrganization::update(connection, clients).await?;
+
+		stream::iter(entities.map(Result::Ok))
+			.try_fold(connection, |c, e| async move {
+				sqlx::query!("DELETE FROM job_departments WHERE job_id = $1", e.id)
+					.execute(&mut *c)
+					.await?;
+
+				util::insert_into_job_departments(&mut *c, &e.departments, e.id).await?;
+				Ok(c)
+			})
+			.await?;
+
+		Ok(())
 	}
 }
 
@@ -73,11 +87,11 @@ mod tests
 {
 	use core::time::Duration;
 
-	use futures::TryFutureExt;
+	use mockd::{address, company, job, words};
 	use money2::Money;
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
-		schema::{JobAdapter, LocationAdapter, OrganizationAdapter},
+		schema::{DepartmentAdapter, JobAdapter, LocationAdapter, OrganizationAdapter},
 		Retrievable,
 		Updatable,
 	};
@@ -85,7 +99,7 @@ mod tests
 
 	use crate::{
 		fmt::DateTimeExt,
-		schema::{util, PgJob, PgLocation, PgOrganization},
+		schema::{util, PgDepartment, PgJob, PgLocation, PgOrganization},
 	};
 
 	#[tokio::test]
@@ -93,53 +107,61 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let (earth, mars) = futures::try_join!(
-			PgLocation::create(&connection, None, "Earth".into(), None),
-			PgLocation::create(&connection, None, "Mars".into(), None),
+		let (location, location2) = futures::try_join!(
+			PgLocation::create(&connection, None, address::country(), None),
+			PgLocation::create(&connection, None, address::country(), None),
 		)
 		.unwrap();
 
-		let mut job = PgOrganization::create(&connection, earth, "Some Organization".into())
-			.and_then(|organization| {
-				PgJob::create(
-					&connection,
-					organization,
-					None,
-					chrono::Utc::now(),
-					Duration::from_secs(900),
-					Default::default(),
-					Default::default(),
-					Default::default(),
-				)
-			})
-			.await
-			.unwrap();
+		let (department, department2) = futures::try_join!(
+			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, job::level()),
+		)
+		.unwrap();
 
-		job.client.location = mars;
+		let mut tx = connection.begin().await.unwrap();
+		let organization =
+			PgOrganization::create(&mut tx, location, company::company()).await.unwrap();
+
+		let mut job = PgJob::create(
+			&mut tx,
+			organization,
+			None,
+			chrono::Utc::now(),
+			[department].into_iter().collect(),
+			Duration::from_secs(900),
+			Default::default(),
+			words::sentence(5),
+			words::sentence(5),
+		)
+		.await
+		.unwrap();
+
+		job.client.location = location2;
+		job.departments = [department2].into_iter().collect();
 		job.client.name = format!("Not {}", job.client.name);
-		job.date_close = Some(chrono::Utc::now());
+		job.date_close = chrono::Utc::now().into();
 		job.increment = Duration::from_secs(300);
 		job.invoice = Invoice {
-			date: Some(InvoiceDate {
+			date: InvoiceDate {
 				issued: chrono::Utc::now(),
 				paid: Some(chrono::Utc::now() + chrono::Duration::seconds(300)),
-			}),
+			}
+			.into(),
 			hourly_rate: Money::new(200_00, 2, Default::default()),
 		};
 		job.notes = format!("Finished {}", job.notes);
 		job.objectives = format!("Test {}", job.notes);
 
-		{
-			let mut transaction = connection.begin().await.unwrap();
-			PgJob::update(&mut transaction, [&job].into_iter()).await.unwrap();
-			transaction.commit().await.unwrap();
-		}
+		PgJob::update(&mut tx, [&job].into_iter()).await.unwrap();
+		tx.commit().await.unwrap();
 
 		let db_job = PgJob::retrieve(&connection, job.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(job.client, db_job.client);
 		assert_eq!(job.date_close.pg_sanitize(), db_job.date_close);
 		assert_eq!(job.date_open.pg_sanitize(), db_job.date_open);
+		assert_eq!(job.departments, db_job.departments);
 		assert_eq!(job.id, db_job.id);
 		assert_eq!(job.increment, db_job.increment);
 		assert_eq!(job.invoice.pg_sanitize(), db_job.invoice);

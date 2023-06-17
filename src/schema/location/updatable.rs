@@ -102,8 +102,8 @@ mod tests
 		let mut earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
 
 		let (mut chile, mut usa) = futures::try_join!(
-			PgLocation::create(&connection, None, "Chile".into(), Some(earth.clone())),
-			PgLocation::create(&connection, None, "USA".into(), Some(earth.clone())),
+			PgLocation::create(&connection, None, "Chile".into(), earth.clone().into()),
+			PgLocation::create(&connection, None, "USA".into(), earth.clone().into()),
 		)
 		.unwrap();
 
