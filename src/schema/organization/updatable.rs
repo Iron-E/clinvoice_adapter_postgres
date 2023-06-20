@@ -41,13 +41,13 @@ impl Updatable for PgOrganization
 #[cfg(test)]
 mod tests
 {
+	use mockd::{address, company};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
 		Retrievable,
 		Updatable,
 	};
-	use winvoice_match::MatchOrganization;
 
 	use crate::schema::{util, PgLocation, PgOrganization};
 
@@ -57,31 +57,25 @@ mod tests
 		let connection = util::connect().await;
 
 		let (earth, mars) = futures::try_join!(
-			PgLocation::create(&connection, None, "Earth".into(), None),
-			PgLocation::create(&connection, None, "Mars".into(), None),
+			PgLocation::create(&connection, None, address::street(), None),
+			PgLocation::create(&connection, None, address::street(), None),
 		)
 		.unwrap();
 
 		let mut organization =
-			PgOrganization::create(&connection, earth, "Some Organization".into()).await.unwrap();
+			PgOrganization::create(&connection, earth, company::company()).await.unwrap();
 
 		organization.location = mars;
-		organization.name = format!("Not {}", organization.name);
+		organization.name = util::different_string(&organization.name);
 
 		{
-			let mut transaction = connection.begin().await.unwrap();
-			PgOrganization::update(&mut transaction, [&organization].into_iter()).await.unwrap();
-			transaction.commit().await.unwrap();
+			let mut tx = connection.begin().await.unwrap();
+			PgOrganization::update(&mut tx, [&organization].into_iter()).await.unwrap();
+			tx.commit().await.unwrap();
 		}
 
 		assert_eq!(
-			PgOrganization::retrieve(&connection, MatchOrganization {
-				id: organization.id.into(),
-				..Default::default()
-			})
-			.await
-			.unwrap()
-			.as_slice(),
+			PgOrganization::retrieve(&connection, organization.id.into()).await.unwrap().as_slice(),
 			&[organization]
 		);
 	}

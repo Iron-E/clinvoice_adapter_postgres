@@ -34,6 +34,7 @@ impl LocationAdapter for PgLocation
 #[cfg(test)]
 mod tests
 {
+	use mockd::address;
 	use pretty_assertions::assert_eq;
 
 	use super::{Currency, LocationAdapter, PgLocation};
@@ -44,20 +45,20 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
 
-		let usa = PgLocation::create(
+		let street = PgLocation::create(
 			&connection,
 			Currency::Usd.into(),
-			"USA".into(),
-			earth.clone().into(),
+			util::rand_street_name(),
+			city.clone().into(),
 		)
 		.await
 		.unwrap();
 
-		let (arizona, utah) = futures::try_join!(
-			PgLocation::create(&connection, None, "Arizona".into(), usa.clone().into()),
-			PgLocation::create(&connection, None, "Utah".into(), usa.clone().into()),
+		let (location, location2) = futures::try_join!(
+			PgLocation::create(&connection, None, address::street_name(), street.clone().into()),
+			PgLocation::create(&connection, None, address::street_name(), street.clone().into()),
 		)
 		.unwrap();
 
@@ -71,37 +72,37 @@ mod tests
 		}
 
 		// Assert ::create writes accurately to the DB
-		let database_earth = select!(earth.id);
-		assert_eq!(earth.currency.map(|c| c.to_string()), database_earth.currency);
-		assert_eq!(earth.id, database_earth.id);
-		assert_eq!(earth.name, database_earth.name);
-		assert_eq!(earth.outer, None);
-		assert_eq!(earth.outer.map(|o| o.id), database_earth.outer_id);
+		let database_city = select!(city.id);
+		assert_eq!(city.currency.map(|c| c.to_string()), database_city.currency);
+		assert_eq!(city.id, database_city.id);
+		assert_eq!(city.name, database_city.name);
+		assert_eq!(city.outer, None);
+		assert_eq!(city.outer.map(|o| o.id), database_city.outer_id);
 
 		// Assert ::create_inner writes accurately to the DB when `outer_id` is `None`
-		let database_usa = select!(usa.id);
-		assert_eq!(usa.currency.map(|c| c.to_string()), database_usa.currency);
-		assert_eq!(usa.id, database_usa.id);
-		assert_eq!(usa.name, database_usa.name);
-		let usa_outer_id = usa.outer.map(|o| o.id);
-		assert_eq!(usa_outer_id, Some(earth.id));
-		assert_eq!(usa_outer_id, database_usa.outer_id);
+		let database_street = select!(street.id);
+		assert_eq!(street.currency.map(|c| c.to_string()), database_street.currency);
+		assert_eq!(street.id, database_street.id);
+		assert_eq!(street.name, database_street.name);
+		let street_outer_id = street.outer.map(|o| o.id);
+		assert_eq!(street_outer_id, Some(city.id));
+		assert_eq!(street_outer_id, database_street.outer_id);
 
 		// Assert ::create_inner writes accurately to the DB when `outer_id` is `Some(…)`
-		let database_arizona = select!(arizona.id);
-		assert_eq!(arizona.currency.map(|c| c.to_string()), database_arizona.currency);
-		assert_eq!(arizona.id, database_arizona.id);
-		assert_eq!(arizona.name, database_arizona.name);
-		let arizona_outer_id = arizona.outer.map(|o| o.id);
-		assert_eq!(arizona_outer_id, Some(usa.id));
-		assert_eq!(arizona_outer_id, database_arizona.outer_id);
+		let database_location = select!(location.id);
+		assert_eq!(location.currency.map(|c| c.to_string()), database_location.currency);
+		assert_eq!(location.id, database_location.id);
+		assert_eq!(location.name, database_location.name);
+		let location_outer_id = location.outer.map(|o| o.id);
+		assert_eq!(location_outer_id, Some(street.id));
+		assert_eq!(location_outer_id, database_location.outer_id);
 
-		let database_utah = select!(utah.id);
-		assert_eq!(utah.currency.map(|c| c.to_string()), database_utah.currency);
-		assert_eq!(utah.id, database_utah.id);
-		assert_eq!(utah.name, database_utah.name);
-		let utah_outer_id = utah.outer.map(|o| o.id);
-		assert_eq!(utah_outer_id, Some(usa.id));
-		assert_eq!(utah_outer_id, database_utah.outer_id);
+		let database_location2 = select!(location2.id);
+		assert_eq!(location2.currency.map(|c| c.to_string()), database_location2.currency);
+		assert_eq!(location2.id, database_location2.id);
+		assert_eq!(location2.name, database_location2.name);
+		let location2_outer_id = location2.outer.map(|o| o.id);
+		assert_eq!(location2_outer_id, Some(street.id));
+		assert_eq!(location2_outer_id, database_location2.outer_id);
 	}
 }

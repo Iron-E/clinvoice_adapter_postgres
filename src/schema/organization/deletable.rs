@@ -33,6 +33,7 @@ impl Deletable for PgOrganization
 #[cfg(test)]
 mod tests
 {
+	use mockd::{address, company};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
@@ -48,12 +49,12 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let earth = PgLocation::create(&connection, None, address::country(), None).await.unwrap();
 
 		let (organization, organization2, organization3) = futures::try_join!(
-			PgOrganization::create(&connection, earth.clone(), "Some Organization".into()),
-			PgOrganization::create(&connection, earth.clone(), "Some Other Organization".into()),
-			PgOrganization::create(&connection, earth.clone(), "Another Other Organization".into(),),
+			PgOrganization::create(&connection, earth.clone(), company::company()),
+			PgOrganization::create(&connection, earth.clone(), company::company()),
+			PgOrganization::create(&connection, earth.clone(), company::company()),
 		)
 		.unwrap();
 
@@ -66,11 +67,12 @@ mod tests
 		assert_eq!(
 			PgOrganization::retrieve(
 				&connection,
-				Match::Or(vec![
-					organization.id.into(),
-					organization2.id.into(),
-					organization3.id.into()
-				])
+				Match::Or(
+					[&organization, &organization2, &organization3,]
+						.into_iter()
+						.map(|o| o.id.into())
+						.collect()
+				)
 				.into(),
 			)
 			.await

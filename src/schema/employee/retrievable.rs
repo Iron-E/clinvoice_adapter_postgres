@@ -123,7 +123,7 @@ mod tests
 				)
 				.into(),
 				id: Match::Or([&employee, &employee2].into_iter().map(|e| e.id.into()).collect()),
-				name: MatchStr::Not(MatchStr::from("Fired".to_owned()).into()),
+				name: MatchStr::Not(Box::new(util::different_string(employee.name.clone()).into())),
 				..Default::default()
 			})
 			.await

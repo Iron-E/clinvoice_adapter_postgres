@@ -52,13 +52,13 @@ mod tests
 		let mut department =
 			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
 
-		department.name = format!("Not {}", department.name);
+		department.name = util::different_string(&department.name);
 
 		{
-			let mut transaction = connection.begin().await.unwrap();
+			let mut tx = connection.begin().await.unwrap();
 			// PANICS: not implemented
-			PgDepartment::update(&mut transaction, [&department].into_iter()).await.unwrap();
-			transaction.commit().await.unwrap();
+			PgDepartment::update(&mut tx, [&department].into_iter()).await.unwrap();
+			tx.commit().await.unwrap();
 		}
 
 		let db_department =

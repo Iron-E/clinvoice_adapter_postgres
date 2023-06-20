@@ -253,19 +253,19 @@ impl Initializable for PgSchema
 	where
 		Conn: Acquire<'connection, Database = Self::Db> + Send,
 	{
-		let mut transaction = connection.begin().await?;
+		let mut tx = connection.begin().await?;
 
-		init_locations(&mut transaction).await?;
-		init_organizations(&mut transaction).await?;
-		init_contact_info(&mut transaction).await?;
-		init_departments(&mut transaction).await?;
-		init_employees(&mut transaction).await?;
-		init_money(&mut transaction).await?;
-		init_jobs(&mut transaction).await?;
-		init_job_departments(&mut transaction).await?;
-		init_timesheets(&mut transaction).await?;
-		init_expenses(&mut transaction).await?;
+		init_locations(&mut tx).await?;
+		init_organizations(&mut tx).await?;
+		init_contact_info(&mut tx).await?;
+		init_departments(&mut tx).await?;
+		init_employees(&mut tx).await?;
+		init_money(&mut tx).await?;
+		init_jobs(&mut tx).await?;
+		init_job_departments(&mut tx).await?;
+		init_timesheets(&mut tx).await?;
+		init_expenses(&mut tx).await?;
 
-		transaction.commit().await
+		tx.commit().await
 	}
 }

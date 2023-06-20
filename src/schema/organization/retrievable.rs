@@ -69,6 +69,7 @@ mod tests
 {
 	use std::collections::HashSet;
 
+	use mockd::{address, company};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{LocationAdapter, OrganizationAdapter},
@@ -85,19 +86,20 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
+		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into())
+			.await
+			.unwrap();
 
-		let usa = PgLocation::create(&connection, None, "USA".into(), earth.into()).await.unwrap();
-
-		let (arizona, utah) = futures::try_join!(
-			PgLocation::create(&connection, None, "Arizona".into(), usa.clone().into()),
-			PgLocation::create(&connection, None, "Utah".into(), usa.clone().into()),
+		let (location, location2) = futures::try_join!(
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 		)
 		.unwrap();
 
 		let (organization, organization2) = futures::try_join!(
-			PgOrganization::create(&connection, arizona.clone(), "Some Organization".into()),
-			PgOrganization::create(&connection, utah, "Some Other Organizatión".into()),
+			PgOrganization::create(&connection, location.clone(), company::company()),
+			PgOrganization::create(&connection, location2, company::company()),
 		)
 		.unwrap();
 
@@ -112,8 +114,8 @@ mod tests
 				location: MatchLocation {
 					outer: Some(
 						MatchLocation {
-							id: Match::Or(vec![usa.id.into(), Id::new_v4().into()]),
-							name: usa.name.into(),
+							id: Match::Or(vec![street.id.into(), Id::new_v4().into()]),
+							name: street.name.into(),
 							..Default::default()
 						}
 						.into()

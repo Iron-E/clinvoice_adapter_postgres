@@ -14,16 +14,28 @@ use winvoice_schema::{
 };
 #[cfg(test)]
 use {
+	core::fmt::Display,
 	mockd::{address, job},
 	sqlx::PgPool,
 	std::sync::OnceLock,
 };
 
+/// Connect to the test postgres database.
 #[cfg(test)]
 pub(super) async fn connect() -> PgPool
 {
 	static URL: OnceLock<String> = OnceLock::new();
 	PgPool::connect_lazy(&URL.get_or_init(|| dotenvy::var("DATABASE_URL").unwrap())).unwrap()
+}
+
+/// Returns a string representing the [`Display`] implementation of `d` which is different than the
+/// baseline.
+#[cfg(test)]
+pub fn different_string<D>(d: D) -> String
+where
+	D: Display,
+{
+	format!("{d} DIFFERENT {}", rand::random::<u16>())
 }
 
 /// Convert a [`PgInterval`] to a concrete [`Duration`]
@@ -60,6 +72,21 @@ pub fn duration_from(interval: PgInterval) -> Result<Duration>
 	))
 }
 
+/// Map some [error](money2::Error) `e` to an [`Error`].
+pub(super) fn finance_err_to_sqlx(e: FinanceError) -> Error
+{
+	match e
+	{
+		FinanceError::Decimal(e2) => Error::Decode(e2.into()),
+		FinanceError::Decode { .. } => Error::Io(io::Error::new(io::ErrorKind::InvalidData, e)),
+		FinanceError::Io(e2) => Error::Io(e2),
+		FinanceError::Reqwest(e2) => Error::Io(io::Error::new(io::ErrorKind::Other, e2)),
+		FinanceError::UnsupportedCurrency(_) => Error::Decode(e.into()),
+		FinanceError::Zip(e2) => Error::Io(io::Error::new(io::ErrorKind::InvalidData, e2)),
+	}
+}
+
+/// Insert the `departments` into the `job_departments` table given the `job_id`.
 pub(crate) async fn insert_into_job_departments<'conn, Conn>(
 	connection: Conn,
 	departments: &BTreeSet<Department>,
@@ -94,26 +121,14 @@ pub fn naive_date_to_utc(date: NaiveDateTime) -> DateTime<Utc>
 	date.and_utc()
 }
 
-/// Map some [error](money2::Error) `e` to an [`Error`].
-pub(super) fn finance_err_to_sqlx(e: FinanceError) -> Error
-{
-	match e
-	{
-		FinanceError::Decimal(e2) => Error::Decode(e2.into()),
-		FinanceError::Decode { .. } => Error::Io(io::Error::new(io::ErrorKind::InvalidData, e)),
-		FinanceError::Io(e2) => Error::Io(e2),
-		FinanceError::Reqwest(e2) => Error::Io(io::Error::new(io::ErrorKind::Other, e2)),
-		FinanceError::UnsupportedCurrency(_) => Error::Decode(e.into()),
-		FinanceError::Zip(e2) => Error::Io(io::Error::new(io::ErrorKind::InvalidData, e2)),
-	}
-}
-
+/// Generate a random [`Department`] name.
 #[cfg(test)]
 pub fn rand_department_name() -> String
 {
 	format!("{}{}", job::level(), rand::random::<u16>())
 }
 
+/// Generate a random street name.
 #[cfg(test)]
 pub fn rand_street_name() -> String
 {

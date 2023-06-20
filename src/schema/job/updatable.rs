@@ -139,7 +139,7 @@ mod tests
 
 		job.client.location = location2;
 		job.departments = [department2].into_iter().collect();
-		job.client.name = format!("Not {}", job.client.name);
+		job.client.name = util::different_string(&job.client.name);
 		job.date_close = chrono::Utc::now().into();
 		job.increment = Duration::from_secs(300);
 		job.invoice = Invoice {
@@ -150,8 +150,8 @@ mod tests
 			.into(),
 			hourly_rate: Money::new(200_00, 2, Default::default()),
 		};
-		job.notes = format!("Finished {}", job.notes);
-		job.objectives = format!("Test {}", job.notes);
+		job.notes = util::different_string(&job.notes);
+		job.objectives = util::different_string(&job.notes);
 
 		PgJob::update(&mut tx, [&job].into_iter()).await.unwrap();
 		tx.commit().await.unwrap();

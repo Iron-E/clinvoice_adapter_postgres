@@ -63,8 +63,8 @@ impl Updatable for PgLocation
 				{
 					// NOTE: this allows `dedup_by_key` prune edits to `Location`s which would
 					// overwrite       the `Location`s which were initially passed to the function
-					// (e.g. if Earth       and Sweden are both passed in to this function, Earth
-					// will take precedence       over Sweden's copy of Earth).
+					// (e.g. if street       and Sweden are both passed in to this function, street
+					// will take precedence       over Sweden's copy of street).
 					Ordering::Equal => Ordering::Greater,
 					o => o,
 				});
@@ -88,6 +88,7 @@ impl Updatable for PgLocation
 #[cfg(test)]
 mod tests
 {
+	use mockd::address;
 	use pretty_assertions::{assert_eq, assert_ne};
 	use winvoice_adapter::{schema::LocationAdapter, Retrievable, Updatable};
 	use winvoice_schema::Location;
@@ -99,43 +100,52 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let mut earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let mut street =
+			PgLocation::create(&connection, None, util::rand_street_name(), None).await.unwrap();
 
-		let (mut chile, mut usa) = futures::try_join!(
-			PgLocation::create(&connection, None, "Chile".into(), earth.clone().into()),
-			PgLocation::create(&connection, None, "USA".into(), earth.clone().into()),
+		let (mut location, mut location2) = futures::try_join!(
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 		)
 		.unwrap();
 
 		// NOTE: creating this location last to make sure that new locations can be set outside of
 		//       old locations
-		let mars = PgLocation::create(&connection, None, "Mars".into(), None).await.unwrap();
+		let street2 =
+			PgLocation::create(&connection, None, util::rand_street_name(), None).await.unwrap();
 
-		chile.name = "Chilé".into();
-		chile.outer = Some(
-			Location { id: earth.id, name: format!("Not {}", &earth.name), ..Default::default() }
-				.into(),
+		location.name = util::different_string(&location.name);
+		location.outer = Some(
+			Location {
+				id: street.id,
+				name: util::different_string(&street.name),
+				..Default::default()
+			}
+			.into(),
 		);
-		earth.name = "Urth".into();
+		street.name = util::different_string(&street.name);
 
-		usa.outer = Some(mars.into());
+		location2.outer = Some(street2.into());
 
 		{
-			let mut transaction = connection.begin().await.unwrap();
-			PgLocation::update(&mut transaction, [&chile, &usa, &earth].into_iter()).await.unwrap();
-			transaction.commit().await.unwrap();
+			let mut tx = connection.begin().await.unwrap();
+			PgLocation::update(&mut tx, [&location, &location2, &street].into_iter())
+				.await
+				.unwrap();
+			tx.commit().await.unwrap();
 		}
 
-		let chile_db =
-			PgLocation::retrieve(&connection, chile.id.into()).await.unwrap().pop().unwrap();
+		let location_db =
+			PgLocation::retrieve(&connection, location.id.into()).await.unwrap().pop().unwrap();
 
-		let usa_db = PgLocation::retrieve(&connection, usa.id.into()).await.unwrap().pop().unwrap();
+		let location2_db =
+			PgLocation::retrieve(&connection, location2.id.into()).await.unwrap().pop().unwrap();
 
-		assert_eq!(chile.id, chile_db.id);
-		assert_eq!(chile.name, chile_db.name);
-		assert_ne!(chile.outer, chile_db.outer);
-		assert_eq!(earth, *chile_db.outer.unwrap());
+		assert_eq!(location.id, location_db.id);
+		assert_eq!(location.name, location_db.name);
+		assert_ne!(location.outer, location_db.outer);
+		assert_eq!(street, *location_db.outer.unwrap());
 
-		assert_eq!(usa, usa_db);
+		assert_eq!(location2, location2_db);
 	}
 }

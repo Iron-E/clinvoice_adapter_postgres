@@ -32,6 +32,7 @@ impl OrganizationAdapter for PgOrganization
 #[cfg(test)]
 mod tests
 {
+	use mockd::{address, company};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::schema::LocationAdapter;
 
@@ -43,12 +44,10 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let earth = PgLocation::create(&connection, None, address::street(), None).await.unwrap();
 
 		let organization =
-			PgOrganization::create(&connection, earth.clone(), "Some Organization".into())
-				.await
-				.unwrap();
+			PgOrganization::create(&connection, earth.clone(), company::company()).await.unwrap();
 
 		let row = sqlx::query!("SELECT * FROM organizations WHERE id = $1;", organization.id)
 			.fetch_one(&connection)

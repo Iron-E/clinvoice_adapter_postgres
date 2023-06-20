@@ -110,7 +110,7 @@ mod tests
 			[department].into_iter().collect(),
 			Duration::new(7640, 0),
 			Invoice { date: None, hourly_rate: Money::new(13_27, 2, Currency::Usd) },
-			String::new(),
+			words::sentence(5),
 			words::sentence(5),
 		)
 		.await

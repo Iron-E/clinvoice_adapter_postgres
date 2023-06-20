@@ -161,7 +161,7 @@ mod tests
 		timesheet.employee = employee2;
 		timesheet.expenses.push(new_expense);
 		timesheet.job.client.location = location2;
-		timesheet.job.client.name = format!("Not {}", timesheet.job.client.name);
+		timesheet.job.client.name = util::different_string(&timesheet.job.client.name);
 		timesheet.job.date_close = chrono::Utc::now().into();
 		timesheet.job.departments.remove(&department2);
 		timesheet.job.increment = Duration::from_secs(300);
@@ -173,8 +173,8 @@ mod tests
 			.into(),
 			hourly_rate: Money::new(200_00, 2, Default::default()),
 		};
-		timesheet.job.notes = format!("Finished {}", timesheet.job.notes);
-		timesheet.job.objectives = format!("Test {}", timesheet.job.notes);
+		timesheet.job.notes = util::different_string(&timesheet.job.notes);
+		timesheet.job.objectives = util::different_string(&timesheet.job.notes);
 		timesheet.time_end = chrono::Utc::now().into();
 		timesheet.work_notes = "Updated work notes".into();
 

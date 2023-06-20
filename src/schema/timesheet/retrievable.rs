@@ -274,8 +274,8 @@ mod tests
 			[department.clone()].into_iter().collect(),
 			Duration::from_secs(900),
 			Invoice { date: None, hourly_rate: Money::new(20_00, 2, Currency::Usd) },
-			String::new(),
-			"Do something".into(),
+			words::sentence(5),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
@@ -295,8 +295,8 @@ mod tests
 				.into(),
 				hourly_rate: Money::new(200_00, 2, Currency::Jpy),
 			},
-			String::new(),
-			"Do something".into(),
+			words::sentence(5),
+			words::sentence(5),
 		)
 		.await
 		.unwrap();
@@ -333,10 +333,9 @@ mod tests
 		assert_eq!(
 			PgTimesheet::retrieve(&connection, MatchTimesheet {
 				expenses: MatchSet::Not(MatchSet::Contains(Default::default()).into()),
-				employee: Match::Or(vec![
-					timesheet.employee.id.into(),
-					timesheet2.employee.id.into(),
-				])
+				employee: Match::Or(
+					[&timesheet, &timesheet2,].into_iter().map(|t| t.employee.id.into()).collect()
+				)
 				.into(),
 				..Default::default()
 			})

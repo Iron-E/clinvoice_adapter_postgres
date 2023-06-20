@@ -33,6 +33,7 @@ impl Deletable for PgLocation
 #[cfg(test)]
 mod tests
 {
+	use mockd::address;
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{schema::LocationAdapter, Deletable, Retrievable};
 	use winvoice_match::Match;
@@ -44,26 +45,27 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
 
-		let (chile, usa) = futures::try_join!(
-			PgLocation::create(&connection, None, "Chile".into(), earth.clone().into()),
-			PgLocation::create(&connection, None, "Arizona".into(), earth.clone().into()),
+		let (street, street2) = futures::try_join!(
+			PgLocation::create(&connection, None, address::street(), city.clone().into()),
+			PgLocation::create(&connection, None, address::street(), city.clone().into()),
 		)
 		.unwrap();
 
-		assert!(PgLocation::delete(&connection, [&earth].into_iter()).await.is_err());
-		PgLocation::delete(&connection, [&chile, &usa].into_iter()).await.unwrap();
+		assert!(PgLocation::delete(&connection, [&city].into_iter()).await.is_err());
+		PgLocation::delete(&connection, [&street, &street2].into_iter()).await.unwrap();
 
 		assert_eq!(
 			PgLocation::retrieve(
 				&connection,
-				Match::Or(vec![chile.id.into(), earth.id.into(), usa.id.into(),]).into(),
+				Match::Or([&city, &street, &street2].into_iter().map(|l| l.id.into()).collect())
+					.into(),
 			)
 			.await
 			.unwrap()
 			.as_slice(),
-			&[earth]
+			&[city]
 		);
 	}
 }

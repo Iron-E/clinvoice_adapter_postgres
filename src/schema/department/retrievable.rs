@@ -56,8 +56,6 @@ impl Retrievable for PgDepartment
 #[cfg(test)]
 mod tests
 {
-	use std::collections::HashSet;
-
 	use winvoice_adapter::{schema::DepartmentAdapter, Retrievable};
 	use winvoice_match::{Match, MatchDepartment, MatchStr};
 
@@ -77,27 +75,24 @@ mod tests
 
 		assert_eq!(
 			PgDepartment::retrieve(&connection, MatchDepartment {
-				id: Match::Or(vec![department.id.into(), department2.id.into()]),
+				id: Match::Or(
+					[&department, &department2].into_iter().map(|d| d.id.into()).collect()
+				),
 				name: department.name.clone().into(),
 				..Default::default()
 			})
 			.await
 			.unwrap()
 			.as_slice(),
-			&[department.clone()],
+			&[department],
 		);
 
 		assert_eq!(
-			PgDepartment::retrieve(&connection, MatchDepartment {
-				id: Match::Or(vec![department.id.into(), department2.id.into()]),
-				name: MatchStr::Not(MatchStr::from("Fired".to_string()).into()),
-				..Default::default()
-			})
-			.await
-			.unwrap()
-			.into_iter()
-			.collect::<HashSet<_>>(),
-			[department, department2].into_iter().collect()
+			PgDepartment::retrieve(&connection, MatchStr::from(department2.name.clone()).into())
+				.await
+				.unwrap()
+				.as_slice(),
+			&[department2],
 		);
 	}
 }

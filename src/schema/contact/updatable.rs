@@ -45,6 +45,7 @@ mod tests
 {
 	use std::collections::HashSet;
 
+	use mockd::{address, contact, words};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{ContactAdapter, LocationAdapter},
@@ -62,37 +63,35 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let (earth, mars) = futures::try_join!(
-			PgLocation::create(&connection, None, "Earth".into(), None),
-			PgLocation::create(&connection, None, "Mars".into(), None),
+		let (country, country2) = futures::try_join!(
+			PgLocation::create(&connection, None, address::country(), None),
+			PgLocation::create(&connection, None, address::country(), None),
 		)
 		.unwrap();
 
 		let (mut office, mut phone) = futures::try_join!(
+			PgContact::create(&connection, ContactKind::Address(country), words::sentence(3),),
 			PgContact::create(
 				&connection,
-				ContactKind::Address(earth),
-				"asldkjalskfhalskdj Office".into()
-			),
-			PgContact::create(
-				&connection,
-				ContactKind::Phone("1-800-555-5555".into()),
-				"gbtyufs buai Primary Contact".into()
+				ContactKind::Phone(contact::phone()),
+				words::sentence(3),
 			),
 		)
 		.unwrap();
 
-		office.kind = ContactKind::Address(mars);
-		phone.kind = ContactKind::Email("foo@bar.io".into());
+		office.kind = ContactKind::Address(country2);
+		phone.kind = ContactKind::Email(contact::email());
 
 		{
-			let mut transaction = connection.begin().await.unwrap();
-			PgContact::update(&mut transaction, [&office, &phone].into_iter()).await.unwrap();
-			transaction.commit().await.unwrap();
+			let mut tx = connection.begin().await.unwrap();
+			PgContact::update(&mut tx, [&office, &phone].into_iter()).await.unwrap();
+			tx.commit().await.unwrap();
 		}
 
 		let db_contact_info: HashSet<_> = PgContact::retrieve(&connection, MatchContact {
-			label: MatchStr::Or(vec![office.label.clone().into(), phone.label.clone().into()]),
+			label: MatchStr::Or(
+				[&office, &phone].into_iter().map(|c| c.label.clone().into()).collect(),
+			),
 			..Default::default()
 		})
 		.await

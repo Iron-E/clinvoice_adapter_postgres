@@ -72,6 +72,7 @@ impl Deletable for PgContact
 #[cfg(test)]
 mod tests
 {
+	use mockd::{address, contact, words};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{ContactAdapter, LocationAdapter},
@@ -89,20 +90,21 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let country =
+			PgLocation::create(&connection, None, address::country(), None).await.unwrap();
 
 		let (office_number, primary_email, mailing_address) = futures::try_join!(
 			PgContact::create(
 				&connection,
-				ContactKind::Phone("555-555-5555".into()),
-				"Office Number".into()
+				ContactKind::Phone(contact::phone()),
+				words::sentence(3),
 			),
 			PgContact::create(
 				&connection,
-				ContactKind::Email("somethingsomething@invalid.com".into()),
-				"Primary Email".into()
+				ContactKind::Email(contact::email()),
+				words::sentence(3)
 			),
-			PgContact::create(&connection, ContactKind::Address(earth), "Mailing Address".into()),
+			PgContact::create(&connection, ContactKind::Address(country), words::sentence(3)),
 		)
 		.unwrap();
 
@@ -110,11 +112,12 @@ mod tests
 
 		assert_eq!(
 			PgContact::retrieve(&connection, MatchContact {
-				label: MatchStr::Or(vec![
-					office_number.label.clone().into(),
-					primary_email.label.clone().into(),
-					mailing_address.label.clone().into(),
-				]),
+				label: MatchStr::Or(
+					[&office_number, &primary_email, &mailing_address,]
+						.into_iter()
+						.map(|c| c.label.clone().into())
+						.collect()
+				),
 				..Default::default()
 			})
 			.await

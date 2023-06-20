@@ -67,14 +67,14 @@ mod tests
 			PgEmployee::create(&connection, department, name::full(), job::title()).await.unwrap();
 
 		employee.active = !employee.active;
-		employee.department.name = format!("Not {}", employee.department.name);
-		employee.name = format!("Not {}", employee.name);
-		employee.title = format!("Not {}", employee.title);
+		employee.department.name = util::different_string(&employee.department.name);
+		employee.name = util::different_string(&employee.name);
+		employee.title = util::different_string(&employee.title);
 
 		{
-			let mut transaction = connection.begin().await.unwrap();
-			PgEmployee::update(&mut transaction, [&employee].into_iter()).await.unwrap();
-			transaction.commit().await.unwrap();
+			let mut tx = connection.begin().await.unwrap();
+			PgEmployee::update(&mut tx, [&employee].into_iter()).await.unwrap();
+			tx.commit().await.unwrap();
 		}
 
 		let db_employee =

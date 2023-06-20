@@ -53,6 +53,7 @@ mod tests
 {
 	use std::collections::HashSet;
 
+	use mockd::address;
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{schema::LocationAdapter, Retrievable};
 	use winvoice_match::MatchLocation;
@@ -65,41 +66,41 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let earth = PgLocation::create(&connection, None, "Earth".into(), None).await.unwrap();
+		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
+		let street =
+			PgLocation::create(&connection, None, util::rand_street_name(), city.clone().into())
+				.await
+				.unwrap();
 
-		let usa = PgLocation::create(&connection, None, "USA".into(), earth.clone().into())
-			.await
-			.unwrap();
-
-		let (arizona, utah) = futures::try_join!(
-			PgLocation::create(&connection, None, "Arizona".into(), usa.clone().into()),
-			PgLocation::create(&connection, None, "Utah".into(), usa.clone().into()),
+		let (location, location2) = futures::try_join!(
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
+			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 		)
 		.unwrap();
 
 		// Assert ::retrieve retrieves accurately from the DB
 		assert_eq!(
 			PgLocation::retrieve(&connection, MatchLocation {
-				id: earth.id.into(),
+				id: city.id.into(),
 				outer: None.into(),
 				..Default::default()
 			})
 			.await
 			.unwrap()
 			.as_slice(),
-			&[earth]
+			&[city]
 		);
 
 		assert_eq!(
-			[utah, arizona].into_iter().collect::<HashSet<_>>(),
 			PgLocation::retrieve(&connection, MatchLocation {
-				outer: Some(Box::new(usa.id.into())).into(),
+				outer: Some(Box::new(street.id.into())).into(),
 				..Default::default()
 			})
 			.await
 			.unwrap()
 			.into_iter()
-			.collect::<HashSet<_>>()
+			.collect::<HashSet<_>>(),
+			[location2, location].into_iter().collect::<HashSet<_>>(),
 		);
 	}
 }
