@@ -79,19 +79,9 @@ mod tests
 		let connection = util::connect().await;
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
-		let street = PgLocation::create(
-			&connection,
-			None,
-			format!(
-				"{} {} {}",
-				address::street_prefix(),
-				address::street_name(),
-				address::street_suffix()
-			),
-			city.into(),
-		)
-		.await
-		.unwrap();
+		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into())
+			.await
+			.unwrap();
 
 		let (location, location2) = futures::try_join!(
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
@@ -100,8 +90,8 @@ mod tests
 		.unwrap();
 
 		let (department, department2, organization, organization2) = futures::try_join!(
-			PgDepartment::create(&connection, job::level()),
-			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, util::rand_department_name()),
+			PgDepartment::create(&connection, util::rand_department_name()),
 			PgOrganization::create(&connection, location.clone(), company::company()),
 			PgOrganization::create(&connection, location2.clone(), company::company()),
 		)

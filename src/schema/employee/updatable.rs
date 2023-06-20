@@ -60,7 +60,8 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let department = PgDepartment::create(&connection, job::level()).await.unwrap();
+		let department =
+			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
 
 		let mut employee =
 			PgEmployee::create(&connection, department, name::full(), job::title()).await.unwrap();

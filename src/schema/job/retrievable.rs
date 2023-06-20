@@ -57,9 +57,9 @@ impl Retrievable for PgJob
 			.push(sql::SELECT)
 			.push_columns(&columns)
 			.push_more_columns(&organization_columns.r#as(ORGANIZATION_COLUMNS_UNIQUE))
-			.push(", array_agg(")
-			.push(DepartmentColumns::DEFAULT_ALIAS)
-			.push(')')
+			.push(", array_agg((")
+			.push_columns(&department_columns)
+			.push("))")
 			.push(sql::AS)
 			.push(DEPARTMENTS_AGGREGATED_IDENT)
 			.push_default_from::<JobColumns>()
@@ -132,7 +132,7 @@ mod tests
 	use core::time::Duration;
 	use std::collections::HashSet;
 
-	use mockd::{address, company, job, words};
+	use mockd::{address, company, words};
 	use money2::{Exchange, ExchangeRates};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
@@ -158,23 +158,13 @@ mod tests
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
 
-		let street = PgLocation::create(
-			&connection,
-			None,
-			format!(
-				"{} {} {}",
-				address::street_prefix(),
-				address::street_name(),
-				address::street_suffix()
-			),
-			city.into(),
-		)
-		.await
-		.unwrap();
+		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into())
+			.await
+			.unwrap();
 
 		let (department, department2, location, location2) = futures::try_join!(
-			PgDepartment::create(&connection, job::level()),
-			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, util::rand_department_name()),
+			PgDepartment::create(&connection, util::rand_department_name()),
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 		)

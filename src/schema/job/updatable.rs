@@ -40,8 +40,8 @@ impl Updatable for PgJob
 		PgSchema::update(connection, JobColumns::default(), |query| {
 			query.push_values(peekable_entities, |mut q, e| {
 				q.push_bind(e.client.id)
-					.push_bind(e.date_open.pg_sanitize())
 					.push_bind(e.date_close.pg_sanitize())
+					.push_bind(e.date_open.pg_sanitize())
 					.push_bind(e.id)
 					.push_bind(e.increment);
 
@@ -87,7 +87,7 @@ mod tests
 {
 	use core::time::Duration;
 
-	use mockd::{address, company, job, words};
+	use mockd::{address, company, words};
 	use money2::Money;
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
@@ -114,8 +114,8 @@ mod tests
 		.unwrap();
 
 		let (department, department2) = futures::try_join!(
-			PgDepartment::create(&connection, job::level()),
-			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, util::rand_department_name()),
+			PgDepartment::create(&connection, util::rand_department_name()),
 		)
 		.unwrap();
 

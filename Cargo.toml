@@ -42,8 +42,9 @@ version = "1"
 
 [dev-dependencies]
 dotenvy = "0.15"
-mockd = {features = ["address", "company", "contact", "currency", "datetime", "internet", "job", "password", "name", "words"], version = "0.4"}
+mockd = {features = ["address", "company", "contact", "currency", "datetime", "job", "name", "words"], version = "0.4"}
 pretty_assertions = "1"
+rand = "0.8"
 tracing-test = '0.2'
 
 [patch.crates-io.sqlx]

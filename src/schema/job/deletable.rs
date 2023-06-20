@@ -35,7 +35,7 @@ mod tests
 {
 	use core::time::Duration;
 
-	use mockd::{address, company, job, words};
+	use mockd::{address, company, words};
 	use money2::{Currency, Exchange, ExchangeRates, Money};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
@@ -58,7 +58,7 @@ mod tests
 		let connection = util::connect().await;
 
 		let (department, location) = futures::try_join!(
-			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, util::rand_department_name()),
 			PgLocation::create(&connection, None, address::country(), None),
 		)
 		.unwrap();

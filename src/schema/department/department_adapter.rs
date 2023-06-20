@@ -23,7 +23,6 @@ impl DepartmentAdapter for PgDepartment
 #[cfg(test)]
 mod tests
 {
-	use mockd::job;
 	use pretty_assertions::assert_eq;
 
 	use super::{DepartmentAdapter, PgDepartment};
@@ -34,7 +33,8 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let department = PgDepartment::create(&connection, job::level()).await.unwrap();
+		let department =
+			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
 
 		let row = sqlx::query!("SELECT * FROM departments WHERE id = $1;", department.id)
 			.fetch_one(&connection)

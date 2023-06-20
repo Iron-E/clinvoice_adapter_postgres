@@ -76,7 +76,7 @@ mod tests
 			PgLocation::create(&connection, None, address::country(), None).await.unwrap();
 
 		let (department, organization) = futures::try_join!(
-			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, util::rand_department_name()),
 			PgOrganization::create(&connection, location, company::company()),
 		)
 		.unwrap();

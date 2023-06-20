@@ -428,10 +428,9 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchDepartment>> for PgSchema
 						subquery_columns.id,
 					)
 					.push(sql::AND)
-					.push_equal(
-						junct_subquery_columns.job_id,
-						JUNCT_COLUMNS.default_scope().job_id,
-					);
+					.push('(')
+					.push_equal(junct_subquery_columns.job_id, JUNCT_COLUMNS.default_scope().job_id)
+					.push(')');
 
 				Self::write_where_clause(
 					Default::default(),

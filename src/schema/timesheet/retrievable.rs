@@ -77,12 +77,12 @@ impl Retrievable for PgTimesheet
 				&employee_department_columns.r#as(EMPLOYEE_DEPARTMENT_COLUMNS_UNIQUE),
 			)
 			.push(",array_agg((")
-			.push(DepartmentColumns::DEFAULT_ALIAS)
+			.push_columns(&department_columns)
 			.push("))")
 			.push(sql::AS)
 			.push(DEPARTMENTS_AGGREGATED_IDENT)
 			.push(",array_agg((")
-			.push(ExpenseColumns::DEFAULT_ALIAS)
+			.push_columns(&expense_columns)
 			.push("))")
 			.push(sql::AS)
 			.push(EXPENSES_AGGREGATED_IDENT)
@@ -103,7 +103,7 @@ impl Retrievable for PgTimesheet
 			.push(sql::LEFT)
 			.push_default_equijoin::<JobDepartmentColumns, _, _>(
 				job_department_columns.job_id,
-				columns.id,
+				job_columns.id,
 			)
 			.push(sql::LEFT)
 			.push_equijoin(
@@ -143,7 +143,7 @@ impl Retrievable for PgTimesheet
 								&exchanged_condition.employee,
 								&mut query,
 							),
-							EmployeeColumns::DEFAULT_ALIAS,
+							DepartmentColumns::DEFAULT_ALIAS,
 							&exchanged_condition.employee.department,
 							&mut query,
 						),
@@ -241,23 +241,13 @@ mod tests
 		let connection = util::connect().await;
 
 		let city = PgLocation::create(&connection, None, address::state(), None).await.unwrap();
-		let street = PgLocation::create(
-			&connection,
-			None,
-			format!(
-				"{} {} {}",
-				address::street_prefix(),
-				address::street_name(),
-				address::street_suffix()
-			),
-			city.into(),
-		)
-		.await
-		.unwrap();
+		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into())
+			.await
+			.unwrap();
 
 		let (department, department2, location, location2) = futures::try_join!(
-			PgDepartment::create(&connection, job::level()),
-			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, util::rand_department_name()),
+			PgDepartment::create(&connection, util::rand_department_name()),
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 		)
@@ -271,7 +261,7 @@ mod tests
 
 		let (employee, employee2) = futures::try_join!(
 			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
-			PgEmployee::create(&connection, department.clone(), name::full(), job::title()),
+			PgEmployee::create(&connection, department2.clone(), name::full(), job::title()),
 		)
 		.unwrap();
 
@@ -342,7 +332,7 @@ mod tests
 
 		assert_eq!(
 			PgTimesheet::retrieve(&connection, MatchTimesheet {
-				expenses: MatchSet::Not(Default::default()),
+				expenses: MatchSet::Not(MatchSet::Contains(Default::default()).into()),
 				employee: Match::Or(vec![
 					timesheet.employee.id.into(),
 					timesheet2.employee.id.into(),

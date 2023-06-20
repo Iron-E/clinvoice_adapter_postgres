@@ -13,7 +13,11 @@ use winvoice_schema::{
 	Id,
 };
 #[cfg(test)]
-use {sqlx::PgPool, std::sync::OnceLock};
+use {
+	mockd::{address, job},
+	sqlx::PgPool,
+	std::sync::OnceLock,
+};
 
 #[cfg(test)]
 pub(super) async fn connect() -> PgPool
@@ -102,6 +106,18 @@ pub(super) fn finance_err_to_sqlx(e: FinanceError) -> Error
 		FinanceError::UnsupportedCurrency(_) => Error::Decode(e.into()),
 		FinanceError::Zip(e2) => Error::Io(io::Error::new(io::ErrorKind::InvalidData, e2)),
 	}
+}
+
+#[cfg(test)]
+pub fn rand_department_name() -> String
+{
+	format!("{}{}", job::level(), rand::random::<u16>())
+}
+
+#[cfg(test)]
+pub fn rand_street_name() -> String
+{
+	format!("{} {} {}", address::street_prefix(), address::street_name(), address::street_suffix())
 }
 
 #[cfg(test)]

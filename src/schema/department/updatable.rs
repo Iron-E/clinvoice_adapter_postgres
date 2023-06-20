@@ -39,7 +39,6 @@ impl Updatable for PgDepartment
 #[cfg(test)]
 mod tests
 {
-	use mockd::job;
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{schema::DepartmentAdapter, Retrievable, Updatable};
 
@@ -50,7 +49,8 @@ mod tests
 	{
 		let connection = util::connect().await;
 
-		let mut department = PgDepartment::create(&connection, job::level()).await.unwrap();
+		let mut department =
+			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
 
 		department.name = format!("Not {}", department.name);
 

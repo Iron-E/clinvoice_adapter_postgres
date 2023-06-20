@@ -102,8 +102,8 @@ mod tests
 		let connection = util::connect().await;
 
 		let (department, department2, location, location2) = futures::try_join!(
-			PgDepartment::create(&connection, job::level()),
-			PgDepartment::create(&connection, job::level()),
+			PgDepartment::create(&connection, util::rand_department_name()),
+			PgDepartment::create(&connection, util::rand_department_name()),
 			PgLocation::create(&connection, None, address::country(), None),
 			PgLocation::create(&connection, None, address::country(), None),
 		)
