@@ -370,6 +370,7 @@ macro_rules! impl_write_where_clause_for_match_option {
 }
 
 impl_write_where_clause_for_match_option!(Match[T]);
+impl_write_where_clause_for_match_option!(MatchDepartment);
 impl_write_where_clause_for_match_option!(MatchEmployee);
 impl_write_where_clause_for_match_option!(MatchExpense);
 impl_write_where_clause_for_match_option!(MatchInvoice);
