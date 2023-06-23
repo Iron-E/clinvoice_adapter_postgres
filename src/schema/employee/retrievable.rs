@@ -86,7 +86,7 @@ mod tests
 	#[tracing_test::traced_test]
 	async fn retrieve()
 	{
-		let connection = util::connect().await;
+		let connection = util::connect();
 
 		let (department, department2) = futures::try_join!(
 			PgDepartment::create(&connection, util::rand_department_name()),

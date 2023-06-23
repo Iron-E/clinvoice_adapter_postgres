@@ -154,7 +154,7 @@ mod tests
 	#[tracing_test::traced_test]
 	async fn retrieve()
 	{
-		let connection = util::connect().await;
+		let connection = util::connect();
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
 

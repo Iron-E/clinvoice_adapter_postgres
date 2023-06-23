@@ -88,7 +88,7 @@ mod tests
 	#[tracing_test::traced_test]
 	async fn delete()
 	{
-		let connection = util::connect().await;
+		let connection = util::connect();
 
 		let country =
 			PgLocation::create(&connection, None, address::country(), None).await.unwrap();

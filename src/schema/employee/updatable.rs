@@ -58,7 +58,7 @@ mod tests
 	#[tokio::test]
 	async fn update()
 	{
-		let connection = util::connect().await;
+		let connection = util::connect();
 
 		let department =
 			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();

@@ -105,7 +105,7 @@ mod tests
 	#[tokio::test]
 	async fn update()
 	{
-		let connection = util::connect().await;
+		let connection = util::connect();
 
 		let (location, location2) = futures::try_join!(
 			PgLocation::create(&connection, None, address::country(), None),

@@ -98,7 +98,7 @@ mod tests
 	#[tokio::test]
 	async fn update()
 	{
-		let connection = util::connect().await;
+		let connection = util::connect();
 
 		let mut street =
 			PgLocation::create(&connection, None, util::rand_street_name(), None).await.unwrap();

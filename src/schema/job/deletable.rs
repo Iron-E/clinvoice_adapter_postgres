@@ -55,7 +55,7 @@ mod tests
 	#[tokio::test]
 	async fn delete()
 	{
-		let connection = util::connect().await;
+		let connection = util::connect();
 
 		let (department, location) = futures::try_join!(
 			PgDepartment::create(&connection, util::rand_department_name()),

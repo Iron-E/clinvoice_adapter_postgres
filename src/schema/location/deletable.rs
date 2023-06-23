@@ -43,7 +43,7 @@ mod tests
 	#[tokio::test]
 	async fn delete()
 	{
-		let connection = util::connect().await;
+		let connection = util::connect();
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
 
