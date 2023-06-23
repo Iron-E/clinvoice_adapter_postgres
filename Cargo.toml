@@ -1,52 +1,59 @@
 # See https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
-name = "winvoice-adapter-postgres"
-version = "0.15.3"
-authors = ["Iron-E <code.iron.e@gmail.com>"]
-description = "A Winvoice Adapter for the Postgres database"
+name = 'winvoice-adapter-postgres'
+version = '0.15.4'
+authors = ['Iron-E <code.iron.e@gmail.com>']
+description = 'A Winvoice Adapter for the Postgres database'
 
-edition = "2021"
-license = "GPL3"
-readme = "README.md"
-repository = "https://www.github.com/Iron-E/winvoice-adapter-postgres"
+edition = '2021'
+license = 'GPL3'
+readme = 'README.md'
+repository = 'https://www.github.com/Iron-E/winvoice-adapter-postgres'
 
 [dependencies]
-async-trait = "0.1"
-futures = "0.3"
-humantime = "2"
-money2 = "0.8"
-shellexpand = "2"
-thiserror = "1"
+async-trait = '0.1'
+dotenvy = {optional = true, version = '0.15'}
+futures = '0.3'
+humantime = '2'
+mockd = {features = ['address', 'job'], optional = true, version = '0.4'}
+money2 = '0.8'
+rand = {optional = true, versoin = '0.8'}
+shellexpand = '2'
+thiserror = '1'
 tracing = '0.1'
 
 [dependencies.winvoice-adapter]
-branch = "release/0.24"
+branch = 'release/0.24'
 default-features = false
-git = "https://github.com/Iron-E/winvoice-adapter"
+git = 'https://github.com/Iron-E/winvoice-adapter'
 
 [dependencies.winvoice-match]
-branch = "release/0.13"
-git = "https://github.com/Iron-E/winvoice-match"
+branch = 'release/0.13'
+git = 'https://github.com/Iron-E/winvoice-match'
 
 [dependencies.winvoice-schema]
-branch = "release/0.15"
-git = "https://github.com/Iron-E/winvoice-schema"
+branch = 'release/0.15'
+git = 'https://github.com/Iron-E/winvoice-schema'
 
 [dependencies.sqlx]
-features = ["chrono", "decimal", "macros", "postgres", "runtime-tokio-rustls", "tls", "uuid"]
-version = "0.6"
+features = ['chrono', 'decimal', 'macros', 'postgres', 'runtime-tokio-rustls', 'tls', 'uuid']
+version = '0.6'
 
 [dependencies.tokio]
-features = ["macros", "rt"]
-version = "1"
+features = ['macros', 'rt']
+version = '1'
 
 [dev-dependencies]
-dotenvy = "0.15"
-mockd = {features = ["address", "company", "contact", "currency", "datetime", "job", "name", "words"], version = "0.4"}
-pretty_assertions = "1"
-rand = "0.8"
+dotenvy = '0.15'
+mockd = {features = ['address', 'company', 'contact', 'currency', 'datetime', 'job', 'name', 'words'], version = '0.4'}
+pretty_assertions = '1'
+rand = '0.8'
 tracing-test = '0.2'
 
 [patch.crates-io.sqlx]
-git = "https://github.com/Iron-E/sqlx"
-branch = "release/0.6.3-patched"
+git = 'https://github.com/Iron-E/sqlx'
+branch = 'release/0.6.3-patched'
+
+[features]
+default = []
+test-utils = ['dotenvy', 'mockd', 'rand']

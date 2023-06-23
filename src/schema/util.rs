@@ -12,7 +12,7 @@ use winvoice_schema::{
 	Department,
 	Id,
 };
-#[cfg(test)]
+#[cfg(any(feature = "test-utils", test))]
 use {
 	core::fmt::Display,
 	mockd::{address, job},
@@ -21,7 +21,7 @@ use {
 };
 
 /// Connect to the test postgres database.
-#[cfg(test)]
+#[cfg(any(feature = "test-utils", test))]
 pub fn connect() -> PgPool
 {
 	static URL: OnceLock<String> = OnceLock::new();
@@ -30,7 +30,7 @@ pub fn connect() -> PgPool
 
 /// Returns a string representing the [`Display`] implementation of `d` which is different than the
 /// baseline.
-#[cfg(test)]
+#[cfg(any(feature = "test-utils", test))]
 pub fn different_string<D>(d: D) -> String
 where
 	D: Display,
@@ -122,14 +122,14 @@ pub fn naive_date_to_utc(date: NaiveDateTime) -> DateTime<Utc>
 }
 
 /// Generate a random [`Department`] name.
-#[cfg(test)]
+#[cfg(any(feature = "test-utils", test))]
 pub fn rand_department_name() -> String
 {
 	format!("{}{}", job::level(), rand::random::<u16>())
 }
 
 /// Generate a random street name.
-#[cfg(test)]
+#[cfg(any(feature = "test-utils", test))]
 pub fn rand_street_name() -> String
 {
 	format!("{} {} {}", address::street_prefix(), address::street_name(), address::street_suffix())
