@@ -22,7 +22,7 @@ use {
 
 /// Connect to the test postgres database.
 #[cfg(test)]
-pub(super) async fn connect() -> PgPool
+pub async fn connect() -> PgPool
 {
 	static URL: OnceLock<String> = OnceLock::new();
 	PgPool::connect_lazy(&URL.get_or_init(|| dotenvy::var("DATABASE_URL").unwrap())).unwrap()
