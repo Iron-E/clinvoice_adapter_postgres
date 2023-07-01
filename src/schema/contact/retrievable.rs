@@ -24,10 +24,7 @@ impl Retrievable for PgContact
 
 	/// Retrieve all [`Contact`]s (via `connection`) that match the `match_condition`.
 	#[tracing::instrument(level = "trace", skip(connection), err)]
-	async fn retrieve(
-		connection: &Pool<Postgres>,
-		match_condition: Self::Match,
-	) -> Result<Vec<Self::Entity>>
+	async fn retrieve(connection: &Pool<Postgres>, match_condition: Self::Match) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: ContactColumns<&'static str> = ContactColumns::default();
 

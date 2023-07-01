@@ -19,8 +19,7 @@ impl EmployeeAdapter for PgEmployee
 		let active = true;
 		let id = Id::new_v4();
 		sqlx::query!(
-			"INSERT INTO employees (id, active, department_id, name, title) VALUES ($1, $2, $3, \
-			 $4, $5);",
+			"INSERT INTO employees (id, active, department_id, name, title) VALUES ($1, $2, $3, $4, $5);",
 			id,
 			active,
 			department.id,
@@ -49,16 +48,12 @@ mod tests
 	{
 		let connection = util::connect();
 
-		let department =
-			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
+		let department = PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
 
-		let employee =
-			PgEmployee::create(&connection, department, name::full(), job::title()).await.unwrap();
+		let employee = PgEmployee::create(&connection, department, name::full(), job::title()).await.unwrap();
 
-		let row = sqlx::query!("SELECT * FROM employees WHERE id = $1;", employee.id)
-			.fetch_one(&connection)
-			.await
-			.unwrap();
+		let row =
+			sqlx::query!("SELECT * FROM employees WHERE id = $1;", employee.id).fetch_one(&connection).await.unwrap();
 
 		// Assert ::create writes accurately to the DB
 		assert_eq!(employee.active, row.active);

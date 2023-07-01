@@ -26,10 +26,7 @@ impl Retrievable for PgExpenses
 
 	/// Retrieve all [`Expense`]s (via `connection`) that match the `match_condition`.
 	#[tracing::instrument(level = "trace", skip(connection), err)]
-	async fn retrieve(
-		connection: &Pool<Postgres>,
-		match_condition: Self::Match,
-	) -> Result<Vec<Self::Entity>>
+	async fn retrieve(connection: &Pool<Postgres>, match_condition: Self::Match) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: ExpenseColumns<&str> = ExpenseColumns::default();
 
@@ -39,9 +36,8 @@ impl Retrievable for PgExpenses
 
 		query.push_columns(&columns).push_default_from::<ExpenseColumns>();
 
-		let exchanged_condition = exchange_rates_fut
-			.await
-			.map(|rates| match_condition.exchange(Default::default(), &rates))?;
+		let exchanged_condition =
+			exchange_rates_fut.await.map(|rates| match_condition.exchange(Default::default(), &rates))?;
 
 		PgSchema::write_where_clause(
 			Default::default(),

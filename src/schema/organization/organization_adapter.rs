@@ -7,23 +7,14 @@ use super::PgOrganization;
 #[async_trait::async_trait]
 impl OrganizationAdapter for PgOrganization
 {
-	async fn create<'connection, Conn>(
-		connection: Conn,
-		location: Location,
-		name: String,
-	) -> Result<Organization>
+	async fn create<'connection, Conn>(connection: Conn, location: Location, name: String) -> Result<Organization>
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{
 		let id = Id::new_v4();
-		sqlx::query!(
-			"INSERT INTO organizations (id, location_id, name) VALUES ($1, $2, $3);",
-			id,
-			location.id,
-			name
-		)
-		.execute(connection)
-		.await?;
+		sqlx::query!("INSERT INTO organizations (id, location_id, name) VALUES ($1, $2, $3);", id, location.id, name)
+			.execute(connection)
+			.await?;
 
 		Ok(Organization { id, location, name })
 	}
@@ -46,8 +37,7 @@ mod tests
 
 		let earth = PgLocation::create(&connection, None, address::street(), None).await.unwrap();
 
-		let organization =
-			PgOrganization::create(&connection, earth.clone(), company::company()).await.unwrap();
+		let organization = PgOrganization::create(&connection, earth.clone(), company::company()).await.unwrap();
 
 		let row = sqlx::query!("SELECT * FROM organizations WHERE id = $1;", organization.id)
 			.fetch_one(&connection)

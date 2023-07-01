@@ -14,10 +14,7 @@ impl Updatable for PgTimesheet
 	type Db = Postgres;
 	type Entity = Timesheet;
 
-	async fn update<'entity, Iter>(
-		connection: &mut Transaction<Self::Db>,
-		entities: Iter,
-	) -> Result<()>
+	async fn update<'entity, Iter>(connection: &mut Transaction<Self::Db>, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
@@ -84,16 +81,7 @@ mod tests
 
 	use crate::{
 		fmt::DateTimeExt,
-		schema::{
-			util,
-			PgDepartment,
-			PgEmployee,
-			PgExpenses,
-			PgJob,
-			PgLocation,
-			PgOrganization,
-			PgTimesheet,
-		},
+		schema::{util, PgDepartment, PgEmployee, PgExpenses, PgJob, PgLocation, PgOrganization, PgTimesheet},
 	};
 
 	#[tokio::test]
@@ -109,8 +97,7 @@ mod tests
 		)
 		.unwrap();
 
-		let organization =
-			PgOrganization::create(&connection, location, company::company()).await.unwrap();
+		let organization = PgOrganization::create(&connection, location, company::company()).await.unwrap();
 
 		let mut tx = connection.begin().await.unwrap();
 		let job = PgJob::create(
@@ -181,8 +168,7 @@ mod tests
 		PgTimesheet::update(&mut tx, [&timesheet].into_iter()).await.unwrap();
 		tx.commit().await.unwrap();
 
-		let db_timesheet =
-			PgTimesheet::retrieve(&connection, timesheet.id.into()).await.unwrap().pop().unwrap();
+		let db_timesheet = PgTimesheet::retrieve(&connection, timesheet.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(timesheet.id, db_timesheet.id);
 		assert_eq!(timesheet.employee, db_timesheet.employee);

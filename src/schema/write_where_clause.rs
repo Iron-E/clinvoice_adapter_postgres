@@ -54,10 +54,8 @@ where
 /// # See also
 ///
 /// * [`write_context_scope_end`]
-fn write_context_scope_start<Db, const NEGATE: bool>(
-	query: &mut QueryBuilder<Db>,
-	context: WriteContext,
-) where
+fn write_context_scope_start<Db, const NEGATE: bool>(query: &mut QueryBuilder<Db>, context: WriteContext)
+where
 	Db: Database,
 {
 	query.push(context);
@@ -240,12 +238,10 @@ where
 	{
 		match match_condition
 		{
-			Match::And(conditions) => write_boolean_group::<_, _, _, _, true>(
-				query,
-				context,
-				ident,
-				conditions.into_iter(),
-			),
+			Match::And(conditions) =>
+			{
+				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.into_iter())
+			},
 			Match::Any => write_any(query, context),
 			Match::EqualTo(value) => write_comparison(query, context, ident, "=", value),
 			Match::GreaterThan(value) => write_comparison(query, context, ident, ">", value),
@@ -256,12 +252,10 @@ where
 			},
 			Match::LessThan(value) => write_comparison(query, context, ident, "<", value),
 			Match::Not(condition) => write_negated(query, context, ident, condition.deref()),
-			Match::Or(conditions) => write_boolean_group::<_, _, _, _, false>(
-				query,
-				context,
-				ident,
-				conditions.into_iter(),
-			),
+			Match::Or(conditions) =>
+			{
+				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.into_iter())
+			},
 		};
 
 		WriteContext::AcceptingAnotherWhereCondition
@@ -297,12 +291,7 @@ macro_rules! impl_write_where_clause_for_match_option {
 					MatchOption::NoneOr(condition) =>
 					{
 						write_context_scope_start::<_, false>(query, context);
-						PgSchema::write_where_clause(
-							context,
-							ident,
-							&MatchOption::<$Match>::None,
-							query,
-						);
+						PgSchema::write_where_clause(context, ident, &MatchOption::<$Match>::None, query);
 						query.push(sql::OR);
 						PgSchema::write_where_clause(context, ident, condition, query);
 						write_context_scope_end(query);
@@ -347,12 +336,7 @@ macro_rules! impl_write_where_clause_for_match_option {
 					MatchOption::NoneOr(condition) =>
 					{
 						write_context_scope_start::<_, false>(query, context);
-						PgSchema::write_where_clause(
-							context,
-							ident,
-							&MatchOption::<$Match<T>>::None,
-							query,
-						);
+						PgSchema::write_where_clause(context, ident, &MatchOption::<$Match<T>>::None, query);
 						query.push(sql::OR);
 						PgSchema::write_where_clause(context, ident, condition, query);
 						write_context_scope_end(query);
@@ -397,23 +381,19 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchDepartment>> for PgSchema
 		match match_condition
 		{
 			MatchSet::Any => write_any(query, context),
-			MatchSet::And(conditions) => write_boolean_group::<_, _, _, _, true>(
-				query,
-				context,
-				ident,
-				conditions.into_iter(),
-			),
+			MatchSet::And(conditions) =>
+			{
+				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.into_iter())
+			},
 
 			MatchSet::Contains(match_department) =>
 			{
 				const COLUMNS: DepartmentColumns<&'static str> = DepartmentColumns::default();
-				const JUNCT_COLUMNS: JobDepartmentColumns<&'static str> =
-					JobDepartmentColumns::default();
+				const JUNCT_COLUMNS: JobDepartmentColumns<&'static str> = JobDepartmentColumns::default();
 
 				let subquery_ident = SnakeCase::from((ident, 2));
 				let subquery_columns = COLUMNS.scope(subquery_ident);
-				let junct_subquery_ident =
-					SnakeCase::from((JobDepartmentColumns::DEFAULT_ALIAS, 2));
+				let junct_subquery_ident = SnakeCase::from((JobDepartmentColumns::DEFAULT_ALIAS, 2));
 				let junct_subquery_columns = JUNCT_COLUMNS.scope(junct_subquery_ident);
 
 				query
@@ -433,23 +413,16 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchDepartment>> for PgSchema
 					.push_equal(junct_subquery_columns.job_id, JUNCT_COLUMNS.default_scope().job_id)
 					.push(')');
 
-				Self::write_where_clause(
-					Default::default(),
-					subquery_ident,
-					match_department,
-					query,
-				);
+				Self::write_where_clause(Default::default(), subquery_ident, match_department, query);
 
 				query.push(')');
 			},
 
 			MatchSet::Not(condition) => write_negated(query, context, ident, condition.deref()),
-			MatchSet::Or(conditions) => write_boolean_group::<_, _, _, _, false>(
-				query,
-				context,
-				ident,
-				conditions.into_iter(),
-			),
+			MatchSet::Or(conditions) =>
+			{
+				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.into_iter())
+			},
 		};
 
 		WriteContext::AcceptingAnotherWhereCondition
@@ -470,12 +443,10 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 		match match_condition
 		{
 			MatchSet::Any => write_any(query, context),
-			MatchSet::And(conditions) => write_boolean_group::<_, _, _, _, true>(
-				query,
-				context,
-				ident,
-				conditions.into_iter(),
-			),
+			MatchSet::And(conditions) =>
+			{
+				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.into_iter())
+			},
 
 			MatchSet::Contains(match_expense) =>
 			{
@@ -489,10 +460,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 					.push(sql::SELECT)
 					.push_from(ExpenseColumns::TABLE_NAME, subquery_ident)
 					.push(sql::WHERE)
-					.push_equal(
-						COLUMNS.scope(subquery_ident).timesheet_id,
-						COLUMNS.scope(ident).timesheet_id,
-					);
+					.push_equal(COLUMNS.scope(subquery_ident).timesheet_id, COLUMNS.scope(ident).timesheet_id);
 
 				Self::write_where_clause(
 					WriteContext::AcceptingAnotherWhereCondition,
@@ -505,12 +473,10 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 			},
 
 			MatchSet::Not(condition) => write_negated(query, context, ident, condition.deref()),
-			MatchSet::Or(conditions) => write_boolean_group::<_, _, _, _, false>(
-				query,
-				context,
-				ident,
-				conditions.into_iter(),
-			),
+			MatchSet::Or(conditions) =>
+			{
+				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.into_iter())
+			},
 		};
 
 		WriteContext::AcceptingAnotherWhereCondition
@@ -532,12 +498,10 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 		//       sanitize `match_condition` and are thus susceptible to SQL injection.
 		match match_condition
 		{
-			MatchStr::And(conditions) => write_boolean_group::<_, _, _, _, true>(
-				query,
-				context,
-				ident,
-				conditions.into_iter(),
-			),
+			MatchStr::And(conditions) =>
+			{
+				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.into_iter())
+			},
 			MatchStr::Any => write_any(query, context),
 			MatchStr::Contains(string) =>
 			{
@@ -550,28 +514,16 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 			},
 			MatchStr::EqualTo(string) =>
 			{
-				query
-					.separated(' ')
-					.push(context)
-					.push(ident)
-					.push_unseparated('=')
-					.push_bind(string.clone());
+				query.separated(' ').push(context).push(ident).push_unseparated('=').push_bind(string.clone());
 			},
 			MatchStr::Not(condition) => write_negated(query, context, ident, condition.deref()),
-			MatchStr::Or(conditions) => write_boolean_group::<_, _, _, _, false>(
-				query,
-				context,
-				ident,
-				conditions.into_iter(),
-			),
+			MatchStr::Or(conditions) =>
+			{
+				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.into_iter())
+			},
 			MatchStr::Regex(regex) =>
 			{
-				query
-					.separated(' ')
-					.push(context)
-					.push(ident)
-					.push_unseparated('~')
-					.push_bind(regex.clone());
+				query.separated(' ').push(context).push(ident).push_unseparated('~').push_bind(regex.clone());
 			},
 		};
 
@@ -593,12 +545,7 @@ impl WriteWhereClause<Postgres, &MatchDepartment> for PgSchema
 		let columns = EmployeeColumns::default().scope(ident);
 
 		Self::write_where_clause(
-			Self::write_where_clause(
-				context,
-				columns.id,
-				&match_condition.id.map_copied(PgUuid::from),
-				query,
-			),
+			Self::write_where_clause(context, columns.id, &match_condition.id.map_copied(PgUuid::from), query),
 			columns.name,
 			&match_condition.name,
 			query,
@@ -622,12 +569,7 @@ impl WriteWhereClause<Postgres, &MatchEmployee> for PgSchema
 		Self::write_where_clause(
 			Self::write_where_clause(
 				Self::write_where_clause(
-					Self::write_where_clause(
-						context,
-						columns.active,
-						&match_condition.active,
-						query,
-					),
+					Self::write_where_clause(context, columns.active, &match_condition.active, query),
 					columns.id,
 					&match_condition.id.map_copied(PgUuid::from),
 					query,
@@ -701,12 +643,7 @@ impl WriteWhereClause<Postgres, &MatchInvoice> for PgSchema
 
 		Self::write_where_clause(
 			Self::write_where_clause(
-				Self::write_where_clause(
-					context,
-					columns.invoice_date_issued,
-					&match_condition.date_issued,
-					query,
-				),
+				Self::write_where_clause(context, columns.invoice_date_issued, &match_condition.date_issued, query),
 				columns.invoice_date_paid,
 				&match_condition.date_paid,
 				query,
@@ -741,9 +678,7 @@ impl WriteWhereClause<Postgres, &MatchJob> for PgSchema
 								Self::write_where_clause(
 									context,
 									columns.date_close,
-									&match_condition
-										.date_close
-										.map_ref(|m| m.map_copied(PgTimestampTz::from)),
+									&match_condition.date_close.map_ref(|m| m.map_copied(PgTimestampTz::from)),
 									query,
 								),
 								columns.date_open,
@@ -787,12 +722,7 @@ impl WriteWhereClause<Postgres, &MatchOrganization> for PgSchema
 		let columns = OrganizationColumns::default().scope(ident);
 
 		Self::write_where_clause(
-			Self::write_where_clause(
-				context,
-				columns.id,
-				&match_condition.id.map_copied(PgUuid::from),
-				query,
-			),
+			Self::write_where_clause(context, columns.id, &match_condition.id.map_copied(PgUuid::from), query),
 			columns.name,
 			&match_condition.name,
 			query,
@@ -816,12 +746,7 @@ impl WriteWhereClause<Postgres, &MatchTimesheet> for PgSchema
 		Self::write_where_clause(
 			Self::write_where_clause(
 				Self::write_where_clause(
-					Self::write_where_clause(
-						context,
-						columns.id,
-						&match_condition.id.map_copied(PgUuid::from),
-						query,
-					),
+					Self::write_where_clause(context, columns.id, &match_condition.id.map_copied(PgUuid::from), query),
 					columns.time_begin,
 					&match_condition.time_begin.map_copied(PgTimestampTz::from),
 					query,

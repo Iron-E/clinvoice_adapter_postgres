@@ -113,8 +113,7 @@ impl PgLocation
 				{
 					if ident.slice_end().is_some()
 					{
-						const IDENT_REPORT: PgLocationRecursiveCte<&str, &str> =
-							PgLocationRecursiveCte::report();
+						const IDENT_REPORT: PgLocationRecursiveCte<&str, &str> = PgLocationRecursiveCte::report();
 
 						query
 							.push(',')
@@ -129,12 +128,7 @@ impl PgLocation
 							.push(sql::SELECT)
 							.push_columns(&columns)
 							.push_default_from::<LocationColumns>()
-							.push_equijoin(
-								IDENT_REPORT,
-								alias_outer,
-								columns.outer_id,
-								outer_columns.id,
-							)
+							.push_equijoin(IDENT_REPORT, alias_outer, columns.outer_id, outer_columns.id)
 							.push(')');
 					}
 				},
@@ -168,19 +162,21 @@ impl PgLocation
 		.fetch(connection)
 		.try_fold(None, |previous: Option<Location>, view| {
 			future::ok(Some(Location {
-				currency: match view.currency {
-					Some(s) => match Currency::try_from(s.as_str()) {
+				currency: match view.currency
+				{
+					Some(s) => match Currency::try_from(s.as_str())
+					{
 						Ok(c) => c.into(),
 						Err(e) => return future::err(column_decode_err("currency", e.into())),
 					},
 					None => None,
 				},
-				id:    match view.id
+				id: match view.id
 				{
 					Some(id) => id,
 					None => return future::err(column_decode_err("id", SOURCE.into())),
 				},
-				name:  match view.name
+				name: match view.name
 				{
 					Some(n) => n,
 					None => return future::err(column_decode_err("name", SOURCE.into())),
@@ -204,10 +200,10 @@ impl PgLocation
 	{
 		let mut query = Self::query_with_recursive(match_condition);
 
-		query.push(sql::SELECT).push(COLUMNS.default_scope().id).push_from(
-			PgLocationRecursiveCte::from(match_condition),
-			LocationColumns::DEFAULT_ALIAS,
-		);
+		query
+			.push(sql::SELECT)
+			.push(COLUMNS.default_scope().id)
+			.push_from(PgLocationRecursiveCte::from(match_condition), LocationColumns::DEFAULT_ALIAS);
 
 		tracing::debug!("Generated SQL {}", query.sql());
 		query

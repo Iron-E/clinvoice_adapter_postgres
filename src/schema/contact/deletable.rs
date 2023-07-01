@@ -17,10 +17,7 @@ impl Deletable for PgContact
 	type Entity = Contact;
 
 	#[tracing::instrument(level = "trace", skip_all, err)]
-	async fn delete<'connection, 'entity, Conn, Iter>(
-		connection: Conn,
-		entities: Iter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -33,11 +30,7 @@ impl Deletable for PgContact
 		where
 			T: Display,
 		{
-			s.push('(')
-				.push_unseparated(LABEL)
-				.push_unseparated('=')
-				.push_bind(&c.label)
-				.push_unseparated(')');
+			s.push('(').push_unseparated(LABEL).push_unseparated('=').push_bind(&c.label).push_unseparated(')');
 		}
 
 		let mut peekable_entities = entities.peekable();
@@ -90,20 +83,11 @@ mod tests
 	{
 		let connection = util::connect();
 
-		let country =
-			PgLocation::create(&connection, None, address::country(), None).await.unwrap();
+		let country = PgLocation::create(&connection, None, address::country(), None).await.unwrap();
 
 		let (office_number, primary_email, mailing_address) = futures::try_join!(
-			PgContact::create(
-				&connection,
-				ContactKind::Phone(contact::phone()),
-				words::sentence(3),
-			),
-			PgContact::create(
-				&connection,
-				ContactKind::Email(contact::email()),
-				words::sentence(3)
-			),
+			PgContact::create(&connection, ContactKind::Phone(contact::phone()), words::sentence(3),),
+			PgContact::create(&connection, ContactKind::Email(contact::email()), words::sentence(3)),
 			PgContact::create(&connection, ContactKind::Address(country), words::sentence(3)),
 		)
 		.unwrap();

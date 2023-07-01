@@ -11,10 +11,7 @@ impl Updatable for PgEmployee
 	type Db = Postgres;
 	type Entity = Employee;
 
-	async fn update<'entity, Iter>(
-		connection: &mut Transaction<Self::Db>,
-		entities: Iter,
-	) -> Result<()>
+	async fn update<'entity, Iter>(connection: &mut Transaction<Self::Db>, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
@@ -29,11 +26,7 @@ impl Updatable for PgEmployee
 
 		PgSchema::update(connection, EmployeeColumns::default(), |query| {
 			query.push_values(peekable_entities, |mut q, e| {
-				q.push_bind(e.active)
-					.push_bind(e.department.id)
-					.push_bind(e.id)
-					.push_bind(&e.name)
-					.push_bind(&e.title);
+				q.push_bind(e.active).push_bind(e.department.id).push_bind(e.id).push_bind(&e.name).push_bind(&e.title);
 			});
 		})
 		.await?;
@@ -60,11 +53,9 @@ mod tests
 	{
 		let connection = util::connect();
 
-		let department =
-			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
+		let department = PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
 
-		let mut employee =
-			PgEmployee::create(&connection, department, name::full(), job::title()).await.unwrap();
+		let mut employee = PgEmployee::create(&connection, department, name::full(), job::title()).await.unwrap();
 
 		employee.active = !employee.active;
 		employee.department.name = util::different_string(&employee.department.name);
@@ -77,8 +68,7 @@ mod tests
 			tx.commit().await.unwrap();
 		}
 
-		let db_employee =
-			PgEmployee::retrieve(&connection, employee.id.into()).await.unwrap().pop().unwrap();
+		let db_employee = PgEmployee::retrieve(&connection, employee.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(employee, db_employee);
 	}

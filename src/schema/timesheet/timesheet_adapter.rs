@@ -43,8 +43,7 @@ impl TimesheetAdapter for PgTimesheet
 
 		let expenses_db = PgExpenses::create(connection, expenses, id).await?;
 
-		Ok(Timesheet { id, employee, expenses: expenses_db, job, time_begin, time_end, work_notes }
-			.pg_sanitize())
+		Ok(Timesheet { id, employee, expenses: expenses_db, job, time_begin, time_end, work_notes }.pg_sanitize())
 	}
 }
 
@@ -79,9 +78,7 @@ mod tests
 		let connection = util::connect();
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
-		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into())
-			.await
-			.unwrap();
+		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into()).await.unwrap();
 
 		let (location, location2) = futures::try_join!(
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
@@ -139,17 +136,9 @@ mod tests
 		.await
 		.unwrap();
 
-		let timesheet = PgTimesheet::create(
-			&mut tx,
-			employee,
-			Vec::new(),
-			job,
-			Utc::now(),
-			None,
-			words::sentence(5),
-		)
-		.await
-		.unwrap();
+		let timesheet = PgTimesheet::create(&mut tx, employee, Vec::new(), job, Utc::now(), None, words::sentence(5))
+			.await
+			.unwrap();
 
 		let timesheet2 = PgTimesheet::create(
 			&mut tx,
@@ -168,10 +157,7 @@ mod tests
 
 		macro_rules! select {
 			($id:expr) => {
-				sqlx::query!("SELECT * FROM timesheets WHERE id = $1", $id)
-					.fetch_one(&connection)
-					.await
-					.unwrap()
+				sqlx::query!("SELECT * FROM timesheets WHERE id = $1", $id).fetch_one(&connection).await.unwrap()
 			};
 		}
 

@@ -25,10 +25,7 @@ impl Retrievable for PgDepartment
 
 	/// Retrieve all [`Department`]s (via `connection`) that match the `match_condition`.
 	#[tracing::instrument(level = "trace", skip(connection), err)]
-	async fn retrieve(
-		connection: &Pool<Postgres>,
-		match_condition: Self::Match,
-	) -> Result<Vec<Self::Entity>>
+	async fn retrieve(connection: &Pool<Postgres>, match_condition: Self::Match) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: DepartmentColumns<&'static str> = DepartmentColumns::default();
 
@@ -44,12 +41,7 @@ impl Retrievable for PgDepartment
 		);
 
 		tracing::debug!("Generated SQL: {}", query.sql());
-		query
-			.prepare()
-			.fetch(connection)
-			.map_ok(|row| Self::row_to_view(COLUMNS, &row))
-			.try_collect()
-			.await
+		query.prepare().fetch(connection).map_ok(|row| Self::row_to_view(COLUMNS, &row)).try_collect().await
 	}
 }
 
@@ -75,9 +67,7 @@ mod tests
 
 		assert_eq!(
 			PgDepartment::retrieve(&connection, MatchDepartment {
-				id: Match::Or(
-					[&department, &department2].into_iter().map(|d| d.id.into()).collect()
-				),
+				id: Match::Or([&department, &department2].into_iter().map(|d| d.id.into()).collect()),
 				name: department.name.clone().into(),
 				..Default::default()
 			})

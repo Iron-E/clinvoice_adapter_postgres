@@ -39,10 +39,7 @@ impl Retrievable for PgTimesheet
 
 	/// Retrieve all [`Timesheet`]s (via `connection`) that match the `match_condition`.
 	#[tracing::instrument(level = "trace", skip(connection), err)]
-	async fn retrieve(
-		connection: &Pool<Postgres>,
-		match_condition: Self::Match,
-	) -> Result<Vec<Self::Entity>>
+	async fn retrieve(connection: &Pool<Postgres>, match_condition: Self::Match) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: TimesheetColumns<&str> = TimesheetColumns::default();
 
@@ -53,8 +50,7 @@ impl Retrievable for PgTimesheet
 		const EMPLOYEE_DEPARTMENT_COLUMNS_UNIQUE: DepartmentColumns = DepartmentColumns::unique();
 		const EMPLOYEE_COLUMNS_UNIQUE: EmployeeColumns<&str> = EmployeeColumns::unique();
 		const JOB_COLUMNS_UNIQUE: JobColumns<&str> = JobColumns::unique();
-		const ORGANIZATION_COLUMNS_UNIQUE: OrganizationColumns<&str> =
-			OrganizationColumns::unique();
+		const ORGANIZATION_COLUMNS_UNIQUE: OrganizationColumns<&str> = OrganizationColumns::unique();
 
 		let columns = COLUMNS.default_scope();
 		let department_columns = DepartmentColumns::default().scope(DEPARTMENTS_AGGREGATED_ALIAS);
@@ -73,9 +69,7 @@ impl Retrievable for PgTimesheet
 			.push(sql::SELECT)
 			.push_columns(&columns)
 			.push_more_columns(&employee_columns.r#as(EMPLOYEE_COLUMNS_UNIQUE))
-			.push_more_columns(
-				&employee_department_columns.r#as(EMPLOYEE_DEPARTMENT_COLUMNS_UNIQUE),
-			)
+			.push_more_columns(&employee_department_columns.r#as(EMPLOYEE_DEPARTMENT_COLUMNS_UNIQUE))
 			.push(",array_agg((")
 			.push_columns(&department_columns)
 			.push("))")
@@ -89,10 +83,7 @@ impl Retrievable for PgTimesheet
 			.push_more_columns(&job_columns.r#as(JOB_COLUMNS_UNIQUE))
 			.push_more_columns(&organization_columns.r#as(ORGANIZATION_COLUMNS_UNIQUE))
 			.push_default_from::<TimesheetColumns>()
-			.push_default_equijoin::<EmployeeColumns, _, _>(
-				employee_columns.id,
-				columns.employee_id,
-			)
+			.push_default_equijoin::<EmployeeColumns, _, _>(employee_columns.id, columns.employee_id)
 			.push_default_equijoin::<DepartmentColumns, _, _>(
 				employee_department_columns.id,
 				employee_columns.department_id,
@@ -101,10 +92,7 @@ impl Retrievable for PgTimesheet
 			.push_default_equijoin::<ExpenseColumns, _, _>(expense_columns.timesheet_id, columns.id)
 			.push_default_equijoin::<JobColumns, _, _>(job_columns.id, columns.job_id)
 			.push(sql::LEFT)
-			.push_default_equijoin::<JobDepartmentColumns, _, _>(
-				job_department_columns.job_id,
-				job_columns.id,
-			)
+			.push_default_equijoin::<JobDepartmentColumns, _, _>(job_department_columns.job_id, job_columns.id)
 			.push(sql::LEFT)
 			.push_equijoin(
 				DepartmentColumns::TABLE_NAME,
@@ -112,10 +100,7 @@ impl Retrievable for PgTimesheet
 				department_columns.id,
 				job_department_columns.department_id,
 			)
-			.push_default_equijoin::<OrganizationColumns, _, _>(
-				organization_columns.id,
-				job_columns.client_id,
-			)
+			.push_default_equijoin::<OrganizationColumns, _, _>(organization_columns.id, job_columns.client_id)
 			.push_equijoin(
 				PgLocationRecursiveCte::from(&match_location),
 				LocationColumns::DEFAULT_ALIAS,
@@ -123,9 +108,8 @@ impl Retrievable for PgTimesheet
 				organization_columns.location_id,
 			);
 
-		let exchanged_condition = exchange_rates_fut
-			.await
-			.map(|rates| match_condition.exchange(Default::default(), &rates))?;
+		let exchanged_condition =
+			exchange_rates_fut.await.map(|rates| match_condition.exchange(Default::default(), &rates))?;
 
 		PgSchema::write_where_clause(
 			PgSchema::write_where_clause(
@@ -224,15 +208,7 @@ mod tests
 		Money,
 	};
 
-	use crate::schema::{
-		util,
-		PgDepartment,
-		PgEmployee,
-		PgJob,
-		PgLocation,
-		PgOrganization,
-		PgTimesheet,
-	};
+	use crate::schema::{util, PgDepartment, PgEmployee, PgJob, PgLocation, PgOrganization, PgTimesheet};
 
 	#[tokio::test]
 	#[tracing_test::traced_test]
@@ -241,9 +217,7 @@ mod tests
 		let connection = util::connect();
 
 		let city = PgLocation::create(&connection, None, address::state(), None).await.unwrap();
-		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into())
-			.await
-			.unwrap();
+		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into()).await.unwrap();
 
 		let (department, department2, location, location2) = futures::try_join!(
 			PgDepartment::create(&connection, util::rand_department_name()),
@@ -301,17 +275,9 @@ mod tests
 		.await
 		.unwrap();
 
-		let timesheet = PgTimesheet::create(
-			&mut tx,
-			employee,
-			Vec::new(),
-			job,
-			Utc::now(),
-			None,
-			words::sentence(5),
-		)
-		.await
-		.unwrap();
+		let timesheet = PgTimesheet::create(&mut tx, employee, Vec::new(), job, Utc::now(), None, words::sentence(5))
+			.await
+			.unwrap();
 
 		let timesheet2 = PgTimesheet::create(
 			&mut tx,
@@ -333,10 +299,8 @@ mod tests
 		assert_eq!(
 			PgTimesheet::retrieve(&connection, MatchTimesheet {
 				expenses: MatchSet::Not(MatchSet::Contains(Default::default()).into()),
-				employee: Match::Or(
-					[&timesheet, &timesheet2,].into_iter().map(|t| t.employee.id.into()).collect()
-				)
-				.into(),
+				employee: Match::Or([&timesheet, &timesheet2,].into_iter().map(|t| t.employee.id.into()).collect())
+					.into(),
 				..Default::default()
 			})
 			.await

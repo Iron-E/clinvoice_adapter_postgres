@@ -68,10 +68,6 @@ impl DateTimeExt for Timesheet
 {
 	fn pg_sanitize(self) -> Self
 	{
-		Self {
-			time_begin: self.time_begin.pg_sanitize(),
-			time_end: self.time_end.pg_sanitize(),
-			..self
-		}
+		Self { time_begin: self.time_begin.pg_sanitize(), time_end: self.time_end.pg_sanitize(), ..self }
 	}
 }

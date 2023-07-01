@@ -39,9 +39,11 @@ impl JobAdapter for PgJob
 		let id = Id::new_v4();
 		sqlx::query!(
 			"INSERT INTO jobs
-				(id, client_id, date_close, date_open, increment, invoice_date_issued, invoice_date_paid, invoice_hourly_rate, notes, objectives)
+				(id, client_id, date_close, date_open, increment, invoice_date_issued, invoice_date_paid, invoice_hourly_rate, notes, \
+			 objectives)
 			VALUES
-				($1, $2,        $3,         $4,        $5,        $6,                  $7,                $8,                  $9,    $10);",
+				($1, $2,        $3,         $4,        $5,        $6,                  $7,                $8,                  $9,    \
+			 $10);",
 			id,
 			client.id,
 			date_close.map(|d| d.naive_utc()),
@@ -58,18 +60,7 @@ impl JobAdapter for PgJob
 
 		util::insert_into_job_departments(connection, &departments, id).await?;
 
-		Ok(Job {
-			client,
-			date_close,
-			date_open,
-			departments,
-			id,
-			increment,
-			invoice,
-			notes,
-			objectives,
-		}
-		.pg_sanitize())
+		Ok(Job { client, date_close, date_open, departments, id, increment, invoice, notes, objectives }.pg_sanitize())
 	}
 }
 
@@ -99,8 +90,7 @@ mod tests
 		.unwrap();
 
 		let mut tx = connection.begin().await.unwrap();
-		let organization =
-			PgOrganization::create(&connection, location, company::company()).await.unwrap();
+		let organization = PgOrganization::create(&connection, location, company::company()).await.unwrap();
 
 		let job = PgJob::create(
 			&mut tx,
@@ -145,21 +135,16 @@ mod tests
 		assert_eq!(job.id, row.id);
 		assert_eq!(job.client.id, row.client_id);
 		assert_eq!(organization.id, row.client_id);
-		assert_eq!(
-			job.departments,
-			row.departments.into_iter().map(|(id, name)| Department { id, name }).collect()
-		);
+		assert_eq!(job.departments, row.departments.into_iter().map(|(id, name)| Department { id, name }).collect());
 		assert_eq!(job.date_close, row.date_close.map(util::naive_date_to_utc));
 		assert_eq!(job.date_open, row.date_open.and_utc());
 		assert_eq!(job.increment, util::duration_from(row.increment).unwrap());
 		assert_eq!(None, row.invoice_date_issued);
 		assert_eq!(None, row.invoice_date_paid);
-		assert_eq!(
-			job.invoice
-				.hourly_rate
-				.exchange(Default::default(), &ExchangeRates::new().await.unwrap()),
-			Money { amount: row.invoice_hourly_rate.parse().unwrap(), ..Default::default() },
-		);
+		assert_eq!(job.invoice.hourly_rate.exchange(Default::default(), &ExchangeRates::new().await.unwrap()), Money {
+			amount: row.invoice_hourly_rate.parse().unwrap(),
+			..Default::default()
+		},);
 		assert_eq!(job.notes, row.notes);
 		assert_eq!(job.objectives, row.objectives);
 	}

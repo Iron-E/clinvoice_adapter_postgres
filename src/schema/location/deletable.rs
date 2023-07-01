@@ -11,10 +11,7 @@ impl Deletable for PgLocation
 	type Db = Postgres;
 	type Entity = Location;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(
-		connection: Conn,
-		entities: Iter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -59,8 +56,7 @@ mod tests
 		assert_eq!(
 			PgLocation::retrieve(
 				&connection,
-				Match::Or([&city, &street, &street2].into_iter().map(|l| l.id.into()).collect())
-					.into(),
+				Match::Or([&city, &street, &street2].into_iter().map(|l| l.id.into()).collect()).into(),
 			)
 			.await
 			.unwrap()

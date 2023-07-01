@@ -11,10 +11,7 @@ impl Deletable for PgEmployee
 	type Db = Postgres;
 	type Entity = Employee;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(
-		connection: Conn,
-		entities: Iter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -67,8 +64,7 @@ mod tests
 		assert_eq!(
 			PgEmployee::retrieve(
 				&connection,
-				Match::Or(vec![employee.id.into(), employee2.id.into(), employee3.id.into()])
-					.into()
+				Match::Or(vec![employee.id.into(), employee2.id.into(), employee3.id.into()]).into()
 			)
 			.await
 			.unwrap()

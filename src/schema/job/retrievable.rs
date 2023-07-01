@@ -3,13 +3,7 @@ use money2::{Exchange, ExchangeRates};
 use sqlx::{Pool, Postgres, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
-	schema::columns::{
-		DepartmentColumns,
-		JobColumns,
-		JobDepartmentColumns,
-		LocationColumns,
-		OrganizationColumns,
-	},
+	schema::columns::{DepartmentColumns, JobColumns, JobDepartmentColumns, LocationColumns, OrganizationColumns},
 	Retrievable,
 	WriteWhereClause,
 };
@@ -36,10 +30,7 @@ impl Retrievable for PgJob
 
 	/// Retrieve all [`Job`]s (via `connection`) that match the `match_condition`.
 	#[tracing::instrument(level = "trace", skip(connection), err)]
-	async fn retrieve(
-		connection: &Pool<Postgres>,
-		match_condition: Self::Match,
-	) -> Result<Vec<Self::Entity>>
+	async fn retrieve(connection: &Pool<Postgres>, match_condition: Self::Match) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: JobColumns = JobColumns::default();
 		const DEPARTMENTS_AGGREGATED_IDENT: &str = "departments_aggregated";
@@ -63,15 +54,9 @@ impl Retrievable for PgJob
 			.push(sql::AS)
 			.push(DEPARTMENTS_AGGREGATED_IDENT)
 			.push_default_from::<JobColumns>()
-			.push_default_equijoin::<OrganizationColumns, _, _>(
-				organization_columns.id,
-				columns.client_id,
-			)
+			.push_default_equijoin::<OrganizationColumns, _, _>(organization_columns.id, columns.client_id)
 			.push(sql::LEFT)
-			.push_default_equijoin::<JobDepartmentColumns, _, _>(
-				job_department_columns.job_id,
-				columns.id,
-			)
+			.push_default_equijoin::<JobDepartmentColumns, _, _>(job_department_columns.job_id, columns.id)
 			.push(sql::LEFT)
 			.push_default_equijoin::<DepartmentColumns, _, _>(
 				department_columns.id,
@@ -84,9 +69,8 @@ impl Retrievable for PgJob
 				organization_columns.location_id,
 			);
 
-		let exchanged_condition = exchange_rates_fut
-			.await
-			.map(|rates| match_condition.exchange(Default::default(), &rates))?;
+		let exchanged_condition =
+			exchange_rates_fut.await.map(|rates| match_condition.exchange(Default::default(), &rates))?;
 
 		PgSchema::write_where_clause(
 			PgSchema::write_where_clause(
@@ -112,14 +96,8 @@ impl Retrievable for PgJob
 			.prepare()
 			.fetch(connection)
 			.and_then(|row| async move {
-				Self::row_to_view(
-					connection,
-					COLUMNS,
-					DEPARTMENTS_AGGREGATED_IDENT,
-					ORGANIZATION_COLUMNS_UNIQUE,
-					&row,
-				)
-				.await
+				Self::row_to_view(connection, COLUMNS, DEPARTMENTS_AGGREGATED_IDENT, ORGANIZATION_COLUMNS_UNIQUE, &row)
+					.await
 			})
 			.try_collect()
 			.await
@@ -158,9 +136,7 @@ mod tests
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
 
-		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into())
-			.await
-			.unwrap();
+		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into()).await.unwrap();
 
 		let (department, department2, location, location2) = futures::try_join!(
 			PgDepartment::create(&connection, util::rand_department_name()),
@@ -199,11 +175,8 @@ mod tests
 			[&department2].into_iter().cloned().collect(),
 			Duration::from_secs(900),
 			Invoice {
-				date: InvoiceDate {
-					issued: Utc.with_ymd_and_hms(3000, 01, 17, 12, 30, 00).unwrap(),
-					paid: None,
-				}
-				.into(),
+				date: InvoiceDate { issued: Utc.with_ymd_and_hms(3000, 01, 17, 12, 30, 00).unwrap(), paid: None }
+					.into(),
 				hourly_rate: Money::new(299_99, 2, Currency::Jpy),
 			},
 			words::sentence(5),
@@ -258,10 +231,7 @@ mod tests
 		assert_eq!(
 			PgJob::retrieve(&connection, MatchJob {
 				id: Match::Or(vec![job2.id.into(), job3.id.into()]),
-				invoice: MatchInvoice {
-					date_issued: Some(Match::Any).into(),
-					..Default::default()
-				},
+				invoice: MatchInvoice { date_issued: Some(Match::Any).into(), ..Default::default() },
 				..Default::default()
 			})
 			.await
@@ -293,9 +263,7 @@ mod tests
 		assert_eq!(
 			PgJob::retrieve(&connection, MatchJob {
 				departments: MatchDepartment {
-					name: MatchStr::Or(
-						job.departments.iter().map(|d| d.name.clone().into()).collect()
-					),
+					name: MatchStr::Or(job.departments.iter().map(|d| d.name.clone().into()).collect()),
 					..Default::default()
 				}
 				.into(),

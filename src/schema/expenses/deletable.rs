@@ -11,10 +11,7 @@ impl Deletable for PgExpenses
 	type Db = Postgres;
 	type Entity = Expense;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(
-		connection: Conn,
-		entities: Iter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -56,16 +53,7 @@ mod tests
 		Invoice,
 	};
 
-	use crate::schema::{
-		util,
-		PgDepartment,
-		PgEmployee,
-		PgExpenses,
-		PgJob,
-		PgLocation,
-		PgOrganization,
-		PgTimesheet,
-	};
+	use crate::schema::{util, PgDepartment, PgEmployee, PgExpenses, PgJob, PgLocation, PgOrganization, PgTimesheet};
 
 	#[tokio::test]
 	async fn delete()
@@ -105,11 +93,7 @@ mod tests
 				&mut tx,
 				employee.clone(),
 				vec![
-					(
-						"Flight".into(),
-						Money::new(300_56, 2, Currency::Jpy),
-						"Trip to Hawaii for research".into(),
-					),
+					("Flight".into(), Money::new(300_56, 2, Currency::Jpy), "Trip to Hawaii for research".into()),
 					("Food".into(), Money::new(10_17, 2, Currency::Usd), "Takeout".into()),
 					("Taxi".into(), Money::new(563_30, 2, Currency::Nok), "Took a taxi cab".into()),
 				],
@@ -130,15 +114,12 @@ mod tests
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 
 		assert_eq!(
-			PgExpenses::retrieve(&connection, MatchExpense {
-				timesheet_id: timesheet.id.into(),
-				..Default::default()
-			})
-			.await
-			.unwrap()
-			.into_iter()
-			.filter(|x| x.timesheet_id == timesheet.id)
-			.collect::<Vec<_>>(),
+			PgExpenses::retrieve(&connection, MatchExpense { timesheet_id: timesheet.id.into(), ..Default::default() })
+				.await
+				.unwrap()
+				.into_iter()
+				.filter(|x| x.timesheet_id == timesheet.id)
+				.collect::<Vec<_>>(),
 			timesheet
 				.expenses
 				.into_iter()

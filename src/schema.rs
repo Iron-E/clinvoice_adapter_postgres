@@ -99,14 +99,7 @@ impl PgSchema
 
 		push_values(&mut query);
 
-		query
-			.push(')')
-			.push(sql::AS)
-			.push(values_alias)
-			.push(" (")
-			.push_columns(&columns)
-			.push(')')
-			.push(sql::WHERE);
+		query.push(')').push(sql::AS).push(values_alias).push(" (").push_columns(&columns).push(')').push(sql::WHERE);
 
 		columns.push_update_where_to(&mut query, Columns::DEFAULT_ALIAS, values_alias);
 

@@ -48,9 +48,7 @@ pub fn duration_from(interval: PgInterval) -> Result<Duration>
 	if interval.months > 0
 	{
 		return Err(Error::Decode(
-			"`PgInterval` could not be decoded into `Duration` because of nonstandard time \
-			 measurement `months`"
-				.into(),
+			"`PgInterval` could not be decoded into `Duration` because of nonstandard time measurement `months`".into(),
 		));
 	}
 
@@ -59,8 +57,7 @@ pub fn duration_from(interval: PgInterval) -> Result<Duration>
 
 	let seconds = microseconds / MICROSECONDS_IN_SECOND;
 	let nanoseconds = NANOSECONDS_IN_MICROSECOND *
-		u32::try_from(microseconds % MICROSECONDS_IN_SECOND)
-			.expect("`u64::MAX % 1000000` should fit into `u32`");
+		u32::try_from(microseconds % MICROSECONDS_IN_SECOND).expect("`u64::MAX % 1000000` should fit into `u32`");
 
 	Ok(Duration::new(
 		seconds +

@@ -11,10 +11,7 @@ impl Updatable for PgContact
 	type Db = Postgres;
 	type Entity = Contact;
 
-	async fn update<'entity, Iter>(
-		connection: &mut Transaction<Self::Db>,
-		entities: Iter,
-	) -> Result<()>
+	async fn update<'entity, Iter>(connection: &mut Transaction<Self::Db>, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
@@ -71,11 +68,7 @@ mod tests
 
 		let (mut office, mut phone) = futures::try_join!(
 			PgContact::create(&connection, ContactKind::Address(country), words::sentence(3),),
-			PgContact::create(
-				&connection,
-				ContactKind::Phone(contact::phone()),
-				words::sentence(3),
-			),
+			PgContact::create(&connection, ContactKind::Phone(contact::phone()), words::sentence(3),),
 		)
 		.unwrap();
 
@@ -89,9 +82,7 @@ mod tests
 		}
 
 		let db_contact_info: HashSet<_> = PgContact::retrieve(&connection, MatchContact {
-			label: MatchStr::Or(
-				[&office, &phone].into_iter().map(|c| c.label.clone().into()).collect(),
-			),
+			label: MatchStr::Or([&office, &phone].into_iter().map(|c| c.label.clone().into()).collect()),
 			..Default::default()
 		})
 		.await

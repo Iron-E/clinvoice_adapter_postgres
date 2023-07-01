@@ -13,10 +13,7 @@ impl Updatable for PgLocation
 	type Db = Postgres;
 	type Entity = Location;
 
-	async fn update<'entity, Iter>(
-		connection: &mut Transaction<Self::Db>,
-		entities: Iter,
-	) -> Result<()>
+	async fn update<'entity, Iter>(connection: &mut Transaction<Self::Db>, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
@@ -35,8 +32,7 @@ impl Updatable for PgLocation
 
 			loop
 			{
-				let mut outers =
-					entities_collected[idx..].iter().filter_map(|e| e.outer.as_deref()).peekable();
+				let mut outers = entities_collected[idx..].iter().filter_map(|e| e.outer.as_deref()).peekable();
 
 				// There are no more outer locations, so we can stop looking for them in this loop.
 				if outers.peek().is_none()
@@ -100,8 +96,7 @@ mod tests
 	{
 		let connection = util::connect();
 
-		let mut street =
-			PgLocation::create(&connection, None, util::rand_street_name(), None).await.unwrap();
+		let mut street = PgLocation::create(&connection, None, util::rand_street_name(), None).await.unwrap();
 
 		let (mut location, mut location2) = futures::try_join!(
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
@@ -111,35 +106,24 @@ mod tests
 
 		// NOTE: creating this location last to make sure that new locations can be set outside of
 		//       old locations
-		let street2 =
-			PgLocation::create(&connection, None, util::rand_street_name(), None).await.unwrap();
+		let street2 = PgLocation::create(&connection, None, util::rand_street_name(), None).await.unwrap();
 
 		location.name = util::different_string(&location.name);
-		location.outer = Some(
-			Location {
-				id: street.id,
-				name: util::different_string(&street.name),
-				..Default::default()
-			}
-			.into(),
-		);
+		location.outer =
+			Some(Location { id: street.id, name: util::different_string(&street.name), ..Default::default() }.into());
 		street.name = util::different_string(&street.name);
 
 		location2.outer = Some(street2.into());
 
 		{
 			let mut tx = connection.begin().await.unwrap();
-			PgLocation::update(&mut tx, [&location, &location2, &street].into_iter())
-				.await
-				.unwrap();
+			PgLocation::update(&mut tx, [&location, &location2, &street].into_iter()).await.unwrap();
 			tx.commit().await.unwrap();
 		}
 
-		let location_db =
-			PgLocation::retrieve(&connection, location.id.into()).await.unwrap().pop().unwrap();
+		let location_db = PgLocation::retrieve(&connection, location.id.into()).await.unwrap().pop().unwrap();
 
-		let location2_db =
-			PgLocation::retrieve(&connection, location2.id.into()).await.unwrap().pop().unwrap();
+		let location2_db = PgLocation::retrieve(&connection, location2.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(location.id, location_db.id);
 		assert_eq!(location.name, location_db.name);

@@ -47,14 +47,10 @@ mod tests
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
 
-		let street = PgLocation::create(
-			&connection,
-			Currency::Usd.into(),
-			util::rand_street_name(),
-			city.clone().into(),
-		)
-		.await
-		.unwrap();
+		let street =
+			PgLocation::create(&connection, Currency::Usd.into(), util::rand_street_name(), city.clone().into())
+				.await
+				.unwrap();
 
 		let (location, location2) = futures::try_join!(
 			PgLocation::create(&connection, None, address::street_name(), street.clone().into()),
@@ -64,10 +60,7 @@ mod tests
 
 		macro_rules! select {
 			($id:expr) => {
-				sqlx::query!("SELECT * FROM locations WHERE id = $1", $id)
-					.fetch_one(&connection)
-					.await
-					.unwrap()
+				sqlx::query!("SELECT * FROM locations WHERE id = $1", $id).fetch_one(&connection).await.unwrap()
 			};
 		}
 

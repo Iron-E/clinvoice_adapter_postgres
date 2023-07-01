@@ -32,21 +32,16 @@ impl PgJob
 	{
 		let client_fut = PgOrganization::row_to_view(connection, organization_columns, row);
 
-		let amount = row.try_get::<String, _>(columns.invoice_hourly_rate.as_ref()).and_then(
-			|raw_hourly_rate| {
-				raw_hourly_rate.parse::<Decimal>().map_err(|e| util::finance_err_to_sqlx(e.into()))
-			},
-		)?;
+		let amount = row.try_get::<String, _>(columns.invoice_hourly_rate.as_ref()).and_then(|raw_hourly_rate| {
+			raw_hourly_rate.parse::<Decimal>().map_err(|e| util::finance_err_to_sqlx(e.into()))
+		})?;
 
 		let increment = row.try_get(columns.increment.as_ref()).and_then(util::duration_from)?;
 
-		let invoice_date_paid =
-			row.try_get(columns.invoice_date_paid.as_ref()).map(util::naive_date_opt_to_utc)?;
+		let invoice_date_paid = row.try_get(columns.invoice_date_paid.as_ref()).map(util::naive_date_opt_to_utc)?;
 
 		Ok(Job {
-			date_close: row
-				.try_get(columns.date_close.as_ref())
-				.map(util::naive_date_opt_to_utc)?,
+			date_close: row.try_get(columns.date_close.as_ref()).map(util::naive_date_opt_to_utc)?,
 			date_open: row.try_get(columns.date_open.as_ref()).map(util::naive_date_to_utc)?,
 			departments: row
 				.try_get(departments_ident.as_ref())
@@ -55,20 +50,15 @@ impl PgJob
 				})
 				.or_else(|e| match e
 				{
-					Error::ColumnDecode { source: s, .. } if s.is::<UnexpectedNullError>() =>
-					{
-						Ok(Default::default())
-					},
+					Error::ColumnDecode { source: s, .. } if s.is::<UnexpectedNullError>() => Ok(Default::default()),
 					_ => Err(e),
 				})?,
 			id: row.try_get(columns.id.as_ref())?,
 			increment,
 			invoice: Invoice {
-				date: row.try_get(columns.invoice_date_issued.as_ref()).map(
-					|date: Option<NaiveDateTime>| {
-						date.map(|d| InvoiceDate { issued: d.and_utc(), paid: invoice_date_paid })
-					},
-				)?,
+				date: row.try_get(columns.invoice_date_issued.as_ref()).map(|date: Option<NaiveDateTime>| {
+					date.map(|d| InvoiceDate { issued: d.and_utc(), paid: invoice_date_paid })
+				})?,
 				hourly_rate: Money { amount, ..Default::default() },
 			},
 			notes: row.try_get(columns.notes.as_ref())?,

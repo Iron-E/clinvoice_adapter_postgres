@@ -20,10 +20,7 @@ impl Updatable for PgJob
 	type Db = Postgres;
 	type Entity = Job;
 
-	async fn update<'entity, Iter>(
-		connection: &mut Transaction<Self::Db>,
-		entities: Iter,
-	) -> Result<()>
+	async fn update<'entity, Iter>(connection: &mut Transaction<Self::Db>, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
@@ -51,15 +48,9 @@ impl Updatable for PgJob
 					None => q.push_bind(None::<DateTime<Utc>>).push_bind(None::<DateTime<Utc>>),
 				};
 
-				q.push_bind(
-					e.invoice
-						.hourly_rate
-						.exchange(Default::default(), &exchange_rates)
-						.amount
-						.to_string(),
-				)
-				.push_bind(&e.notes)
-				.push_bind(&e.objectives);
+				q.push_bind(e.invoice.hourly_rate.exchange(Default::default(), &exchange_rates).amount.to_string())
+					.push_bind(&e.notes)
+					.push_bind(&e.objectives);
 			});
 		})
 		.await?;
@@ -69,9 +60,7 @@ impl Updatable for PgJob
 
 		stream::iter(entities.map(Result::Ok))
 			.try_fold(connection, |c, e| async move {
-				sqlx::query!("DELETE FROM job_departments WHERE job_id = $1", e.id)
-					.execute(&mut *c)
-					.await?;
+				sqlx::query!("DELETE FROM job_departments WHERE job_id = $1", e.id).execute(&mut *c).await?;
 
 				util::insert_into_job_departments(&mut *c, &e.departments, e.id).await?;
 				Ok(c)
@@ -120,8 +109,7 @@ mod tests
 		.unwrap();
 
 		let mut tx = connection.begin().await.unwrap();
-		let organization =
-			PgOrganization::create(&mut tx, location, company::company()).await.unwrap();
+		let organization = PgOrganization::create(&mut tx, location, company::company()).await.unwrap();
 
 		let mut job = PgJob::create(
 			&mut tx,

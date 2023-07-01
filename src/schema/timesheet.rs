@@ -52,13 +52,7 @@ impl PgTimesheet
 		OrganizationColumnT: AsRef<str>,
 		TimesheetColumnT: AsRef<str>,
 	{
-		let job_fut = PgJob::row_to_view(
-			connection,
-			job_columns,
-			departments_ident,
-			organization_columns,
-			row,
-		);
+		let job_fut = PgJob::row_to_view(connection, job_columns, departments_ident, organization_columns, row);
 		Ok(Timesheet {
 			employee: PgEmployee::row_to_view(employee_columns, department_columns, row),
 			id: row.try_get(columns.id.as_ref())?,
@@ -77,9 +71,7 @@ impl PgTimesheet
 								id,
 								timesheet_id,
 								cost: Money {
-									amount: cost
-										.parse::<Decimal>()
-										.map_err(|e| util::finance_err_to_sqlx(e.into()))?,
+									amount: cost.parse::<Decimal>().map_err(|e| util::finance_err_to_sqlx(e.into()))?,
 									..Default::default()
 								},
 							})
@@ -88,10 +80,7 @@ impl PgTimesheet
 				})
 				.or_else(|e| match e
 				{
-					Error::ColumnDecode { source: s, .. } if s.is::<UnexpectedNullError>() =>
-					{
-						Ok(Default::default())
-					},
+					Error::ColumnDecode { source: s, .. } if s.is::<UnexpectedNullError>() => Ok(Default::default()),
 					_ => Err(e),
 				})?,
 			job: job_fut.await?,

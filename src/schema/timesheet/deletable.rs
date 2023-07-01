@@ -11,10 +11,7 @@ impl Deletable for PgTimesheet
 	type Db = Postgres;
 	type Entity = Timesheet;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(
-		connection: Conn,
-		entities: Iter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -56,24 +53,14 @@ mod tests
 		Invoice,
 	};
 
-	use crate::schema::{
-		util,
-		PgDepartment,
-		PgEmployee,
-		PgExpenses,
-		PgJob,
-		PgLocation,
-		PgOrganization,
-		PgTimesheet,
-	};
+	use crate::schema::{util, PgDepartment, PgEmployee, PgExpenses, PgJob, PgLocation, PgOrganization, PgTimesheet};
 
 	#[tokio::test]
 	async fn delete()
 	{
 		let connection = util::connect();
 
-		let location =
-			PgLocation::create(&connection, None, address::country(), None).await.unwrap();
+		let location = PgLocation::create(&connection, None, address::country(), None).await.unwrap();
 
 		let (department, organization) = futures::try_join!(
 			PgDepartment::create(&connection, util::rand_department_name()),
@@ -81,10 +68,7 @@ mod tests
 		)
 		.unwrap();
 
-		let employee =
-			PgEmployee::create(&connection, department.clone(), name::full(), job::title())
-				.await
-				.unwrap();
+		let employee = PgEmployee::create(&connection, department.clone(), name::full(), job::title()).await.unwrap();
 
 		let mut tx = connection.begin().await.unwrap();
 		let job = PgJob::create(
@@ -116,11 +100,7 @@ mod tests
 		let timesheet2 = PgTimesheet::create(
 			&mut tx,
 			employee.clone(),
-			vec![(
-				"Flight".into(),
-				Money::new(300_56, 2, Currency::Usd),
-				"Trip to Hawaii for research".into(),
-			)],
+			vec![("Flight".into(), Money::new(300_56, 2, Currency::Usd), "Trip to Hawaii for research".into())],
 			job.clone(),
 			Utc.with_ymd_and_hms(2022, 06, 08, 15, 27, 00).unwrap(),
 			Utc.with_ymd_and_hms(2022, 06, 09, 07, 00, 00).latest(),
@@ -151,8 +131,7 @@ mod tests
 		assert_eq!(
 			PgTimesheet::retrieve(
 				&connection,
-				Match::Or(vec![timesheet.id.into(), timesheet2.id.into(), timesheet3.id.into()])
-					.into(),
+				Match::Or(vec![timesheet.id.into(), timesheet2.id.into(), timesheet3.id.into()]).into(),
 			)
 			.await
 			.unwrap()
@@ -163,11 +142,7 @@ mod tests
 
 		assert_eq!(
 			PgExpenses::retrieve(&connection, MatchExpense {
-				timesheet_id: Match::Or(vec![
-					timesheet.id.into(),
-					timesheet2.id.into(),
-					timesheet3.id.into(),
-				]),
+				timesheet_id: Match::Or(vec![timesheet.id.into(), timesheet2.id.into(), timesheet3.id.into(),]),
 				..Default::default()
 			})
 			.await

@@ -11,10 +11,7 @@ impl Updatable for PgOrganization
 	type Db = Postgres;
 	type Entity = Organization;
 
-	async fn update<'entity, Iter>(
-		connection: &mut Transaction<Self::Db>,
-		entities: Iter,
-	) -> Result<()>
+	async fn update<'entity, Iter>(connection: &mut Transaction<Self::Db>, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
@@ -62,8 +59,7 @@ mod tests
 		)
 		.unwrap();
 
-		let mut organization =
-			PgOrganization::create(&connection, earth, company::company()).await.unwrap();
+		let mut organization = PgOrganization::create(&connection, earth, company::company()).await.unwrap();
 
 		organization.location = mars;
 		organization.name = util::different_string(&organization.name);
@@ -74,9 +70,8 @@ mod tests
 			tx.commit().await.unwrap();
 		}
 
-		assert_eq!(
-			PgOrganization::retrieve(&connection, organization.id.into()).await.unwrap().as_slice(),
-			&[organization]
-		);
+		assert_eq!(PgOrganization::retrieve(&connection, organization.id.into()).await.unwrap().as_slice(), &[
+			organization
+		]);
 	}
 }

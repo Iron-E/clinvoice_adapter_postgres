@@ -25,10 +25,7 @@ impl Retrievable for PgOrganization
 
 	/// Retrieve all [`Organization`]s (via `connection`) that match the `match_condition`.
 	#[tracing::instrument(level = "trace", skip(connection), err)]
-	async fn retrieve(
-		connection: &Pool<Postgres>,
-		match_condition: Self::Match,
-	) -> Result<Vec<Self::Entity>>
+	async fn retrieve(connection: &Pool<Postgres>, match_condition: Self::Match) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: OrganizationColumns<&'static str> = OrganizationColumns::default();
 
@@ -36,16 +33,12 @@ impl Retrievable for PgOrganization
 		let location_columns = LocationColumns::default().default_scope();
 		let mut query = PgLocation::query_with_recursive(&match_condition.location);
 
-		query
-			.push(sql::SELECT)
-			.push_columns(&columns)
-			.push_default_from::<OrganizationColumns>()
-			.push_equijoin(
-				PgLocationRecursiveCte::from(&match_condition.location),
-				LocationColumns::DEFAULT_ALIAS,
-				location_columns.id,
-				columns.location_id,
-			);
+		query.push(sql::SELECT).push_columns(&columns).push_default_from::<OrganizationColumns>().push_equijoin(
+			PgLocationRecursiveCte::from(&match_condition.location),
+			LocationColumns::DEFAULT_ALIAS,
+			location_columns.id,
+			columns.location_id,
+		);
 
 		PgSchema::write_where_clause(
 			Default::default(),
@@ -87,9 +80,7 @@ mod tests
 		let connection = util::connect();
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
-		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into())
-			.await
-			.unwrap();
+		let street = PgLocation::create(&connection, None, util::rand_street_name(), city.into()).await.unwrap();
 
 		let (location, location2) = futures::try_join!(
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
@@ -104,10 +95,9 @@ mod tests
 		.unwrap();
 
 		// Assert ::retrieve gets the right data from the DB
-		assert_eq!(
-			PgOrganization::retrieve(&connection, organization.id.into()).await.unwrap().as_slice(),
-			&[organization.clone()],
-		);
+		assert_eq!(PgOrganization::retrieve(&connection, organization.id.into()).await.unwrap().as_slice(), &[
+			organization.clone()
+		],);
 
 		assert_eq!(
 			PgOrganization::retrieve(&connection, MatchOrganization {

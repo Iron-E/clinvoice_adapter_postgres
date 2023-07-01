@@ -11,10 +11,7 @@ impl Deletable for PgDepartment
 	type Db = Postgres;
 	type Entity = Department;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(
-		connection: Conn,
-		entities: Iter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -56,13 +53,7 @@ mod tests
 		assert_eq!(
 			PgDepartment::retrieve(
 				&connection,
-				Match::Or(
-					[&department, &department2, &department3]
-						.into_iter()
-						.map(|d| d.id.into())
-						.collect()
-				)
-				.into()
+				Match::Or([&department, &department2, &department3].into_iter().map(|d| d.id.into()).collect()).into()
 			)
 			.await
 			.unwrap()

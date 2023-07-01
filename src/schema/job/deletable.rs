@@ -11,10 +11,7 @@ impl Deletable for PgJob
 	type Db = Postgres;
 	type Entity = Job;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(
-		connection: Conn,
-		entities: Iter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -64,8 +61,7 @@ mod tests
 		.unwrap();
 
 		let mut tx = connection.begin().await.unwrap();
-		let organization =
-			PgOrganization::create(&mut tx, location.clone(), company::company()).await.unwrap();
+		let organization = PgOrganization::create(&mut tx, location.clone(), company::company()).await.unwrap();
 
 		let job = PgJob::create(
 			&mut tx,
@@ -89,11 +85,8 @@ mod tests
 			[department.clone()].into_iter().collect(),
 			Duration::from_secs(900),
 			Invoice {
-				date: InvoiceDate {
-					issued: Utc.with_ymd_and_hms(3000, 01, 17, 12, 30, 00).unwrap(),
-					paid: None,
-				}
-				.into(),
+				date: InvoiceDate { issued: Utc.with_ymd_and_hms(3000, 01, 17, 12, 30, 00).unwrap(), paid: None }
+					.into(),
 				hourly_rate: Money::new(299_99, 2, Currency::Jpy),
 			},
 			words::sentence(5),
@@ -130,13 +123,10 @@ mod tests
 
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 		assert_eq!(
-			PgJob::retrieve(
-				&connection,
-				Match::Or(vec![job.id.into(), job2.id.into(), job3.id.into()]).into(),
-			)
-			.await
-			.unwrap()
-			.as_slice(),
+			PgJob::retrieve(&connection, Match::Or(vec![job.id.into(), job2.id.into(), job3.id.into()]).into(),)
+				.await
+				.unwrap()
+				.as_slice(),
 			&[job3.exchange(Default::default(), &exchange_rates)],
 		);
 	}

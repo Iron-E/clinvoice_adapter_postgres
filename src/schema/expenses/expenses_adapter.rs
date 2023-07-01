@@ -34,18 +34,13 @@ impl ExpensesAdapter for PgExpenses
 		);
 
 		let ids = iter::from_fn(|| Id::new_v4().into()).take(expenses.len()).collect::<Vec<_>>();
-		query.push_values(
-			ids.iter().zip(expenses.iter()),
-			|mut q, (id, (category, cost, description))| {
-				q.push_bind(id)
-					.push_bind(timesheet_id)
-					.push_bind(category)
-					.push_bind(
-						cost.exchange(Default::default(), &exchange_rates).amount.to_string(),
-					)
-					.push_bind(description);
-			},
-		);
+		query.push_values(ids.iter().zip(expenses.iter()), |mut q, (id, (category, cost, description))| {
+			q.push_bind(id)
+				.push_bind(timesheet_id)
+				.push_bind(category)
+				.push_bind(cost.exchange(Default::default(), &exchange_rates).amount.to_string())
+				.push_bind(description);
+		});
 
 		tracing::debug!("Generated SQL: {}", query.sql());
 		query.prepare().execute(connection).await?;
@@ -53,13 +48,7 @@ impl ExpensesAdapter for PgExpenses
 		Ok(ids
 			.into_iter()
 			.zip(expenses.into_iter())
-			.map(|(id, (category, cost, description))| Expense {
-				id,
-				category,
-				cost,
-				description,
-				timesheet_id,
-			})
+			.map(|(id, (category, cost, description))| Expense { id, category, cost, description, timesheet_id })
 			.collect())
 	}
 }

@@ -12,9 +12,7 @@ impl DepartmentAdapter for PgDepartment
 		Conn: Executor<'connection, Database = Postgres>,
 	{
 		let id = Id::new_v4();
-		sqlx::query!("INSERT INTO departments (id, name) VALUES ($1, $2);", id, name,)
-			.execute(connection)
-			.await?;
+		sqlx::query!("INSERT INTO departments (id, name) VALUES ($1, $2);", id, name,).execute(connection).await?;
 
 		Ok(Department { id, name })
 	}
@@ -33,8 +31,7 @@ mod tests
 	{
 		let connection = util::connect();
 
-		let department =
-			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
+		let department = PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
 
 		let row = sqlx::query!("SELECT * FROM departments WHERE id = $1;", department.id)
 			.fetch_one(&connection)

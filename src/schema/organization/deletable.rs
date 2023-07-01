@@ -11,10 +11,7 @@ impl Deletable for PgOrganization
 	type Db = Postgres;
 	type Entity = Organization;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(
-		connection: Conn,
-		entities: Iter,
-	) -> Result<()>
+	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Conn: Executor<'connection, Database = Self::Db>,
@@ -60,20 +57,13 @@ mod tests
 
 		// The `organization`s still depend on `earth`
 		assert!(PgLocation::delete(&connection, [&earth].into_iter()).await.is_err());
-		PgOrganization::delete(&connection, [&organization, &organization2].into_iter())
-			.await
-			.unwrap();
+		PgOrganization::delete(&connection, [&organization, &organization2].into_iter()).await.unwrap();
 
 		assert_eq!(
 			PgOrganization::retrieve(
 				&connection,
-				Match::Or(
-					[&organization, &organization2, &organization3,]
-						.into_iter()
-						.map(|o| o.id.into())
-						.collect()
-				)
-				.into(),
+				Match::Or([&organization, &organization2, &organization3,].into_iter().map(|o| o.id.into()).collect())
+					.into(),
 			)
 			.await
 			.unwrap()

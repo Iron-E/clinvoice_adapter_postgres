@@ -7,11 +7,7 @@ use super::PgContact;
 #[async_trait::async_trait]
 impl ContactAdapter for PgContact
 {
-	async fn create<'connection, Conn>(
-		connection: Conn,
-		kind: ContactKind,
-		label: String,
-	) -> Result<Contact>
+	async fn create<'connection, Conn>(connection: Conn, kind: ContactKind, label: String) -> Result<Contact>
 	where
 		Conn: Executor<'connection, Database = Postgres>,
 	{

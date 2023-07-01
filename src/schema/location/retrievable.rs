@@ -24,19 +24,16 @@ impl Retrievable for PgLocation
 
 	/// Retrieve all [`Location`]s (via `connection`) that match the `match_condition`.
 	#[tracing::instrument(level = "trace", skip(connection), err)]
-	async fn retrieve(
-		connection: &Pool<Postgres>,
-		match_condition: Self::Match,
-	) -> Result<Vec<Self::Entity>>
+	async fn retrieve(connection: &Pool<Postgres>, match_condition: Self::Match) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: LocationColumns<&'static str> = LocationColumns::default();
 
 		let mut query = Self::query_with_recursive(&match_condition);
 
-		query.push(sql::SELECT).push(COLUMNS.default_scope().id).push_from(
-			PgLocationRecursiveCte::from(&match_condition),
-			LocationColumns::DEFAULT_ALIAS,
-		);
+		query
+			.push(sql::SELECT)
+			.push(COLUMNS.default_scope().id)
+			.push_from(PgLocationRecursiveCte::from(&match_condition), LocationColumns::DEFAULT_ALIAS);
 
 		tracing::debug!("Generated SQL: {}", query.sql());
 		query
@@ -68,9 +65,7 @@ mod tests
 
 		let city = PgLocation::create(&connection, None, address::city(), None).await.unwrap();
 		let street =
-			PgLocation::create(&connection, None, util::rand_street_name(), city.clone().into())
-				.await
-				.unwrap();
+			PgLocation::create(&connection, None, util::rand_street_name(), city.clone().into()).await.unwrap();
 
 		let (location, location2) = futures::try_join!(
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),

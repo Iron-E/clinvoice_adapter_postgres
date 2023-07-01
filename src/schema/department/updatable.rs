@@ -11,10 +11,7 @@ impl Updatable for PgDepartment
 	type Db = Postgres;
 	type Entity = Department;
 
-	async fn update<'entity, Iter>(
-		connection: &mut Transaction<Self::Db>,
-		entities: Iter,
-	) -> Result<()>
+	async fn update<'entity, Iter>(connection: &mut Transaction<Self::Db>, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
 		Iter: Clone + Iterator<Item = &'entity Self::Entity> + Send,
@@ -49,8 +46,7 @@ mod tests
 	{
 		let connection = util::connect();
 
-		let mut department =
-			PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
+		let mut department = PgDepartment::create(&connection, util::rand_department_name()).await.unwrap();
 
 		department.name = util::different_string(&department.name);
 
@@ -61,8 +57,7 @@ mod tests
 			tx.commit().await.unwrap();
 		}
 
-		let db_department =
-			PgDepartment::retrieve(&connection, department.id.into()).await.unwrap().pop().unwrap();
+		let db_department = PgDepartment::retrieve(&connection, department.id.into()).await.unwrap().pop().unwrap();
 
 		assert_eq!(department, db_department);
 	}

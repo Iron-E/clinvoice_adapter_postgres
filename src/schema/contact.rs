@@ -29,19 +29,14 @@ impl PgContact
 			label: row.get(columns.label),
 			kind: match row.get::<Option<_>, _>(columns.address_id)
 			{
-				Some(id) =>
-				{
-					PgLocation::retrieve_by_id(connection, id).map_ok(ContactKind::Address).await?
-				},
+				Some(id) => PgLocation::retrieve_by_id(connection, id).map_ok(ContactKind::Address).await?,
 				None => row
 					.get::<Option<_>, _>(columns.email)
 					.map(ContactKind::Email)
 					.or_else(|| row.get::<Option<_>, _>(columns.other).map(ContactKind::Other))
 					.or_else(|| row.get::<Option<_>, _>(columns.phone).map(ContactKind::Phone))
 					.ok_or_else(|| {
-						Error::Decode(
-							"Row of `contact_info` did not match any `Contact` equivalent".into(),
-						)
+						Error::Decode("Row of `contact_info` did not match any `Contact` equivalent".into())
 					})?,
 			},
 		})

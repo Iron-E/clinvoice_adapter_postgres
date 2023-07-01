@@ -25,10 +25,7 @@ impl Retrievable for PgEmployee
 
 	/// Retrieve all [`Employee`]s (via `connection`) that match the `match_condition`.
 	#[tracing::instrument(level = "trace", skip(connection), err)]
-	async fn retrieve(
-		connection: &Pool<Postgres>,
-		match_condition: Self::Match,
-	) -> Result<Vec<Self::Entity>>
+	async fn retrieve(connection: &Pool<Postgres>, match_condition: Self::Match) -> Result<Vec<Self::Entity>>
 	{
 		const COLUMNS: EmployeeColumns<&'static str> = EmployeeColumns::default();
 		const DEPARTMENT_COLUMNS_UNIQUE: DepartmentColumns = DepartmentColumns::unique();
@@ -41,10 +38,7 @@ impl Retrievable for PgEmployee
 			.push_columns(&columns)
 			.push_more_columns(&department_columns.r#as(DEPARTMENT_COLUMNS_UNIQUE))
 			.push_default_from::<EmployeeColumns>()
-			.push_default_equijoin::<DepartmentColumns, _, _>(
-				department_columns.id,
-				columns.department_id,
-			);
+			.push_default_equijoin::<DepartmentColumns, _, _>(department_columns.id, columns.department_id);
 
 		PgSchema::write_where_clause(
 			PgSchema::write_where_clause(
@@ -116,10 +110,7 @@ mod tests
 		assert_eq!(
 			PgEmployee::retrieve(&connection, MatchEmployee {
 				department: MatchStr::Or(
-					[&department, &department2]
-						.into_iter()
-						.map(|e| e.name.clone().into())
-						.collect()
+					[&department, &department2].into_iter().map(|e| e.name.clone().into()).collect()
 				)
 				.into(),
 				id: Match::Or([&employee, &employee2].into_iter().map(|e| e.id.into()).collect()),
