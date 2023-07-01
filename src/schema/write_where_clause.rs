@@ -80,10 +80,10 @@ where
 
 /// Write multiple `AND`/`OR` `conditions`.
 ///
-/// * If `UNION` is `true`, the `conditions` are separated by `AND`: `[Match::EqualTo(3),
-///   Match::LessThan(4)]` is interpreted as `(foo = 3 AND foo < 4)`.
-/// * If `UNION` is `false`, the `conditions` are separated by `OR`: `[Match::EqualTo(3),
-///   Match::LessThan(4)]` is interpreted as `(foo = 3 OR foo < 4)`.
+/// * If `UNION` is `true`, the `conditions` are separated by `AND`: `[Match::EqualTo(3), Match::LessThan(4)]` is
+///   interpreted as `(foo = 3 AND foo < 4)`.
+/// * If `UNION` is `false`, the `conditions` are separated by `OR`: `[Match::EqualTo(3), Match::LessThan(4)]` is
+///   interpreted as `(foo = 3 OR foo < 4)`.
 ///
 /// The rest of the args are the same as [`WriteSql::write_where`].
 ///
