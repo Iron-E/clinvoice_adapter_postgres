@@ -96,12 +96,9 @@ mod tests
 
 		assert_eq!(
 			PgContact::retrieve(&connection, MatchContact {
-				label: MatchStr::Or(
-					[&office_number, &primary_email, &mailing_address,]
-						.into_iter()
-						.map(|c| c.label.clone().into())
-						.collect()
-				),
+				label: MatchStr::from(office_number.label.clone()) |
+					primary_email.label.clone().into() |
+					mailing_address.label.clone().into(),
 				..Default::default()
 			})
 			.await

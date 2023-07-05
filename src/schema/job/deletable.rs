@@ -123,7 +123,7 @@ mod tests
 
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 		assert_eq!(
-			PgJob::retrieve(&connection, Match::Or(vec![job.id.into(), job2.id.into(), job3.id.into()]).into(),)
+			PgJob::retrieve(&connection, (Match::from(job.id) | job2.id.into() | job3.id.into()).into())
 				.await
 				.unwrap()
 				.as_slice(),

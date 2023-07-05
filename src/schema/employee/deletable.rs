@@ -64,7 +64,7 @@ mod tests
 		assert_eq!(
 			PgEmployee::retrieve(
 				&connection,
-				Match::Or(vec![employee.id.into(), employee2.id.into(), employee3.id.into()]).into()
+				(Match::from(employee.id) | employee2.id.into() | employee3.id.into()).into(),
 			)
 			.await
 			.unwrap()

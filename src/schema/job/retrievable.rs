@@ -230,7 +230,7 @@ mod tests
 
 		assert_eq!(
 			PgJob::retrieve(&connection, MatchJob {
-				id: Match::Or(vec![job2.id.into(), job3.id.into()]),
+				id: Match::from(job2.id) | job3.id.into(),
 				invoice: MatchInvoice { date_issued: Some(Match::Any).into(), ..Default::default() },
 				..Default::default()
 			})
@@ -246,7 +246,7 @@ mod tests
 
 		assert_eq!(
 			PgJob::retrieve(&connection, MatchJob {
-				id: Match::Or(vec![job.id.into(), job4.id.into()]),
+				id: Match::from(job.id) | job4.id.into(),
 				invoice: MatchInvoice { date_issued: None.into(), ..Default::default() },
 				..Default::default()
 			})

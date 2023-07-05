@@ -53,7 +53,7 @@ mod tests
 		assert_eq!(
 			PgDepartment::retrieve(
 				&connection,
-				Match::Or([&department, &department2, &department3].into_iter().map(|d| d.id.into()).collect()).into()
+				(Match::from(department.id) | department2.id.into() | department3.id.into()).into(),
 			)
 			.await
 			.unwrap()

@@ -54,13 +54,10 @@ mod tests
 		PgLocation::delete(&connection, [&street, &street2].into_iter()).await.unwrap();
 
 		assert_eq!(
-			PgLocation::retrieve(
-				&connection,
-				Match::Or([&city, &street, &street2].into_iter().map(|l| l.id.into()).collect()).into(),
-			)
-			.await
-			.unwrap()
-			.as_slice(),
+			PgLocation::retrieve(&connection, (Match::from(city.id) | street.id.into() | street2.id.into()).into(),)
+				.await
+				.unwrap()
+				.as_slice(),
 			&[city]
 		);
 	}

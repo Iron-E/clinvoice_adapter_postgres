@@ -104,7 +104,7 @@ mod tests
 				location: MatchLocation {
 					outer: Some(
 						MatchLocation {
-							id: Match::Or(vec![street.id.into(), Id::new_v4().into()]),
+							id: Match::from(street.id) | Id::new_v4().into(),
 							name: street.name.into(),
 							..Default::default()
 						}

@@ -82,7 +82,7 @@ mod tests
 		}
 
 		let db_contact_info: HashSet<_> = PgContact::retrieve(&connection, MatchContact {
-			label: MatchStr::Or([&office, &phone].into_iter().map(|c| c.label.clone().into()).collect()),
+			label: MatchStr::from(office.label.clone()) | phone.label.clone().into(),
 			..Default::default()
 		})
 		.await

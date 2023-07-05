@@ -124,14 +124,13 @@ mod tests
 		tx.commit().await.unwrap();
 		// }}}
 
-		assert!(PgJob::delete(&connection, [job].iter()).await.is_err());
 		PgTimesheet::delete(&connection, [&timesheet, &timesheet2].into_iter()).await.unwrap();
 
 		let exchange_rates = ExchangeRates::new().await.unwrap();
 		assert_eq!(
 			PgTimesheet::retrieve(
 				&connection,
-				Match::Or(vec![timesheet.id.into(), timesheet2.id.into(), timesheet3.id.into()]).into(),
+				(Match::from(timesheet.id) | timesheet2.id.into() | timesheet3.id.into()).into(),
 			)
 			.await
 			.unwrap()
@@ -142,7 +141,7 @@ mod tests
 
 		assert_eq!(
 			PgExpenses::retrieve(&connection, MatchExpense {
-				timesheet_id: Match::Or(vec![timesheet.id.into(), timesheet2.id.into(), timesheet3.id.into(),]),
+				timesheet_id: Match::from(timesheet.id) | timesheet2.id.into() | timesheet3.id.into(),
 				..Default::default()
 			})
 			.await

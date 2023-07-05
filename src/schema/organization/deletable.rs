@@ -62,8 +62,7 @@ mod tests
 		assert_eq!(
 			PgOrganization::retrieve(
 				&connection,
-				Match::Or([&organization, &organization2, &organization3,].into_iter().map(|o| o.id.into()).collect())
-					.into(),
+				(Match::from(organization.id) | organization2.id.into() | organization3.id.into()).into(),
 			)
 			.await
 			.unwrap()

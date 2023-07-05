@@ -97,7 +97,7 @@ mod tests
 		assert_eq!(
 			PgEmployee::retrieve(&connection, MatchEmployee {
 				department: department.id.into(),
-				id: Match::Or([&employee, &employee2].into_iter().map(|e| e.id.into()).collect()),
+				id: Match::from(employee.id) | employee2.id.into(),
 				name: employee.name.clone().into(),
 				..Default::default()
 			})
@@ -109,12 +109,9 @@ mod tests
 
 		assert_eq!(
 			PgEmployee::retrieve(&connection, MatchEmployee {
-				department: MatchStr::Or(
-					[&department, &department2].into_iter().map(|e| e.name.clone().into()).collect()
-				)
-				.into(),
-				id: Match::Or([&employee, &employee2].into_iter().map(|e| e.id.into()).collect()),
-				name: MatchStr::Not(Box::new(util::different_string(employee.name.clone()).into())),
+				department: (MatchStr::from(department.name.clone()) | department2.name.clone().into()).into(),
+				id: Match::from(employee.id) | employee2.id.into(),
+				name: !MatchStr::from(util::different_string(employee.name.clone())),
 				..Default::default()
 			})
 			.await
