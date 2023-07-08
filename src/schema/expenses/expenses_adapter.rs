@@ -47,7 +47,7 @@ impl ExpensesAdapter for PgExpenses
 
 		Ok(ids
 			.into_iter()
-			.zip(expenses.into_iter())
+			.zip(expenses)
 			.map(|(id, (category, cost, description))| Expense { id, category, cost, description, timesheet_id })
 			.collect())
 	}

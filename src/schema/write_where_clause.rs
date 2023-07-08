@@ -238,10 +238,7 @@ where
 	{
 		match match_condition
 		{
-			Match::And(conditions) =>
-			{
-				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.into_iter())
-			},
+			Match::And(conditions) => write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.iter()),
 			Match::Any => write_any(query, context),
 			Match::EqualTo(value) => write_comparison(query, context, ident, "=", value),
 			Match::GreaterThan(value) => write_comparison(query, context, ident, ">", value),
@@ -252,10 +249,7 @@ where
 			},
 			Match::LessThan(value) => write_comparison(query, context, ident, "<", value),
 			Match::Not(condition) => write_negated(query, context, ident, condition.deref()),
-			Match::Or(conditions) =>
-			{
-				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.into_iter())
-			},
+			Match::Or(conditions) => write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.iter()),
 		};
 
 		WriteContext::AcceptingAnotherWhereCondition
@@ -383,7 +377,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchDepartment>> for PgSchema
 			MatchSet::Any => write_any(query, context),
 			MatchSet::And(conditions) =>
 			{
-				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.into_iter())
+				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.iter())
 			},
 
 			MatchSet::Contains(match_department) =>
@@ -421,7 +415,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchDepartment>> for PgSchema
 			MatchSet::Not(condition) => write_negated(query, context, ident, condition.deref()),
 			MatchSet::Or(conditions) =>
 			{
-				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.into_iter())
+				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.iter())
 			},
 		};
 
@@ -445,7 +439,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 			MatchSet::Any => write_any(query, context),
 			MatchSet::And(conditions) =>
 			{
-				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.into_iter())
+				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.iter())
 			},
 
 			MatchSet::Contains(match_expense) =>
@@ -475,7 +469,7 @@ impl WriteWhereClause<Postgres, &MatchSet<MatchExpense>> for PgSchema
 			MatchSet::Not(condition) => write_negated(query, context, ident, condition.deref()),
 			MatchSet::Or(conditions) =>
 			{
-				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.into_iter())
+				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.iter())
 			},
 		};
 
@@ -500,7 +494,7 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 		{
 			MatchStr::And(conditions) =>
 			{
-				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.into_iter())
+				write_boolean_group::<_, _, _, _, true>(query, context, ident, conditions.iter())
 			},
 			MatchStr::Any => write_any(query, context),
 			MatchStr::Contains(string) =>
@@ -519,7 +513,7 @@ impl WriteWhereClause<Postgres, &MatchStr<String>> for PgSchema
 			MatchStr::Not(condition) => write_negated(query, context, ident, condition.deref()),
 			MatchStr::Or(conditions) =>
 			{
-				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.into_iter())
+				write_boolean_group::<_, _, _, _, false>(query, context, ident, conditions.iter())
 			},
 			MatchStr::Regex(regex) =>
 			{

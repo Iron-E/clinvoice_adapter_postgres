@@ -21,11 +21,16 @@ use {
 };
 
 /// Connect to the test postgres database.
+///
+/// # Panics
+///
+/// * When [`sqlx::Pool::connect_lazy`] returns [`Error`]
+/// * When [`dotenvy::var`] returns [`Error`]
 #[cfg(any(feature = "test-utils", test))]
 pub fn connect() -> PgPool
 {
 	static URL: OnceLock<String> = OnceLock::new();
-	PgPool::connect_lazy(&URL.get_or_init(|| dotenvy::var("DATABASE_URL").unwrap())).unwrap()
+	PgPool::connect_lazy(URL.get_or_init(|| dotenvy::var("DATABASE_URL").unwrap())).unwrap()
 }
 
 /// Returns a string representing the [`Display`] implementation of `d` which is different than the
@@ -39,6 +44,10 @@ where
 }
 
 /// Convert a [`PgInterval`] to a concrete [`Duration`]
+///
+/// # Panics
+///
+/// * If laws of the universe warp such that [`u64::MAX`] `% 1000000` does not fit into [`u32`].
 pub fn duration_from(interval: PgInterval) -> Result<Duration>
 {
 	const MICROSECONDS_IN_SECOND: u64 = 1000000;

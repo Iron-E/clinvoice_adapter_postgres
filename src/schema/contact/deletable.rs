@@ -24,7 +24,7 @@ impl Deletable for PgContact
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
 	{
 		/// The label [column](ContactColumns).
-		const LABEL: &'static str = ContactColumns::default().label;
+		const LABEL: &str = ContactColumns::default().label;
 
 		fn write<'args, T>(s: &mut Separated<'_, 'args, Postgres, T>, c: &'args Contact)
 		where

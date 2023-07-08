@@ -23,6 +23,7 @@ pub struct PgTimesheet;
 impl PgTimesheet
 {
 	/// Convert the `row` into a typed [`Timesheet`].
+	#[allow(clippy::too_many_arguments)]
 	pub async fn row_to_view<
 		'connection,
 		Conn,
