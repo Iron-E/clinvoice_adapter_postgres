@@ -54,6 +54,7 @@ mod tests
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{schema::LocationAdapter, Retrievable};
 	use winvoice_match::MatchLocation;
+	use winvoice_schema::Currency;
 
 	use crate::schema::{util, PgLocation};
 
@@ -68,7 +69,7 @@ mod tests
 			PgLocation::create(&connection, None, util::rand_street_name(), city.clone().into()).await.unwrap();
 
 		let (location, location2) = futures::try_join!(
-			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
+			PgLocation::create(&connection, Currency::Usd.into(), address::street_number(), street.clone().into()),
 			PgLocation::create(&connection, None, address::street_number(), street.clone().into()),
 		)
 		.unwrap();
@@ -83,7 +84,7 @@ mod tests
 			.await
 			.unwrap()
 			.as_slice(),
-			&[city]
+			&[city.clone()]
 		);
 
 		assert_eq!(
@@ -93,9 +94,21 @@ mod tests
 			})
 			.await
 			.unwrap()
-			.into_iter()
+			.iter()
 			.collect::<HashSet<_>>(),
-			[location2, location].into_iter().collect::<HashSet<_>>(),
+			[&location2, &location].into_iter().collect::<HashSet<_>>(),
+		);
+
+		assert_eq!(
+			PgLocation::retrieve(&connection, MatchLocation {
+				currency: Some(Currency::Usd.into()).into(),
+				id: [&city, &street, &location, &location2].into_iter().map(|l| l.id.into()).collect(),
+				..Default::default()
+			})
+			.await
+			.unwrap()
+			.as_slice(),
+			&[location],
 		);
 	}
 }

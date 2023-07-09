@@ -16,7 +16,7 @@ use winvoice_match::{Match, MatchLocation, MatchOption};
 use winvoice_schema::{Currency, Id, Location};
 
 use crate::{
-	fmt::{PgLocationRecursiveCte, PgUuid},
+	fmt::{PgCurrency, PgLocationRecursiveCte, PgUuid},
 	PgSchema,
 };
 
@@ -91,7 +91,7 @@ impl PgLocation
 					query,
 				),
 				outer_columns.currency,
-				&match_condition.currency,
+				&match_condition.currency.map_ref(|m| m.map_copied(PgCurrency::from)),
 				query,
 			);
 
