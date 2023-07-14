@@ -113,6 +113,7 @@ mod tests
 					.into(),
 					..Default::default()
 				},
+				id: [].into_iter().collect(),
 				..Default::default()
 			})
 			.await

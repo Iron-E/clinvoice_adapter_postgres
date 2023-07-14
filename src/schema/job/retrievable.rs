@@ -230,6 +230,7 @@ mod tests
 
 		assert_eq!(
 			PgJob::retrieve(&connection, MatchJob {
+				departments: [].into_iter().collect(),
 				id: Match::from(job2.id) | job3.id.into(),
 				invoice: MatchInvoice { date_issued: Some(Match::Any).into(), ..Default::default() },
 				..Default::default()

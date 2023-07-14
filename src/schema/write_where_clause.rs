@@ -104,12 +104,14 @@ fn write_boolean_group<'mat, Db, Ident, Iter, Match, const UNION: bool>(
 	Match: 'mat + Default + PartialEq,
 	PgSchema: WriteWhereClause<Db, &'mat Match>,
 {
-	write_context_scope_start::<_, false>(query, context);
-
-	if let Some(m) = conditions.next()
+	let Some(m) = conditions.next()
+	else
 	{
-		PgSchema::write_where_clause(WriteContext::InWhereCondition, ident, m, query);
-	}
+		return write_any(query, context);
+	};
+
+	write_context_scope_start::<_, false>(query, context);
+	PgSchema::write_where_clause(WriteContext::InWhereCondition, ident, m, query);
 
 	let separator = if UNION { sql::AND } else { sql::OR };
 	conditions.filter(|c| Match::default().ne(c)).for_each(|c| {

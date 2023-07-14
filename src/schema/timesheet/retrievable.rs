@@ -300,6 +300,7 @@ mod tests
 			PgTimesheet::retrieve(&connection, MatchTimesheet {
 				expenses: !MatchSet::Contains(Default::default()),
 				employee: (Match::from(timesheet.employee.id) | timesheet2.employee.id.into()).into(),
+				work_notes: [].into_iter().collect(),
 				..Default::default()
 			})
 			.await
@@ -313,6 +314,7 @@ mod tests
 			PgTimesheet::retrieve(&connection, MatchTimesheet {
 				job: MatchDepartment::from(department2.id).into(),
 				employee: MatchDepartment::from(department2.name).into(),
+				expenses: [].into_iter().collect(),
 				..Default::default()
 			})
 			.await

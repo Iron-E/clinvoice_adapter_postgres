@@ -89,6 +89,7 @@ mod tests
 
 		assert_eq!(
 			PgLocation::retrieve(&connection, MatchLocation {
+				name: [].into_iter().collect(),
 				outer: Some(Box::new(street.id.into())).into(),
 				..Default::default()
 			})

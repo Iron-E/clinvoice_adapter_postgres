@@ -99,6 +99,7 @@ mod tests
 				department: department.id.into(),
 				id: Match::from(employee.id) | employee2.id.into(),
 				name: employee.name.clone().into(),
+				title: [].into_iter().collect(),
 				..Default::default()
 			})
 			.await
