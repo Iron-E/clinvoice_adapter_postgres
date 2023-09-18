@@ -11,11 +11,11 @@ impl Deletable for PgTimesheet
 	type Db = Postgres;
 	type Entity = Timesheet;
 
-	async fn delete<'connection, 'entity, Conn, Iter>(connection: Conn, entities: Iter) -> Result<()>
+	async fn delete<'entity, Conn, Iter>(connection: &Conn, entities: Iter) -> Result<()>
 	where
 		Self::Entity: 'entity,
-		Conn: Executor<'connection, Database = Self::Db>,
 		Iter: Iterator<Item = &'entity Self::Entity> + Send,
+		for<'con> &'con Conn: Executor<'con, Database = Self::Db>,
 	{
 		fn mapper(t: &Timesheet) -> PgUuid
 		{
