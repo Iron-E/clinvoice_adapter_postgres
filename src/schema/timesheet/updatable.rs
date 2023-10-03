@@ -1,7 +1,6 @@
-use futures::{stream, TryStreamExt};
-use sqlx::{Postgres, Result, Transaction};
-use winvoice_adapter::{schema::{columns::TimesheetColumns, ExpensesAdapter}, Updatable};
-use winvoice_schema::{Timesheet, Id, Money};
+use sqlx::{Postgres, QueryBuilder, Result, Transaction};
+use winvoice_adapter::{fmt::QueryBuilderExt, schema::columns::TimesheetColumns, Updatable};
+use winvoice_schema::{Expense, Timesheet};
 
 use super::PgTimesheet;
 use crate::{
@@ -45,27 +44,39 @@ impl Updatable for PgTimesheet
 		let employees = entities.clone().map(|e| &e.employee);
 
 		// TODO: use `for<'a> |e: &'a Timesheet| &t.expenses`
-		let expenses = entities.clone().map(mapper);
-		fn mapper(t: &Timesheet) -> Result<(Vec<(String, Money, String)>, Id)>
+		let expenses = entities.clone().flat_map(mapper);
+		fn mapper(t: &Timesheet) -> &[Expense]
 		{
-			Result::Ok((
-					t.expenses.iter().cloned().map(|x| (x.category, x.cost, x.description)).collect(),
-					t.id,
-			))
+			&t.expenses
 		}
 
 		PgEmployee::update(connection, employees).await?;
-		PgJob::update(connection, entities.map(|e| &e.job)).await?;
 
-		stream::iter(expenses)
-			.try_fold(connection, |c, (x, timesheet_id)| async move {
-				sqlx::query!("DELETE FROM expenses WHERE timesheet_id = $1", timesheet_id).execute(&mut *c).await?;
-				PgExpenses::create(&mut *c, x, timesheet_id).await?;
-				Ok(c)
-			})
-			.await?;
+		{
+			let expenses = expenses.clone();
+			PgExpenses::update(connection, expenses).await?;
+		}
 
-		Ok(())
+		let mut builder = QueryBuilder::<Postgres>::new("DELETE FROM expenses WHERE id NOT IN (");
+		{
+			let mut sep = builder.separated(',');
+			expenses.clone().for_each(|x| {
+				sep.push_bind(x.id);
+			});
+		}
+
+		builder.push(") AND timesheet_id IN (");
+		{
+			let mut sep = builder.separated(',');
+			expenses.clone().for_each(|x| {
+				sep.push_bind(x.id);
+			});
+		}
+		builder.push(')');
+
+		tracing::debug!("Generated SQL: {}", builder.sql());
+		builder.prepare().execute(&mut *connection).await?;
+		PgJob::update(connection, entities.map(|e| &e.job)).await
 	}
 }
 
