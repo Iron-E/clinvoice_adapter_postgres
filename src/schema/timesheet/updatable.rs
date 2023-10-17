@@ -43,8 +43,8 @@ impl Updatable for PgTimesheet
 
 		let employees = entities.clone().map(|e| &e.employee);
 
-		// TODO: use `for<'a> |e: &'a Timesheet| &t.expenses`
-		let expenses = entities.clone().flat_map(mapper);
+		// TODO: use `for<'a> |e: &'a Timesheet| &t.expenses` and `was_empty` var to avoid allocation
+		let expenses = entities.clone().flat_map(mapper).collect::<Vec<_>>();
 		fn mapper(t: &Timesheet) -> &[Expense]
 		{
 			&t.expenses
@@ -54,28 +54,32 @@ impl Updatable for PgTimesheet
 
 		{
 			let expenses = expenses.clone();
-			PgExpenses::update(connection, expenses).await?;
+			PgExpenses::update(connection, expenses.iter().copied()).await?;
 		}
 
-		let mut builder = QueryBuilder::<Postgres>::new("DELETE FROM expenses WHERE id NOT IN (");
+		if !expenses.is_empty()
 		{
-			let mut sep = builder.separated(',');
-			expenses.clone().for_each(|x| {
-				sep.push_bind(x.id);
-			});
+			let mut builder = QueryBuilder::<Postgres>::new("DELETE FROM expenses WHERE id NOT IN (");
+			{
+				let mut sep = builder.separated(',');
+				expenses.iter().for_each(|x| {
+					sep.push_bind(x.id);
+				});
+			}
+
+			builder.push(") AND timesheet_id IN (");
+			{
+				let mut sep = builder.separated(',');
+				expenses.iter().for_each(|x| {
+					sep.push_bind(x.timesheet_id);
+				});
+			}
+			builder.push(')');
+
+			tracing::debug!("Generated SQL: {}", builder.sql());
+			builder.prepare().execute(&mut *connection).await?;
 		}
 
-		builder.push(") AND timesheet_id IN (");
-		{
-			let mut sep = builder.separated(',');
-			expenses.clone().for_each(|x| {
-				sep.push_bind(x.id);
-			});
-		}
-		builder.push(')');
-
-		tracing::debug!("Generated SQL: {}", builder.sql());
-		builder.prepare().execute(&mut *connection).await?;
 		PgJob::update(connection, entities.map(|e| &e.job)).await
 	}
 }
