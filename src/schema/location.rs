@@ -186,7 +186,12 @@ impl PgLocation
 			}))
 		})
 		.await
-		.and_then(|v| v.ok_or(Error::RowNotFound))
+		.and_then(|v| {
+			v.ok_or_else(|| {
+				tracing::error!("Failed to construct location from id {id}");
+				Error::RowNotFound
+			})
+		})
 	}
 
 	/// Retrieve a [`Match`] which will match all of the [`Id`]s of the [`Location`]s which match
