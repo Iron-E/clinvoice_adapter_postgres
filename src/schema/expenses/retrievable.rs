@@ -1,5 +1,5 @@
 use futures::{future, TryFutureExt, TryStreamExt};
-use money2::{Exchange, HistoricalExchangeRates};
+use money2::HistoricalExchangeRates;
 use sqlx::{Pool, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
@@ -31,13 +31,13 @@ impl Retrievable for PgExpenses
 		const COLUMNS: ExpenseColumns<&str> = ExpenseColumns::default();
 
 		let columns = COLUMNS.default_scope();
-		let exchange_rates_fut = HistoricalExchangeRates::try_index(None).map_err(util::finance_err_to_sqlx);
+		let exchanged_condition_fut = HistoricalExchangeRates::try_exchange(None, Default::default(), match_condition)
+			.map_err(util::finance_err_to_sqlx);
 		let mut query = QueryBuilder::new(sql::SELECT);
 
 		query.push_columns(&columns).push_default_from::<ExpenseColumns>();
 
-		let exchanged_condition =
-			exchange_rates_fut.await.map(|rates| match_condition.exchange(Default::default(), &rates))?;
+		let exchanged_condition = exchanged_condition_fut.await?;
 
 		PgSchema::write_where_clause(
 			Default::default(),

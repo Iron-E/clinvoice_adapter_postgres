@@ -30,17 +30,17 @@ impl ExpensesAdapter for PgExpenses
 			return Ok(Vec::new());
 		}
 
-		let rates = HistoricalExchangeRates::try_index(Some(timesheet_time_begin.into()))
-			.await
-			.map_err(util::finance_err_to_sqlx)?;
-
-		let expenses_vec: Vec<_> = iter::from_fn(|| Id::new_v4().into())
-			.take(expenses.len())
-			.zip(expenses)
-			.map(|(id, (category, cost, description))| {
-				Expense { id, category, cost, description, timesheet_id }.exchange(Default::default(), &rates)
-			})
-			.collect();
+		let expenses_vec: Vec<_> = {
+			let history = HistoricalExchangeRates::history().await.map_err(util::finance_err_to_sqlx)?;
+			let rates = HistoricalExchangeRates::index_from(&history, Some(timesheet_time_begin.into()));
+			iter::from_fn(|| Id::new_v4().into())
+				.take(expenses.len())
+				.zip(expenses)
+				.map(|(id, (category, cost, description))| {
+					Expense { id, category, cost, description, timesheet_id }.exchange(Default::default(), &rates)
+				})
+				.collect()
+		};
 
 		let mut query = QueryBuilder::new(
 			"INSERT INTO expenses

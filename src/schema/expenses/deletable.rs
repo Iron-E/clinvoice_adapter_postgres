@@ -112,7 +112,6 @@ mod tests
 		PgExpenses::delete(&connection, timesheet.expenses.iter().take(2)).await.unwrap();
 
 		let exchange_rates = HistoricalExchangeRates::index(None).await;
-
 		assert_eq!(
 			PgExpenses::retrieve(&connection, MatchExpense { timesheet_id: timesheet.id.into(), ..Default::default() })
 				.await

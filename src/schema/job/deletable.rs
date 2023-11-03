@@ -121,7 +121,7 @@ mod tests
 		assert!(PgOrganization::delete(&connection, [&organization].into_iter()).await.is_err());
 		PgJob::delete(&connection, [&job, &job2].into_iter()).await.unwrap();
 
-		let exchange_rates = HistoricalExchangeRates::try_index(None).await.unwrap();
+		let exchange_rates = HistoricalExchangeRates::index(None).await;
 		assert_eq!(
 			PgJob::retrieve(&connection, (Match::from(job.id) | job2.id.into() | job3.id.into()).into())
 				.await

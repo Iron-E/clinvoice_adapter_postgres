@@ -1,5 +1,5 @@
 use futures::{TryFutureExt, TryStreamExt};
-use money2::{Exchange, HistoricalExchangeRates};
+use money2::HistoricalExchangeRates;
 use sqlx::{Pool, Postgres, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
@@ -38,11 +38,13 @@ impl Retrievable for PgJob
 
 		let columns = COLUMNS.default_scope();
 		let department_columns = DepartmentColumns::default().default_scope();
-		let exchange_rates_fut = HistoricalExchangeRates::try_index(None).map_err(util::finance_err_to_sqlx);
 		let job_department_columns = JobDepartmentColumns::default().default_scope();
 		let match_location = match_condition.client.location.clone();
 		let mut query = PgLocation::query_with_recursive(&match_location);
 		let organization_columns = OrganizationColumns::default().default_scope();
+
+		let exchanged_condition_fut = HistoricalExchangeRates::try_exchange(None, Default::default(), match_condition)
+			.map_err(util::finance_err_to_sqlx);
 
 		query
 			.push(sql::SELECT)
@@ -69,9 +71,7 @@ impl Retrievable for PgJob
 				organization_columns.location_id,
 			);
 
-		let exchanged_condition =
-			exchange_rates_fut.await.map(|rates| match_condition.exchange(Default::default(), &rates))?;
-
+		let exchanged_condition = exchanged_condition_fut.await?;
 		PgSchema::write_where_clause(
 			PgSchema::write_where_clause(
 				PgSchema::write_where_clause(
