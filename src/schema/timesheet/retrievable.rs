@@ -186,7 +186,7 @@ mod tests
 	use core::time::Duration;
 
 	use mockd::{address, company, job, name, words};
-	use money2::{Exchange, ExchangeRates};
+	use money2::HistoricalExchangeRates;
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{
@@ -294,8 +294,8 @@ mod tests
 		tx.commit().await.unwrap();
 		// }}}
 
-		let exchange_rates = ExchangeRates::new().await.unwrap();
-
+		let job_rates = HistoricalExchangeRates::index(Some(timesheet.job.date_open.into())).await;
+		let timesheet_rates = HistoricalExchangeRates::index(Some(timesheet.time_begin.into())).await;
 		assert_eq!(
 			PgTimesheet::retrieve(&connection, MatchTimesheet {
 				expenses: !MatchSet::Contains(Default::default()),
@@ -307,9 +307,11 @@ mod tests
 			.unwrap()
 			.into_iter()
 			.as_slice(),
-			&[timesheet.exchange(Default::default(), &exchange_rates)],
+			&[timesheet.exchange_historically(Default::default(), &timesheet_rates, &job_rates)],
 		);
 
+		let job2_rates = HistoricalExchangeRates::index(Some(timesheet2.job.date_open.into())).await;
+		let timesheet2_rates = HistoricalExchangeRates::index(Some(timesheet2.time_begin.into())).await;
 		assert_eq!(
 			PgTimesheet::retrieve(&connection, MatchTimesheet {
 				job: MatchDepartment::from(department2.id).into(),
@@ -321,7 +323,7 @@ mod tests
 			.unwrap()
 			.into_iter()
 			.as_slice(),
-			&[timesheet2.exchange(Default::default(), &exchange_rates)],
+			&[timesheet2.exchange_historically(Default::default(), &timesheet2_rates, &job2_rates)],
 		);
 	}
 }

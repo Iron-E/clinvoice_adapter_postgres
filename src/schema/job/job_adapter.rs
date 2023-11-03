@@ -5,7 +5,7 @@ use money2::{Exchange, HistoricalExchangeRates};
 use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::schema::JobAdapter;
 use winvoice_schema::{
-	chrono::{DateTime, Local, Utc},
+	chrono::{DateTime, Utc},
 	Department,
 	Id,
 	Invoice,
@@ -31,7 +31,7 @@ impl JobAdapter for PgJob
 		objectives: String,
 	) -> Result<Job>
 	{
-		let standardized_rate = HistoricalExchangeRates::try_index(DateTime::<Local>::from(date_open).into())
+		let standardized_rate = HistoricalExchangeRates::try_index(Some(date_open.into()))
 			.await
 			.map(|r| invoice.hourly_rate.exchange(Default::default(), &r))
 			.map_err(util::finance_err_to_sqlx)?;

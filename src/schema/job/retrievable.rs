@@ -110,8 +110,9 @@ mod tests
 	use core::time::Duration;
 	use std::collections::HashSet;
 
+	use futures::{stream, StreamExt};
 	use mockd::{address, company, words};
-	use money2::{Exchange, ExchangeRates};
+	use money2::{Exchange, HistoricalExchangeRates};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{DepartmentAdapter, JobAdapter, LocationAdapter, OrganizationAdapter},
@@ -222,27 +223,32 @@ mod tests
 
 		tx.commit().await.unwrap();
 
-		let exchange_rates = ExchangeRates::new().await.unwrap();
-
 		assert_eq!(PgJob::retrieve(&connection, job.id.into()).await.unwrap().as_slice(), &[job
 			.clone()
-			.exchange(Default::default(), &exchange_rates)]);
+			.exchange(Default::default(), &HistoricalExchangeRates::index(Some(job.date_open.into())).await)]);
 
 		assert_eq!(
 			PgJob::retrieve(&connection, MatchJob {
 				departments: [].into_iter().collect(),
 				id: Match::from(job2.id) | job3.id.into(),
-				invoice: MatchInvoice { date_issued: Some(Match::Any).into(), ..Default::default() },
+				invoice: MatchInvoice {
+					date_issued: Some(Match::Any).into(),
+					hourly_rate: [job2.invoice.hourly_rate, job3.invoice.hourly_rate].into_iter().collect(),
+					..Default::default()
+				},
 				..Default::default()
 			})
 			.await
 			.unwrap()
 			.into_iter()
 			.collect::<HashSet<_>>(),
-			[&job2, &job3]
-				.map(|j| j.clone().exchange(Default::default(), &exchange_rates))
-				.into_iter()
-				.collect::<HashSet<_>>(),
+			stream::iter([&job2, &job3])
+				.then(|j| async {
+					j.clone()
+						.exchange(Default::default(), &HistoricalExchangeRates::index(Some(j.date_open.into())).await)
+				})
+				.collect::<HashSet<_>>()
+				.await,
 		);
 
 		assert_eq!(
@@ -255,10 +261,13 @@ mod tests
 			.unwrap()
 			.into_iter()
 			.collect::<HashSet<_>>(),
-			[&job, &job4]
-				.map(|j| j.clone().exchange(Default::default(), &exchange_rates))
-				.into_iter()
-				.collect::<HashSet<_>>(),
+			stream::iter([&job, &job4])
+				.then(|j| async {
+					j.clone()
+						.exchange(Default::default(), &HistoricalExchangeRates::index(Some(j.date_open.into())).await)
+				})
+				.collect::<HashSet<_>>()
+				.await,
 		);
 
 		assert_eq!(
@@ -274,10 +283,13 @@ mod tests
 			.unwrap()
 			.into_iter()
 			.collect::<HashSet<_>>(),
-			[&job, &job2, &job3]
-				.map(|j| j.clone().exchange(Default::default(), &exchange_rates))
-				.into_iter()
-				.collect::<HashSet<_>>(),
+			stream::iter([&job, &job2, &job3])
+				.then(|j| async {
+					j.clone()
+						.exchange(Default::default(), &HistoricalExchangeRates::index(Some(j.date_open.into())).await)
+				})
+				.collect::<HashSet<_>>()
+				.await,
 		);
 	}
 }

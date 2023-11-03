@@ -5,7 +5,7 @@ use money2::{Exchange, ExchangeRates, HistoricalExchangeRates};
 use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::JobColumns, Updatable};
 use winvoice_schema::{
-	chrono::{DateTime, Local, Utc},
+	chrono::{DateTime, Utc},
 	Job,
 };
 
@@ -42,7 +42,7 @@ impl Updatable for PgJob
 		.try_fold(HashMap::default(), |mut m, job| async {
 			if m.get(&job.date_open).is_none()
 			{
-				let rates = HistoricalExchangeRates::try_index(DateTime::<Local>::from(job.date_open).into()).await?;
+				let rates = HistoricalExchangeRates::try_index(Some(job.date_open.into())).await?;
 				m.insert(job.date_open, rates);
 			}
 

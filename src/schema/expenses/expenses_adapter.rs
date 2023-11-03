@@ -4,7 +4,7 @@ use money2::{Exchange, HistoricalExchangeRates, Money};
 use sqlx::{Executor, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{fmt::QueryBuilderExt, schema::ExpensesAdapter};
 use winvoice_schema::{
-	chrono::{DateTime, Local, Utc},
+	chrono::{DateTime, Utc},
 	Expense,
 	Id,
 };
@@ -30,7 +30,7 @@ impl ExpensesAdapter for PgExpenses
 			return Ok(Vec::new());
 		}
 
-		let rates = HistoricalExchangeRates::try_index(DateTime::<Local>::from(timesheet_time_begin).into())
+		let rates = HistoricalExchangeRates::try_index(Some(timesheet_time_begin.into()))
 			.await
 			.map_err(util::finance_err_to_sqlx)?;
 
