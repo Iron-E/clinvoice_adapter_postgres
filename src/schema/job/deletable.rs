@@ -33,7 +33,7 @@ mod tests
 	use core::time::Duration;
 
 	use mockd::{address, company, words};
-	use money2::{Currency, Exchange, ExchangeRates, Money};
+	use money2::{Currency, Exchange, HistoricalExchangeRates, Money};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{DepartmentAdapter, JobAdapter, LocationAdapter, OrganizationAdapter},
@@ -121,7 +121,7 @@ mod tests
 		assert!(PgOrganization::delete(&connection, [&organization].into_iter()).await.is_err());
 		PgJob::delete(&connection, [&job, &job2].into_iter()).await.unwrap();
 
-		let exchange_rates = ExchangeRates::new().await.unwrap();
+		let exchange_rates = HistoricalExchangeRates::try_index(None).await.unwrap();
 		assert_eq!(
 			PgJob::retrieve(&connection, (Match::from(job.id) | job2.id.into() | job3.id.into()).into())
 				.await

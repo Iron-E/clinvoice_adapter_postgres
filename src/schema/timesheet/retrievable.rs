@@ -1,5 +1,5 @@
 use futures::{TryFutureExt, TryStreamExt};
-use money2::{Exchange, ExchangeRates};
+use money2::{Exchange, HistoricalExchangeRates};
 use sqlx::{Pool, Postgres, Result};
 use winvoice_adapter::{
 	fmt::{sql, QueryBuilderExt, TableToSql},
@@ -56,7 +56,7 @@ impl Retrievable for PgTimesheet
 		let department_columns = DepartmentColumns::default().scope(DEPARTMENTS_AGGREGATED_ALIAS);
 		let employee_columns = EmployeeColumns::default().default_scope();
 		let employee_department_columns = DepartmentColumns::default().default_scope();
-		let exchange_rates_fut = ExchangeRates::new().map_err(util::finance_err_to_sqlx);
+		let exchange_rates_fut = HistoricalExchangeRates::try_index(None).map_err(util::finance_err_to_sqlx);
 		let expense_columns = ExpenseColumns::default().default_scope();
 		let job_columns = JobColumns::default().default_scope();
 		let job_department_columns = JobDepartmentColumns::default().default_scope();

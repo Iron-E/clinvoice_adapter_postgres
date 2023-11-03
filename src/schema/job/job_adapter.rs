@@ -70,7 +70,7 @@ mod tests
 	use core::time::Duration;
 
 	use mockd::{address, company, words};
-	use money2::{Exchange, ExchangeRates};
+	use money2::{Exchange, HistoricalExchangeRates};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::schema::{DepartmentAdapter, LocationAdapter, OrganizationAdapter};
 	use winvoice_schema::{chrono::Utc, Currency, Department, Id, Invoice, Money};
@@ -141,10 +141,10 @@ mod tests
 		assert_eq!(job.increment, util::duration_from(row.increment).unwrap());
 		assert_eq!(None, row.invoice_date_issued);
 		assert_eq!(None, row.invoice_date_paid);
-		assert_eq!(job.invoice.hourly_rate.exchange(Default::default(), &ExchangeRates::new().await.unwrap()), Money {
-			amount: row.invoice_hourly_rate.parse().unwrap(),
-			..Default::default()
-		},);
+		assert_eq!(
+			job.invoice.hourly_rate.exchange(Default::default(), &HistoricalExchangeRates::index(None).await),
+			Money { amount: row.invoice_hourly_rate.parse().unwrap(), ..Default::default() },
+		);
 		assert_eq!(job.notes, row.notes);
 		assert_eq!(job.objectives, row.objectives);
 	}

@@ -33,7 +33,7 @@ mod tests
 	use core::time::Duration;
 
 	use mockd::{address, company, job, name, words};
-	use money2::{Currency, Exchange, ExchangeRates, Money};
+	use money2::{Currency, Exchange, HistoricalExchangeRates, Money};
 	use pretty_assertions::assert_eq;
 	use winvoice_adapter::{
 		schema::{
@@ -111,7 +111,7 @@ mod tests
 
 		PgExpenses::delete(&connection, timesheet.expenses.iter().take(2)).await.unwrap();
 
-		let exchange_rates = ExchangeRates::new().await.unwrap();
+		let exchange_rates = HistoricalExchangeRates::index(None).await;
 
 		assert_eq!(
 			PgExpenses::retrieve(&connection, MatchExpense { timesheet_id: timesheet.id.into(), ..Default::default() })
