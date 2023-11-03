@@ -1,10 +1,13 @@
 use core::iter;
 
-use futures::TryFutureExt;
-use money2::{Exchange, ExchangeRates, Money};
+use money2::{Exchange, HistoricalExchangeRates, Money};
 use sqlx::{Executor, Postgres, QueryBuilder, Result};
 use winvoice_adapter::{fmt::QueryBuilderExt, schema::ExpensesAdapter};
-use winvoice_schema::{Expense, Id};
+use winvoice_schema::{
+	chrono::{DateTime, Local, Utc},
+	Expense,
+	Id,
+};
 
 use super::PgExpenses;
 use crate::schema::util;
@@ -17,6 +20,7 @@ impl ExpensesAdapter for PgExpenses
 		connection: Conn,
 		expenses: Vec<(String, Money, String)>,
 		timesheet_id: Id,
+		timesheet_time_begin: DateTime<Utc>,
 	) -> Result<Vec<Expense>>
 	where
 		Conn: Executor<'connection, Database = Postgres>,
@@ -26,29 +30,34 @@ impl ExpensesAdapter for PgExpenses
 			return Ok(Vec::new());
 		}
 
-		let exchange_rates = ExchangeRates::new().map_err(util::finance_err_to_sqlx).await?;
+		let rates = HistoricalExchangeRates::try_index(DateTime::<Local>::from(timesheet_time_begin).into())
+			.await
+			.map_err(util::finance_err_to_sqlx)?;
+
+		let expenses_vec: Vec<_> = iter::from_fn(|| Id::new_v4().into())
+			.take(expenses.len())
+			.zip(expenses)
+			.map(|(id, (category, cost, description))| {
+				Expense { id, category, cost, description, timesheet_id }.exchange(Default::default(), &rates)
+			})
+			.collect();
 
 		let mut query = QueryBuilder::new(
 			"INSERT INTO expenses
 				(id, timesheet_id, category, cost, description) ",
 		);
 
-		let ids = iter::from_fn(|| Id::new_v4().into()).take(expenses.len()).collect::<Vec<_>>();
-		query.push_values(ids.iter().zip(expenses.iter()), |mut q, (id, (category, cost, description))| {
-			q.push_bind(id)
+		query.push_values(expenses_vec.iter(), |mut q, x| {
+			q.push_bind(x.id)
 				.push_bind(timesheet_id)
-				.push_bind(category)
-				.push_bind(cost.exchange(Default::default(), &exchange_rates).amount.to_string())
-				.push_bind(description);
+				.push_bind(&x.category)
+				.push_bind(x.cost.amount.to_string())
+				.push_bind(&x.description);
 		});
 
 		tracing::debug!("Generated SQL: {}", query.sql());
 		query.prepare().execute(connection).await?;
 
-		Ok(ids
-			.into_iter()
-			.zip(expenses)
-			.map(|(id, (category, cost, description))| Expense { id, category, cost, description, timesheet_id })
-			.collect())
+		Ok(expenses_vec)
 	}
 }

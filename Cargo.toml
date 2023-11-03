@@ -1,7 +1,7 @@
 # See https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
 name = 'winvoice-adapter-postgres'
-version = '0.18.2'
+version = '0.19.0'
 authors = ['Iron-E <code.iron.e@gmail.com>']
 description = 'A Winvoice Adapter for the Postgres database'
 
@@ -16,7 +16,7 @@ dotenvy = {optional = true, version = '0.15'}
 futures = '0.3'
 humantime = '2'
 mockd = {features = ['address', 'job'], optional = true, version = '0.4'}
-money2 = '1'
+money2 = {features = ['history'], version = '1'}
 rand = {optional = true, version = '0.8'}
 shellexpand = '2'
 thiserror = '1'
@@ -55,5 +55,5 @@ git = 'https://github.com/Iron-E/sqlx'
 branch = 'release/0.6.3-patched'
 
 [features]
-default = []
+default = ['test-utils']
 test-utils = ['dotenvy', 'mockd', 'rand']

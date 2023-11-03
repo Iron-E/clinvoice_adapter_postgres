@@ -1,9 +1,11 @@
-use futures::{stream, TryFutureExt, TryStreamExt};
-use money2::{Exchange, ExchangeRates};
+use std::collections::HashMap;
+
+use futures::{stream, TryStreamExt};
+use money2::{Exchange, ExchangeRates, HistoricalExchangeRates};
 use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::{schema::columns::JobColumns, Updatable};
 use winvoice_schema::{
-	chrono::{DateTime, Utc},
+	chrono::{DateTime, Local, Utc},
 	Job,
 };
 
@@ -33,7 +35,22 @@ impl Updatable for PgJob
 			return Ok(());
 		}
 
-		let exchange_rates = ExchangeRates::new().map_err(util::finance_err_to_sqlx).await?;
+		let history: HashMap<DateTime<Utc>, ExchangeRates> = {
+			let entities_results = peekable_entities.clone().map(Ok);
+			stream::iter(entities_results)
+		}
+		.try_fold(HashMap::default(), |mut m, job| async {
+			if m.get(&job.date_open).is_none()
+			{
+				let rates = HistoricalExchangeRates::try_index(DateTime::<Local>::from(job.date_open).into()).await?;
+				m.insert(job.date_open, rates);
+			}
+
+			Ok(m)
+		})
+		.await
+		.map_err(util::finance_err_to_sqlx)?;
+
 		PgSchema::update(connection, JobColumns::default(), |query| {
 			query.push_values(peekable_entities, |mut q, e| {
 				q.push_bind(e.client.id)
@@ -48,9 +65,11 @@ impl Updatable for PgJob
 					None => q.push_bind(None::<DateTime<Utc>>).push_bind(None::<DateTime<Utc>>),
 				};
 
-				q.push_bind(e.invoice.hourly_rate.exchange(Default::default(), &exchange_rates).amount.to_string())
-					.push_bind(&e.notes)
-					.push_bind(&e.objectives);
+				q.push_bind(
+					e.invoice.hourly_rate.exchange(Default::default(), &history[&e.date_open]).amount.to_string(),
+				)
+				.push_bind(&e.notes)
+				.push_bind(&e.objectives);
 			});
 		})
 		.await?;

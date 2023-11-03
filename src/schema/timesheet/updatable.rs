@@ -167,6 +167,7 @@ mod tests
 			&mut tx,
 			vec![("category".into(), Money::default(), "description".into())],
 			timesheet.id,
+			timesheet.time_begin,
 		)
 		.await
 		.unwrap()

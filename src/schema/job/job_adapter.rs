@@ -1,11 +1,11 @@
 use core::time::Duration;
 use std::collections::BTreeSet;
 
-use money2::{Exchange, ExchangeRates};
+use money2::{Exchange, HistoricalExchangeRates};
 use sqlx::{Postgres, Result, Transaction};
 use winvoice_adapter::schema::JobAdapter;
 use winvoice_schema::{
-	chrono::{DateTime, Utc},
+	chrono::{DateTime, Local, Utc},
 	Department,
 	Id,
 	Invoice,
@@ -31,7 +31,7 @@ impl JobAdapter for PgJob
 		objectives: String,
 	) -> Result<Job>
 	{
-		let standardized_rate = ExchangeRates::new()
+		let standardized_rate = HistoricalExchangeRates::try_index(DateTime::<Local>::from(date_open).into())
 			.await
 			.map(|r| invoice.hourly_rate.exchange(Default::default(), &r))
 			.map_err(util::finance_err_to_sqlx)?;
