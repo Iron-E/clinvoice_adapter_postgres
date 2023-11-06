@@ -166,8 +166,7 @@ mod tests
 		let new_expense = PgExpenses::create(
 			&mut tx,
 			vec![("category".into(), Money::default(), "description".into())],
-			timesheet.id,
-			timesheet.time_begin,
+			(timesheet.id, timesheet.time_begin),
 		)
 		.await
 		.unwrap()

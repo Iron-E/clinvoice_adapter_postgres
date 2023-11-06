@@ -103,7 +103,7 @@ mod tests
 		assert_eq!(
 			PgLocation::retrieve(&connection, MatchLocation {
 				currency: Some(Currency::Usd.into()).into(),
-				id: [&city, &street, &location, &location2].into_iter().map(|l| l.id.into()).collect(),
+				id: [&city, &street, &location, &location2].into_iter().map(|l| l.id).collect(),
 				..Default::default()
 			})
 			.await

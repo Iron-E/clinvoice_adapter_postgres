@@ -19,8 +19,7 @@ impl ExpensesAdapter for PgExpenses
 	async fn create<'connection, Conn>(
 		connection: Conn,
 		expenses: Vec<(String, Money, String)>,
-		timesheet_id: Id,
-		timesheet_time_begin: DateTime<Utc>,
+		(timesheet_id, timesheet_time_begin): (Id, DateTime<Utc>),
 	) -> Result<Vec<Expense>>
 	where
 		Conn: Executor<'connection, Database = Postgres>,

@@ -41,7 +41,7 @@ impl TimesheetAdapter for PgTimesheet
 		.execute(&mut *connection)
 		.await?;
 
-		let expenses_db = PgExpenses::create(connection, expenses, id, time_begin).await?;
+		let expenses_db = PgExpenses::create(connection, expenses, (id, time_begin)).await?;
 
 		Ok(Timesheet { id, employee, expenses: expenses_db, job, time_begin, time_end, work_notes }.pg_sanitize())
 	}
