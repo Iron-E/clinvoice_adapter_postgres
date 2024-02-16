@@ -1,0 +1,298 @@
+{
+  "db": "PostgreSQL",
+  "12924057cff929cf6fb0c07df9a21979fbab0859e3528785df16bc4310aa08f4": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO contact_information (address_id, email, label, other, phone)\n\t\t\tVALUES ($1, $2, $3, $4, $5);"
+  },
+  "18b2e79996337e6736d51adaa111320d833100f501d5911abc7fe9eb88d30fd7": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS organizations\n\t\t(\n\t\t\tid uuid NOT NULL PRIMARY KEY,\n\t\t\tlocation_id uuid NOT NULL REFERENCES locations(id),\n\t\t\tname text NOT NULL\n\t\t);"
+  },
+  "1c9c57bb12c8e921b1a6e0ac0c0fc8edfc43b97d7bb23206c03acefa8bbbf668": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS departments\n\t\t(\n\t\t\tid uuid NOT NULL PRIMARY KEY,\n\t\t\tname text NOT NULL UNIQUE\n\t\t);"
+  },
+  "2021c60878f340e21e0c172d113c1909701fa025f60c8ec21e3de9b9b3fdab5d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Uuid",
+          "Timestamp",
+          "Timestamp",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO timesheets\n\t\t\t\t(id, employee_id, job_id, time_begin, time_end, work_notes)\n\t\t\tVALUES\n\t\t\t\t($1, $2,          $3,     $4,         $5,       $6);"
+  },
+  "385cc7cc2520c1ae7f94a7c06016994b4aa2ccefb1ac9b8b1dfaff6ca78f6d68": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "UuidArray"
+        ]
+      }
+    },
+    "query": "SELECT L.id\n\t\t\tFROM contact_information C\n\t\t\tJOIN locations L on (L.id = C.address_id)\n\t\t\tWHERE L.id = ANY($1);"
+  },
+  "3e673563f1660f84e9ca2f316290e2fdbb8419d4a9de60482e272e2f5bd9f7cf": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "INSERT INTO locations (id, currency, name, outer_id) VALUES ($1, $2, $3, $4);"
+  },
+  "4481e318e0e177f5bd91e2514c8ec39c3a2338e22fa47dc9452e4634bde403fb": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO organizations (id, location_id, name) VALUES ($1, $2, $3);"
+  },
+  "5a3dd665d03bfaeadd65f4b218b9c43e732fc7f176df49aeb7d47204cc6ab5b9": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS expenses\n\t\t(\n\t\t\tid uuid NOT NULL PRIMARY KEY,\n\t\t\ttimesheet_id uuid NOT NULL REFERENCES timesheets(id) ON DELETE CASCADE,\n\t\t\tcategory text NOT NULL,\n\t\t\tcost money_in_eur NOT NULL,\n\t\t\tdescription text NOT NULL\n\t\t);"
+  },
+  "6ba3463e45cd6160b40fa53860c590ae0f8bd0d9b52a1b25292d92d07e7fbbaf": {
+    "describe": {
+      "columns": [
+        {
+          "name": "currency",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "outer_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "order",
+          "ordinal": 4,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "WITH RECURSIVE location_view AS\n\t\t\t(\n\t\t\t\tSELECT currency, id, name, outer_id, 0 as \"order\" FROM locations WHERE id = $1\n\t\t\t\tUNION\n\t\t\t\tSELECT L.currency, L.id, L.name, L.outer_id, V.\"order\" + 1 FROM locations L JOIN location_view V ON (L.id = V.outer_id)\n\t\t\t) SELECT * FROM location_view ORDER BY \"order\" DESC;"
+  },
+  "72b88c8976d781df81abf91cd4d3fc6ebdf43da6399068c2a8dba8e562cc66fe": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS contact_information\n\t\t(\n\t\t\tlabel text NOT NULL PRIMARY KEY,\n\n\t\t\taddress_id uuid REFERENCES locations(id),\n\t\t\temail text CHECK (email ~ '^.*@.*\\..*$'),\n\t\t\tother text,\n\t\t\tphone text CHECK (phone ~ '^[0-9\\- ]+$'),\n\n\t\t\tCONSTRAINT contact_information__is_variant CHECK\n\t\t\t(\n\t\t\t\t( -- ContactKind::Address\n\t\t\t\t\taddress_id IS NOT null AND\n\t\t\t\t\temail IS null AND\n\t\t\t\t\tother IS null AND\n\t\t\t\t\tphone IS null\n\t\t\t\t)\n\t\t\t\tOR\n\t\t\t\t( -- ContactKind::Email\n\t\t\t\t\taddress_id IS null AND\n\t\t\t\t\temail IS NOT null AND\n\t\t\t\t\tother IS null AND\n\t\t\t\t\tphone IS null\n\t\t\t\t)\n\t\t\t\tOR\n\t\t\t\t( -- ContactKind::Other\n\t\t\t\t\taddress_id IS null AND\n\t\t\t\t\temail IS null AND\n\t\t\t\t\tother IS NOT null AND\n\t\t\t\t\tphone IS null\n\t\t\t\t)\n\t\t\t\tOR\n\t\t\t\t( -- ContactKind::Phone\n\t\t\t\t\taddress_id IS null AND\n\t\t\t\t\temail IS null AND\n\t\t\t\t\tother IS null AND\n\t\t\t\t\tphone IS NOT null\n\t\t\t\t)\n\t\t\t)\n\t\t);"
+  },
+  "74187b9b66f626e0a439d849672508dde4eaa998d413c3f64c66dfb361a152f6": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "DELETE FROM job_departments WHERE job_id = $1"
+  },
+  "9967ee6a961f5ef8bf9f923fd44f5ac77d5dc034574ba71b5a82099372903f3a": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS locations\n\t\t(\n\t\t\tcurrency text,\n\t\t\tid uuid NOT NULL PRIMARY KEY,\n\t\t\touter_id uuid REFERENCES locations(id),\n\t\t\tname text NOT NULL,\n\n\t\t\tCONSTRAINT locations__not_outside_self CHECK (id <> outer_id)\n\t\t);"
+  },
+  "a17161d70e0128298123a9bf75c86ac96c1c15eadeb2ed8f5640bdbf22ba3302": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO departments (id, name) VALUES ($1, $2);"
+  },
+  "a1c7a344d9833f8b2f2849f088707542c537043d6c4394ca2729b1782207ee30": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Bool",
+          "Uuid",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO employees (id, active, department_id, name, title) VALUES ($1, $2, $3, $4, $5);"
+  },
+  "aaed2bfd394a76853c3284b55c324b5f670cba5f5b6b0c7c8f423a66ae8ecccf": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS job_departments\n\t\t(\n\t\t\tdepartment_id uuid REFERENCES departments(id) ON DELETE CASCADE,\n\t\t\tjob_id uuid REFERENCES jobs(id) ON DELETE CASCADE,\n\t\t\tPRIMARY KEY (department_id, job_id)\n\t\t);"
+  },
+  "b4431c05cf6cebcab5e19abd24802996c20b09bbc6a7fd2aca7ed47df621d262": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Timestamp",
+          "Timestamp",
+          "Interval",
+          "Timestamp",
+          "Timestamp",
+          {
+            "Custom": {
+              "kind": {
+                "Domain": "Text"
+              },
+              "name": "money_in_eur"
+            }
+          },
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO jobs\n\t\t\t\t(id, client_id, date_close, date_open, increment, invoice_date_issued, invoice_date_paid, invoice_hourly_rate, notes, objectives)\n\t\t\tVALUES\n\t\t\t\t($1, $2,        $3,         $4,        $5,        $6,                  $7,                $8,                  $9,    $10);"
+  },
+  "dad06decc0b8b63e73670340a69c9ce9c6d7533bec75875e543c04a5d498910b": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS timesheets\n\t\t(\n\t\t\tid uuid NOT NULL PRIMARY KEY,\n\t\t\temployee_id uuid NOT NULL REFERENCES employees(id),\n\t\t\tjob_id uuid NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,\n\t\t\ttime_begin timestamp NOT NULL,\n\t\t\ttime_end timestamp,\n\t\t\twork_notes text NOT NULL,\n\n\t\t\tCONSTRAINT timesheets__date_integrity CHECK (time_begin < time_end),\n\t\t\tCONSTRAINT timesheets__employee_job_time_uq UNIQUE (employee_id, job_id, time_begin)\n\t\t);"
+  },
+  "e08bd3e1a543cd62c666b87f0b84aa9a9c37a1c8c986f86c324ad2d16cf63875": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "DO $$\n\t\tBEGIN\n\t\t\tIF NOT EXISTS (SELECT FROM pg_type WHERE typname = 'money_in_eur') THEN\n\t\t\t\tCREATE DOMAIN money_in_eur AS text CHECK (VALUE ~ '^\\d+(\\.\\d+)?$');\n\t\t\tEND IF;\n\t\tEND$$;"
+  },
+  "fc8fed80f9ba84653a8b280123e17c5ddfb6c931303e80db75570bdc372795e5": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS jobs\n\t\t(\n\t\t\tid uuid NOT NULL PRIMARY KEY,\n\t\t\tclient_id uuid NOT NULL REFERENCES organizations(id),\n\t\t\tdate_close timestamp,\n\t\t\tdate_open timestamp NOT NULL,\n\t\t\tincrement interval NOT NULL,\n\t\t\tinvoice_date_issued timestamp,\n\t\t\tinvoice_date_paid timestamp,\n\t\t\tinvoice_hourly_rate money_in_eur NOT NULL,\n\t\t\tnotes text NOT NULL,\n\t\t\tobjectives text NOT NULL,\n\n\t\t\tCONSTRAINT jobs__date_integrity CHECK\n\t\t\t(\n\t\t\t\t(date_close IS null OR date_close > date_open) AND\n\t\t\t\t(invoice_date_issued IS null OR (date_close IS NOT null AND invoice_date_issued > date_close)) AND\n\t\t\t\t(invoice_date_paid IS null OR\n\t\t\t\t\t(invoice_date_issued IS NOT null AND invoice_date_paid > invoice_date_issued))\n\t\t\t)\n\t\t);"
+  },
+  "fd414993cd1d5b55a812d4fe7603db051fbf64e56df5272a4612f9dc36d69903": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "CREATE TABLE IF NOT EXISTS employees\n\t\t(\n\t\t\tactive boolean NOT NULL,\n\t\t\tdepartment_id uuid NOT NULL REFERENCES departments(id),\n\t\t\tid uuid NOT NULL PRIMARY KEY,\n\t\t\tname text NOT NULL,\n\t\t\ttitle text NOT NULL\n\t\t);"
+  }
+}
