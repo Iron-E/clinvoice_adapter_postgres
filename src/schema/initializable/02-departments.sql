@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS departments
+(
+	id uuid NOT NULL PRIMARY KEY,
+	name text NOT NULL UNIQUE
+);
