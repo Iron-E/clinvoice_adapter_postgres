@@ -1,0 +1,31 @@
+{
+	"compilerOptions": {
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"target": "esnext",
+		"lib": ["esnext"],
+
+		"rootDirs": ["./ci"],
+		"paths": { "@/*": ["./ci/*"] },
+
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"composite": true,
+		"declaration": true,
+		"esModuleInterop": true,
+		"exactOptionalPropertyTypes": false,
+		"importHelpers": true,
+		"newLine": "lf",
+		"noEmitOnError": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noUncheckedIndexedAccess": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"resolveJsonModule": true,
+		"strict": true
+	},
+	"exclude": ["node_modules"],
+	"include": ["ci/**/*"]
+}

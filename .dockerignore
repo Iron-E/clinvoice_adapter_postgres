@@ -1,0 +1,39 @@
+# Include any files or directories that you don't want to be copied to your
+# container here (e.g., local build artifacts, temporary files, etc.).
+#
+# For more help, visit the .dockerignore file reference guide at
+# https://docs.docker.com/go/build-context-dockerignore/
+
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+**/*.rs.bk
+**/.classpath
+**/.dockerignore
+**/.DS_Store
+**/.env
+**/.git
+**/.gitignore
+**/.project
+**/.settings
+**/.toolstarget
+**/.vs
+**/.vscode
+**/charts
+**/compose*
+**/docker-compose*
+**/Dockerfile*
+**/node_modules
+**/npm-debug.log
+**/secrets.dev.yaml
+**/values.dev.yaml
+*.vim
+/bin
+/target
+cert.pem
+config/*
+key.pem
+LICENSE
+model.conf
+policy.csv
+README.md

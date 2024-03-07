@@ -1,0 +1,17 @@
+{
+	"dependencies": {
+		"tsx": "^4.7.1"
+	},
+	"devDependencies": {
+		"@dagger.io/dagger": "^0.9.11",
+		"@iron-e/scabbard": "github:Iron-E/scabbard"
+	},
+	"engines": {
+		"node": ">=21"
+	},
+	"files": [
+		"ci/"
+	],
+	"main": "ci/index.ts",
+	"type": "module"
+}
